@@ -2,8 +2,8 @@ section,page,name_en,name_vi,bmad_gap,crm_priority,bmad_phase,cached
 10.1,217,Acceptance and Evaluation Criteria,Tiêu chí chấp nhận và đánh giá,covered,high,spec,no
 10.2,220,Backlog Management,Quản lý backlog,,high,sprint-planning,no
 10.3,223,Balanced Scorecard,Thẻ điểm cân bằng,,low,brief,no
-10.4,226,Benchmarking and Market Analysis,Đối sánh và phân tích thị trường,,medium,brief,no
-10.5,227,Brainstorming,Động não,covered,medium,brief,no
+10.4,226,Benchmarking and Market Analysis,Đối sánh và phân tích thị trường,,medium,brief,yes
+10.5,227,Brainstorming,Động não,covered,medium,brief,yes
 10.6,230,Business Capability Analysis,Phân tích năng lực nghiệp vụ,,low,brief,no
 10.7,234,Business Cases,Luận chứng kinh doanh,,medium,brief,no
 10.8,236,Business Model Canvas,Khung mô hình kinh doanh,,medium,brief,no
@@ -14,7 +14,7 @@ section,page,name_en,name_vi,bmad_gap,crm_priority,bmad_phase,cached
 10.13,250,Data Flow Diagrams,Sơ đồ luồng dữ liệu,,medium,architecture,no
 10.14,253,Data Mining,Khai thác dữ liệu,,low,brief,no
 10.15,256,Data Modelling,Mô hình hóa dữ liệu,covered,high,architecture,yes
-10.16,261,Decision Analysis,Phân tích quyết định,,medium,architecture,no
+10.16,261,Decision Analysis,Phân tích quyết định,,medium,architecture,yes
 10.17,265,Decision Modelling,Mô hình hóa quyết định,,medium,spec,no
 10.18,269,Document Analysis,Phân tích tài liệu,absent,high,brief,no
 10.19,271,Estimation,Ước lượng,,medium,sprint-planning,no
@@ -31,7 +31,7 @@ section,page,name_en,name_vi,bmad_gap,crm_priority,bmad_phase,cached
 10.30,302,Non-Functional Requirements Analysis,Phân tích yêu cầu phi chức năng,thin,high,prd,yes
 10.31,305,Observation,Quan sát,unmeasurable,low,brief,no
 10.32,308,Organizational Modelling,Mô hình hóa tổ chức,,low,brief,no
-10.33,311,Prioritization,Ưu tiên hóa,covered,high,prd,no
+10.33,311,Prioritization,Ưu tiên hóa,covered,high,prd,yes
 10.34,314,Process Analysis,Phân tích quy trình,,medium,prd,no
 10.35,318,Process Modelling,Mô hình hóa quy trình,absent,high,prd,yes
 10.36,323,Prototyping,Tạo mẫu thử,,medium,ux,no
@@ -47,5 +47,5 @@ section,page,name_en,name_vi,bmad_gap,crm_priority,bmad_phase,cached
 10.46,353,SWOT Analysis,Phân tích SWOT,,medium,brief,no
 10.47,356,Use Cases and Scenarios,Use case và tình huống,,medium,spec,no
 10.48,359,User Stories,User story,covered,high,epics-stories,no
-10.49,361,Vendor Assessment,Đánh giá nhà cung cấp,,low,architecture,no
-10.50,363,Workshops,Hội thảo,absent,medium,brief,no
+10.49,361,Vendor Assessment,Đánh giá nhà cung cấp,,low,architecture,yes
+10.50,363,Workshops,Hội thảo,absent,medium,brief,yes
