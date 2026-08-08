@@ -35,7 +35,7 @@ insufficiently rich... resulting business rules will be inaccurate or contradict
 trình có xu hướng kể cái **nên là** thay vì cái **đang là**.
 
 **NFR phải có ngưỡng số.** Khuôn nguyên văn trong `10.30.2`: *"transactions must be at least X%
-processed after S seconds"*. Dùng **15 category** của `10.30.3` làm checklist rà soát:
+processed after S seconds"*. Dùng **15 category** của `10.30.3.1` làm checklist rà soát:
 Availability · Compatibility · Functionality · Maintainability · Performance Efficiency ·
 Portability · Reliability · Scalability · Security · Usability · Certification · Compliance ·
 Localization · SLA · Extensibility.

@@ -93,7 +93,7 @@ là chủ ý. Nên bù ở đây là **cardinality + thuộc tính + ba tầng**
 **Bù:**
 - **Data Modelling `10.15`** + Data Dictionary `10.12` — entity, quan hệ, ràng buộc field.
 - **Interface Analysis `10.24`** ✅ đã cache — mỗi interface đặc tả **5 thuộc tính** theo
-  `10.24.3`: name · coverage/span · exchange method · message format · exchange frequency.
+  `10.24.3.3`: name · coverage/span · exchange method · message format · exchange frequency.
 - Sequence Diagrams `10.42` cho luồng phức tạp; Data Flow Diagrams `10.13`.
 
 **Giao lại:** ER + data dictionary + bảng interface 5 cột.

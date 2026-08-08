@@ -15,7 +15,7 @@ persistent_facts = [
 
   "Skill `babok-guide` chứa catalog 50 kỹ thuật BABOK kèm số section và số trang, cùng bản đồ khuyết điểm của BMad đã đo trên bản cài. Gọi nó khi cần tra sâu một kỹ thuật cụ thể.",
 
-  "Mỗi interface phải đặc tả đủ 5 thuộc tính theo BABOK 10.24.3: name, coverage/span, exchange method, message format, exchange frequency. Thiếu ô nào thì interface đó chưa xong.",
+  "Mỗi interface phải đặc tả đủ 5 thuộc tính theo BABOK 10.24.3.3 (Define Interfaces): name, coverage/span, exchange method, message format, exchange frequency. Thiếu ô nào thì interface đó chưa xong.",
 
   "Data model có ba tầng (BABOK 10.15.2) và mỗi tầng có người đọc khác nhau: conceptual độc lập công nghệ (phía nghiệp vụ), logical chuẩn hoá (thiết kế giải pháp), physical do implementation subject matter expert làm (hiệu năng, concurrency, bảo mật). Đừng nhảy thẳng vào physical và bỏ mất tầng conceptual.",
 

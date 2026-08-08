@@ -25,6 +25,7 @@ Exit code 0 = moi thu khop. 1 = co canh bao can xu ly.
 import argparse
 import csv
 import datetime
+import difflib
 import json
 import os
 import re
@@ -207,9 +208,129 @@ def check_workflow_names(project_root, problems):
         problems.append(f"workflow.md dung skill khong ton tai: {sorted(bad_skills)}")
 
 
+
+def check_source_vs_installed(project_root, problems):
+    """So tung cap file nguon <-> ban cai.
+
+    VI SAO CAN: `check_overrides` chi DEM so fact. Neu ban cai la phien ban cu cua cung file
+    nguon — cung so fact nhung noi dung khac — no van bao [OK]. Day la drift nguy hiem nhat:
+    nguon dung, ban cai sai, khong co gi bao. Diff bat duoc ngay.
+    """
+    src_dir = CUSTOM_DIR
+    dst_dir = os.path.join(project_root, "_bmad", "custom")
+    if not os.path.isdir(dst_dir):
+        problems.append("khong tim thay _bmad/custom/ — da chay `npx bmad-method install` chua?")
+        return
+    names = sorted(f for f in os.listdir(src_dir)
+                   if f.startswith("bmad-") and f.endswith(".toml"))
+    for n in names:
+        src, dst = os.path.join(src_dir, n), os.path.join(dst_dir, n)
+        if n == "bmad-advanced-elicitation.toml":
+            continue  # khong cai qua _bmad/custom, xem check_methods
+        if not os.path.exists(dst):
+            print(f"  [THIEU]  {n}: co o nguon, CHUA cai vao _bmad/custom/")
+            problems.append(f"{n}: chua copy vao _bmad/custom/ — chay lenh cai o README")
+            continue
+        a = open(src, encoding="utf-8").read()
+        b = open(dst, encoding="utf-8").read()
+        if a == b:
+            print(f"  [OK]     {n}: khop nguon")
+        else:
+            d = list(difflib.unified_diff(a.splitlines(), b.splitlines(),
+                                          "nguon", "ban cai", lineterm="", n=0))
+            n_add = sum(1 for x in d if x.startswith("+") and not x.startswith("+++"))
+            n_del = sum(1 for x in d if x.startswith("-") and not x.startswith("---"))
+            print(f"  [LECH]   {n}: ban cai khac nguon (+{n_add}/-{n_del} dong)")
+            for line in d[2:8]:
+                print(f"           {line[:96]}")
+            problems.append(f"{n}: ban cai LECH nguon — copy lai tu references/bmad-custom/")
+
+
+def _build_babok_index(txt_path):
+    """Dung tap section hop le tu van ban BABOK.
+
+    BABOK viet cap 2-3 nguyen dang (`10.9`, `10.9.4` co tab theo sau) nhung cap 4 thi KHONG:
+    no la `.1	Strengths` nam ngay duoi tieu de cap 3. Nen phai ghep cha + `.N`.
+    """
+    s = open(txt_path, encoding="utf-8", errors="ignore").read()
+    valid = set()
+    heads = []  # (vi tri, so hieu)
+    for m in re.finditer(r"(?m)^(\d{1,2}\.\d{1,2}(?:\.\d{1,2})?)	", s):
+        valid.add(m.group(1))
+        heads.append((m.start(), m.group(1)))
+        parts = m.group(1).split(".")
+        if len(parts) == 3:
+            valid.add(f"{parts[0]}.{parts[1]}")
+    heads.sort()
+    for i, (pos, sec) in enumerate(heads):
+        if sec.count(".") != 2:
+            continue
+        end = heads[i + 1][0] if i + 1 < len(heads) else len(s)
+        for sm in re.finditer(r"(?m)^\s*\.(\d{1,2})	", s[pos:end]):
+            valid.add(f"{sec}.{sm.group(1)}")
+    return valid
+
+
+def check_citations(project_root, problems, txt_path=None):
+    """Doi chieu moi so hieu section trong tai lieu skill vao van ban BABOK.
+
+    GIOI HAN: chi bat duoc LECH CAP hoac SECTION KHONG TON TAI. KHONG bat duoc hai loai
+    con lai vi chung can doc hieu:
+      - sai ngu nghia: section co that nhung noi dung dan khong dung y muc do
+      - gan nham nguon: trich nguyen van dung nhung gan cho section khac
+    Hai loai do phai doi chieu bang mat, xem QUERY-TEMPLATE.md o kho ban ghi.
+    """
+    if not txt_path:
+        for c in [os.path.join(project_root, "BABOK_Guide_v3_Member.txt"),
+                  os.environ.get("BABOK_TXT", "")]:
+            if c and os.path.exists(c):
+                txt_path = c
+                break
+    if not txt_path or not os.path.exists(txt_path):
+        print("  [BO QUA] khong tim thay BABOK_Guide_v3_Member.txt")
+        print("           File co ban quyen nen KHONG nam trong repo. Ai co ban rieng thi chay:")
+        print("           --babok-txt <duong-dan>  hoac dat bien moi truong BABOK_TXT")
+        return
+
+    valid = _build_babok_index(txt_path)
+    print(f"  chi muc: {len(valid)} section hop le tu {os.path.basename(txt_path)}")
+
+    files = []
+    for root, _d, names in os.walk(SKILL_ROOT):
+        for n in names:
+            if n.endswith((".md", ".toml", ".csv")):
+                files.append(os.path.join(root, n))
+
+    bad, checked = [], 0
+    for f in files:
+        for i, line in enumerate(open(f, encoding="utf-8", errors="ignore"), 1):
+            # bo dong noi ve phien ban BMad, khong phai trich dan BABOK
+            if re.search(r"BMad|version|v6\.|phien ban", line, re.I):
+                continue
+            for m in re.finditer(r"(?<![\w.])(\d{1,2}\.\d{1,2}(?:\.\d{1,2}){0,2})(?![\w.])", line):
+                sec = m.group(1)
+                if not (1 <= int(sec.split(".")[0]) <= 11):
+                    continue  # BABOK chi co chuong 1-11
+                checked += 1
+                if sec not in valid:
+                    bad.append((os.path.relpath(f, SKILL_ROOT).replace("\\", "/"), i, sec))
+
+    if not bad:
+        print(f"  [OK] {checked} trich dan, tat ca ton tai trong van ban")
+        return
+    print(f"  [LECH] {len(bad)}/{checked} trich dan KHONG tim thay trong van ban:")
+    seen = set()
+    for f, i, sec in bad:
+        if (f, sec) in seen:
+            continue
+        seen.add((f, sec))
+        print(f"         {sec:12} {f}:{i}")
+    problems.append(f"{len(seen)} trich dan section khong ton tai trong BABOK")
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--project-root", default=os.getcwd())
+    ap.add_argument("--babok-txt", help="duong dan BABOK_Guide_v3_Member.txt de kiem trich dan")
     ap.add_argument("--update-baseline", action="store_true")
     ap.add_argument("--update-csv", action="store_true")
     a = ap.parse_args()
@@ -222,10 +343,16 @@ def main():
     print("\n== 2. Override persistent_facts ==")
     check_overrides(root, problems)
 
-    print("\n== 3. Ten skill / ma lenh trong workflow.md ==")
+    print("\n== 3. Nguon vs ban cai — diff tung cap file ==")
+    check_source_vs_installed(root, problems)
+
+    print("\n== 4. Ten skill / ma lenh trong workflow.md ==")
     check_workflow_names(root, problems)
 
-    print("\n== 4. Gap profile (do tren ban cai, loai noi dung tu chen) ==")
+    print("\n== 5. Trich dan section BABOK ==")
+    check_citations(root, problems, a.babok_txt)
+
+    print("\n== 6. Gap profile (do tren ban cai, loai noi dung tu chen) ==")
     prof, nfiles, broad = measure(root)
     print(f"  quet {nfiles} file trong .claude/skills/ (tru babok-guide va methods.csv)")
     for b in broad:

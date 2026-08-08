@@ -14,9 +14,13 @@ persistent_facts = [
 
   "Skill `babok-guide` chứa catalog 50 kỹ thuật BABOK kèm số section và số trang, cùng bản đồ khuyết điểm của BMad đã đo trên bản cài. Gọi nó khi cần tra sâu một kỹ thuật cụ thể.",
 
-  "Mỗi business rule phải gắn MỘT trong bốn mức thực thi của BABOK 10.9.3: allow no violations (strictly enforced) / override by authorized actor / override with explanation / no active enforcement. Mức được chọn quyết định luật sống ở đâu trong hệ thống — DB constraint, service layer kèm kiểm quyền và audit log, hay chỉ cảnh báo UI. Chọn nhầm mức thì phải sửa schema về sau.",
+  "PHÂN LOẠI LUẬT TRƯỚC KHI GẮN MỨC THỰC THI. BABOK 10.9.3 chia business rule làm hai loại và chúng KHÔNG dùng chung cơ chế: (a) Definitional rule (10.9.3.1) shape khái niệm — 'cannot be violated but they can be misapplied'. Loại này KHÔNG có mức thực thi; nó là định nghĩa hoặc phép tính, cài như một hàm dẫn xuất, không phải như một chốt chặn. Ví dụ CRM: 'khách được coi là Ưu tiên nếu đặt hơn 10 đơn/tháng'. (b) Behavioural rule (10.9.3.2) ràng buộc hành vi người — luôn có thể bị vi phạm.",
 
-  "State model (BABOK 10.44) phải liệt kê các transition ĐƯỢC PHÉP kèm điều kiện canh, không chỉ liệt kê danh sách trạng thái. Thiếu phần này thì pipeline cho phép deal nhảy stage vô lý.",
+  "CHỈ behavioural rule mới gắn mức thực thi. BABOK 10.9.3.2 liệt kê bốn mức: allow no violations (strictly enforced) / override by authorized actor / override with explanation / no active enforcement. Mức được chọn quyết định luật sống ở đâu — DB constraint, service layer kèm kiểm quyền và audit log, hay chỉ cảnh báo UI. Chọn nhầm mức thì phải sửa schema về sau. Bắt một definitional rule phải chọn mức là lỗi phân loại, không phải lỗi thiết kế.",
+
+  "State model (BABOK 10.44.3.2) phải liệt kê các transition ĐƯỢC PHÉP kèm điều kiện canh, không chỉ liệt kê danh sách trạng thái. Mỗi transition mô tả bằng ba phần: event gây ra nó, condition quyết định có đáp lại event hay không, và action đi kèm. Thiếu phần này thì pipeline cho phép deal nhảy stage vô lý.",
+
+  "ĐỪNG GIẢ ĐỊNH VÒNG ĐỜI TUYẾN TÍNH. BABOK 10.44.3.2 nói rõ chuỗi trạng thái 'are not always linear' — thực thể có thể nhảy vượt nhiều trạng thái hoặc quay lui về trạng thái trước, và quay lui nhiều lần. Với CRM, phải hỏi thẳng Domain SME: deal có bao giờ tụt ngược stage không, và deal đã đóng có mở lại được không. Cài chặn tuyến tính rồi mới phát hiện nghiệp vụ cho quay lui là phải sửa cả ma trận transition lẫn dữ liệu đã có.",
 
   "Roles matrix (BABOK 10.39) cần hỏi hai người, hai câu khác nhau: 'ai ĐƯỢC thấy gì' là quyết định của sponsor (2.4.9 — sponsor kiểm soát phạm vi), 'ai CẦN thấy gì' là dữ kiện của domain SME. Hỏi một người thì thiếu một nửa.",
 

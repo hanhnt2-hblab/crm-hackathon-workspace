@@ -10,3 +10,7 @@ BABOK_Guide_v3_Member.txt
 
 # File khoá của WPS Office
 ~$*
+
+# Python bytecode
+__pycache__/
+*.pyc
