@@ -18,7 +18,7 @@ và thao tác thật) · **Implementation SME + Tester** (thực thi và kiểm)
       ```
       python .claude/skills/babok-guide/scripts/check-install.py
       ```
-      Đạt khi báo `Moi thu khop voi ban cai` và 4/4 mục `[OK]`
+      Đạt khi báo `Moi thu khop voi ban cai` — 7 mục kiểm, không mục nào báo lỗi
 - [ ] Xác minh skill nạp được — gõ `/` xem có `babok-guide` trong danh sách
 
 BMad và bản vá đã nằm sẵn trong repo, **không cần chạy `npx bmad-method install`**.

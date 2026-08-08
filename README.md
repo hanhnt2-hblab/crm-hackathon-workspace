@@ -17,7 +17,7 @@ git config core.hooksPath .githooks                              # tự đồng 
 python .claude/skills/babok-guide/scripts/check-install.py       # xác minh môi trường
 ```
 
-Đạt khi báo `Moi thu khop voi ban cai` và 4/4 mục `[OK]`.
+Đạt khi báo `Moi thu khop voi ban cai` — 7 mục kiểm, không mục nào báo lỗi.
 
 Yêu cầu: Node ≥ 20.12 · Python ≥ 3.10 · [`uv`](https://docs.astral.sh/uv/)
 
