@@ -1,0 +1,33 @@
+# Override cho bmad-architecture — nạp babok-guide và các ràng buộc BABOK cho bước CA.
+#
+# CÀI: copy cả thư mục này vào {project-root}/_bmad/custom/ sau khi chạy `npx bmad-method install`.
+#
+# `persistent_facts` là APPEND-MERGE, nên dòng mặc định
+# "file:{project-root}/**/project-context.md" vẫn được giữ.
+#
+# Bù gap đã đo: `entity relationship / ER diagram` = 0 file, `sequence diagram` = 0 file,
+# `data model` = 6 file (được nhắc, không có artifact).
+
+[workflow]
+
+persistent_facts = [
+  # `file:` la tien to DUY NHAT duoc SKILL.md cua BMad bao dam nap
+  # (bmad-prd SKILL.md: "entries prefixed `file:` are loaded").
+  # Tien to `skill:` co trong comment cua customize.toml nhung khong co chi dan nap
+  # trong SKILL.md, nen khong dung mot minh.
+  "file:{project-root}/.claude/skills/babok-guide/references/workflow.md",
+
+  "Skill `babok-guide` chua catalog 50 ky thuat BABOK kem so section va so trang, cung ban do khuyet diem cua BMad. Goi no khi can tra sau mot ky thuat cu the.",
+
+  "Mỗi interface phải đặc tả đủ 5 thuộc tính theo BABOK 10.24.3: name, coverage/span, exchange method, message format, exchange frequency. Thiếu ô nào thì interface đó chưa xong.",
+
+  "Data model có ba tầng (BABOK 10.15.2) và mỗi tầng có người đọc khác nhau: conceptual độc lập công nghệ (phía nghiệp vụ), logical chuẩn hoá (thiết kế giải pháp), physical do implementation subject matter expert làm (hiệu năng, concurrency, bảo mật). Đừng nhảy thẳng vào physical và bỏ mất tầng conceptual.",
+
+  "Data dictionary rút TỪ ERD chứ không làm song song — BABOK 10.12.2: 'often used in conjunction with an entity relationship diagram... may be extracted from a data model'. Cột Values/Meanings phải khớp đúng enum của state model.",
+
+  "Chỉ vẽ sequence diagram cho kịch bản có nhiều bên tham gia hoặc có nhánh lỗi đáng lo. BABOK 10.42.4.2 cảnh báo vẽ đủ bộ cho mọi use case là lãng phí. Với CRM thường chỉ cần ba: chuyển stage kèm duyệt, import dữ liệu, tích hợp ngoài.",
+
+  "Business rule không được nhét vào giữa luồng xử lý. BABOK 10.35.4.2 và 10.9.2 cùng đòi tách luật khỏi quy trình — 10.35.4.2 nói mô hình trở nên rối không đọc nổi chính vì điều này.",
+
+  "Sequence diagram cho thấy các đối tượng tương tác nhưng KHÔNG cho thấy quan hệ giữa chúng (BABOK 10.42.2). Quan hệ tĩnh là việc của data model. Hai thứ bù nhau, không thay nhau.",
+]

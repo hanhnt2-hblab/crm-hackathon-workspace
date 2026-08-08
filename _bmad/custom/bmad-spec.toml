@@ -1,0 +1,32 @@
+# Override cho bmad-spec — nạp babok-guide và các ràng buộc BABOK cho bước SPC.
+#
+# CÀI: copy cả thư mục này vào {project-root}/_bmad/custom/ sau khi chạy `npx bmad-method install`.
+#
+# `persistent_facts` là APPEND-MERGE, nên các dòng mặc định vẫn được giữ.
+#
+# Bù gap đã đo — đây là bước BMad khuyết nặng nhất: `business rule` = 1 file (chỉ trong một bước
+# validate prerequisite), `state model` = 1 file (chỉ trong v6-shims), `roles matrix` = 0 file.
+
+[workflow]
+
+persistent_facts = [
+  # `file:` la tien to DUY NHAT duoc SKILL.md cua BMad bao dam nap
+  # (bmad-prd SKILL.md: "entries prefixed `file:` are loaded").
+  # Tien to `skill:` co trong comment cua customize.toml nhung khong co chi dan nap
+  # trong SKILL.md, nen khong dung mot minh.
+  "file:{project-root}/.claude/skills/babok-guide/references/workflow.md",
+
+  "Skill `babok-guide` chua catalog 50 ky thuat BABOK kem so section va so trang, cung ban do khuyet diem cua BMad. Goi no khi can tra sau mot ky thuat cu the.",
+
+  "Mỗi business rule phải gắn MỘT trong bốn mức thực thi của BABOK 10.9.3: allow no violations (strictly enforced) / override by authorized actor / override with explanation / no active enforcement. Mức được chọn quyết định luật sống ở đâu trong hệ thống — DB constraint, service layer kèm kiểm quyền và audit log, hay chỉ cảnh báo UI. Chọn nhầm mức thì phải sửa schema về sau.",
+
+  "State model (BABOK 10.44) phải liệt kê các transition ĐƯỢC PHÉP kèm điều kiện canh, không chỉ liệt kê danh sách trạng thái. Thiếu phần này thì pipeline cho phép deal nhảy stage vô lý.",
+
+  "Roles matrix (BABOK 10.39) cần hỏi hai người, hai câu khác nhau: 'ai ĐƯỢC thấy gì' là quyết định của sponsor (2.4.9 — sponsor kiểm soát phạm vi), 'ai CẦN thấy gì' là dữ kiện của domain SME. Hỏi một người thì thiếu một nửa.",
+
+  "Đừng bỏ sót Delegation và Inheritance (BABOK 10.39.3.4): uỷ quyền tạm thời khi người có thẩm quyền vắng mặt, và việc cấp trên thấy dữ liệu của cấp dưới tới mấy tầng. Cả hai là YÊU CẦU DỮ LIỆU, không phải UI — phát hiện muộn thì phải migrate schema.",
+
+  "Chức danh không phải role. BABOK 10.39.3.1: cùng job title có thể khác role, khác job title có thể cùng role. Đừng lấy sơ đồ tổ chức làm ma trận quyền.",
+
+  "Business rule phải practicable — BABOK 10.9.2 định nghĩa là 'needing no further interpretation for use by people in the business'. Phép thử rẻ nhất: đọc xong luật mà vẫn phải hỏi lại thì nó chưa phải business rule.",
+]

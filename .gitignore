@@ -1,0 +1,13 @@
+# Artifact BMad sinh ra trong lúc chạy workflow — không phải nguồn
+_bmad-output/
+
+# Tài liệu có bản quyền — "Not for Distribution or Resale"
+BABOK_Guide_v3_Member.pdf
+BABOK_Guide_v3_Member.txt
+[VI] BABOK_Guide_v3_Member*.pdf
+
+# File khoá của WPS Office
+~$*
+
+# Cấu hình cá nhân (BMad tự gitignore *.user.toml trong _bmad/custom/)
+.claude/settings.local.json

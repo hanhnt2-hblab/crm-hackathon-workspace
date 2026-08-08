@@ -1,0 +1,25 @@
+# Override cho bmad-product-brief — buoc CB, BAT BUOC chay truoc PRD
+# (`bmad-prd` co `preceded-by: bmad-product-brief` trong module-help.csv).
+#
+# CAI: cp .claude/skills/babok-guide/references/bmad-custom/bmad-{prd,architecture,spec,product-brief}.toml _bmad/custom/
+#
+# Gap da do tren BAN CAI v6.10.0 (loai methods.csv tu chen):
+#   `document analysis` = absent  ·  ky thuat khai thac nguoi that trong catalog 71 method = 0
+#
+# `persistent_facts` la APPEND-MERGE, dong mac dinh project-context.md van duoc giu.
+
+[workflow]
+
+persistent_facts = [
+  "file:{project-root}/.claude/skills/babok-guide/references/workflow.md",
+
+  "Skill `babok-guide` chua catalog 50 ky thuat BABOK kem so section va so trang, cung ban do khuyet diem cua BMad da do tren ban cai. Goi no khi can tra sau mot ky thuat cu the.",
+
+  "Truoc khi tu nghi ra yeu cau, hay bóc tu tai lieu san co bang Document Analysis (BABOK 10.18): tai lieu CRM doi thu, hop dong, chinh sach, man hinh he thong cu, sach nghiep vu. 10.18 duoc do la `absent` trong BMad. Ket qua con dung de doi chieu cheo voi nhung gi ky thuat khac sinh ra.",
+
+  "Khi co chuyen gia nghiep vu that tham gia phien, khai thac truc tiep thay vi mo phong persona hay chay party-mode. Catalog elicitation cua BMad co 71 method nhung KHONG cai nao la ky thuat khai thac nguoi that — mo phong la phuong an du phong cho stakeholder vang mat, khong phai mac dinh.",
+
+  "Dinh tuyen cau hoi theo vai (BABOK 2.4): pham vi va thu tu cat thuoc Sponsor (2.4.9 — sponsor 'control the budget and scope'); quy trinh, thuat ngu, quy tac thuoc Domain SME (2.4.3); so field va so click thuoc End User (2.4.4 — 'directly interact with the solution'). Mot truong bo phan la Domain SME nhung KHONG tu dong la End User — phai kiem chung.",
+
+  "Neu se co cat scope ve sau, xin Sponsor duyet THU TU CAT ngay tu buoi dau, thay vi xin phep giua luc code. Quyen chot pham vi thuoc Sponsor chu khong thuoc PM (2.4.7 noi PM 'balancing' cac yeu to, khong phai quyet dinh).",
+]
