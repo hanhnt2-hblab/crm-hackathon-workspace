@@ -1,149 +1,178 @@
 # CRM Hackathon Workspace
 
-Bộ công cụ và tài liệu cho hackathon phát triển CRM — deadline **2026-08-15**.
+Bộ công cụ và tài liệu cho hackathon phát triển CRM — tuần chạy **10–16/8/2026**.
 
-Repo này **không chứa mã nguồn sản phẩm CRM**. Nó chứa *cách chúng ta làm việc*: quy trình AI
-hỗ trợ phát triển, tri thức phân tích nghiệp vụ, chiến lược triển khai và phân công vai trò.
+Repo này **không chứa mã nguồn sản phẩm CRM**. Nó chứa *cách chúng ta làm việc*: quy trình phát
+triển có AI hỗ trợ, tri thức phân tích nghiệp vụ, và các tài liệu chuẩn bị.
 
 ---
 
-## Cài
-
-BMad và bản vá đã nằm sẵn trong repo — **không cần chạy `npx bmad-method install`**.
+## Bắt đầu từ đâu
 
 ```bash
 git clone <repo> && cd crm-hackathon-workspace
-git config core.hooksPath .githooks                              # tự đồng bộ sau khi pull
-python .claude/skills/babok-guide/scripts/check-install.py       # xác minh môi trường
+git config core.hooksPath .githooks
+python .claude/skills/babok-guide/scripts/check-install.py
 ```
 
-Đạt khi báo `Moi thu khop voi ban cai` — 7 mục kiểm, không mục nào báo lỗi.
+Đạt khi báo `Moi thu khop voi ban cai`. BMad và bản vá đã nằm sẵn trong repo — không cần chạy
+`npx bmad-method install`.
 
 Yêu cầu: Node ≥ 20.12 · Python ≥ 3.10 · [`uv`](https://docs.astral.sh/uv/)
 
+Đọc theo thứ tự: [`docs/kickoff.md`](docs/kickoff.md) → [`docs/roles/`](docs/roles/README.md) →
+[`docs/plan/`](docs/plan/README.md).
+
 ---
 
-## Thành phần
+## Tài liệu chuẩn bị — đã có
 
-### 1 · Công cụ — AI workflow framework
+| Tài liệu | Nội dung |
+|---|---|
+| [`docs/kickoff.md`](docs/kickoff.md) | Cần hỏi gì, hỏi ai, bốn buổi làm việc đầu |
+| [`docs/roles/`](docs/roles/README.md) | Ai làm gì, ai quyết gì, workshop chạy thế nào |
+| [`docs/plan/`](docs/plan/README.md) | Hai phương án — làm mới và fork — kèm lịch từng ngày |
+| [`docs/architecture/systems.md`](docs/architecture/systems.md) | Kiến trúc năm hệ thống AI-native đang chạy thật: Attio · Day.ai · Granola · Folk · Clay |
+| [`docs/architecture/proposal.md`](docs/architecture/proposal.md) | Kiến trúc đề xuất — 🚧 đang dở, chờ có PRD |
 
-**`.claude/skills/bmad-*/`** — [BMad Method](https://github.com/bmad-code-org/BMAD-METHOD)
-**v6.10.0**, 46 skill. Framework điều phối quy trình phát triển bằng AI agent, chia 4 phase:
+---
+
+## Tài liệu sẽ sinh ra khi chạy quy trình
+
+Chạy các skill BMad sẽ tự sinh tài liệu vào `_bmad-output/planning-artifacts/`. Skill
+`babok-guide` nạp thêm hướng dẫn nghiệp vụ vào từng bước, nên mỗi bước sinh thêm những artifact
+mà BMad gốc không có.
+
+```
+bmad-product-brief  →  bmad-prd  →  bmad-architecture  →  bmad-create-epics-and-stories
+```
+
+---
+
+### 1 · `bmad-product-brief`
+
+**BMad sinh ra:**
+
+- `brief.md` — vấn đề, người dùng, phạm vi, tiêu chí thành công
+- `addendum.md` — chi tiết chưa vào brief nhưng cần cho bước sau
+- `.memlog.md` — nhật ký quyết định trong lúc làm
+
+**`babok-guide` thêm vào:**
+
+- **Document Analysis** — bóc yêu cầu từ tài liệu sẵn có *trước khi* tự nghĩ ra: tài liệu CRM
+  đối thủ, hợp đồng, chính sách công ty, màn hình hệ thống cũ, sách nghiệp vụ
+- **Stakeholder routing table** — bảng định tuyến câu hỏi theo vai: hỏi ai câu nào, dựa trên
+  mười một vai chuẩn
+- **Công tắc người-thật** — có chuyên gia thật thì hỏi thẳng, không chạy `bmad-party-mode` hay
+  xoay persona. Mô phỏng chỉ là phương án dự phòng khi vắng người
+
+---
+
+### 2 · `bmad-prd`
+
+**BMad sinh ra:**
+
+- `prd.md` — yêu cầu chức năng có mã số, yêu cầu phi chức năng, hành trình người dùng
+- `addendum.md` — phương án đã cân nhắc và loại, chi tiết kỹ thuật
+- `review-*.md` — kết quả soát của từng người soát
+
+**`babok-guide` thêm vào — theo đúng thứ tự này:**
+
+- **Concept Model** — bảng thuật ngữ chốt trước mọi thứ khác: `Lead` / `Contact` / `Account` /
+  `Opportunity` khác nhau chỗ nào. Từ vựng nghèo thì luật viết ra sẽ mâu thuẫn
+- **Process Model (as-is)** — hiện tại đang làm thế nào
+- **Process Model (to-be)** — muốn thành thế nào. Hỏi tách hai lần, vì người mô tả có xu hướng
+  kể cái *nên là* thay vì cái *đang là*
+- **NFR Analysis** — thuộc tính chất lượng **kèm ngưỡng số**, không viết "nhanh" mà viết con số.
+  Rà theo mười lăm nhóm: Availability · Compatibility · Functionality · Maintainability ·
+  Performance Efficiency · Portability · Reliability · Scalability · Security · Usability ·
+  Certification · Compliance · Localization · SLA · Extensibility
+
+---
+
+### 3 · `bmad-architecture`
+
+**BMad sinh ra:**
+
+- `architecture.md` — thành phần, luồng dữ liệu, quyết định kỹ thuật và lý do
+
+**`babok-guide` thêm vào — bốn artifact:**
+
+- **Data Model** — ba tầng `conceptual` → `logical` → `physical`. Tầng conceptual thuộc phía
+  nghiệp vụ, tầng physical thuộc phía kỹ thuật. Đừng nhảy thẳng vào physical
+- **Data Dictionary** — rút **từ** data model, không làm song song. Cột giá trị và ý nghĩa phải
+  khớp với state model
+- **Interface Analysis** — mỗi giao diện mô tả đủ **năm thuộc tính**: `name` · `coverage/span` ·
+  `exchange method` · `message format` · `exchange frequency`
+- **Sequence Diagrams** — chỉ ba kịch bản với CRM: chuyển stage kèm duyệt, nhập dữ liệu hàng
+  loạt, tích hợp hệ thống ngoài. Vẽ đủ bộ cho mọi use case là lãng phí
+
+---
+
+### 4 · `bmad-create-epics-and-stories`
+
+**BMad sinh ra:**
+
+- `epics.md` — nhóm việc lớn
+- `stories/*.md` — từng việc kèm tiêu chí nghiệm thu
+
+**`babok-guide` thêm vào — ba artifact, tất cả đều phải lấy từ người thật:**
+
+- **State Model** — vòng đời của từng đối tượng chính, hỏi chuyên gia nghiệp vụ
+- **Business Rules** — tách hai loại, đừng gộp:
+  - `definitional` — luật không thể vi phạm, chỉ có thể áp dụng sai. Là hàm dẫn xuất hoặc phép
+    tính, **không có mức thực thi**
+  - `behavioural` — luật luôn có thể bị vi phạm. Mỗi luật chọn một trong **bốn mức thực thi**
+- **Roles & Permissions Matrix** — hỏi **cả hai người**, hai câu khác nhau: sponsor trả lời *ai
+  được phép*, chuyên gia nghiệp vụ trả lời *thực tế ai đang làm*
+
+---
+
+## Công cụ trong repo
+
+### BMad Method v6.10.0
+
+**`.claude/skills/bmad-*/`** — [BMad Method](https://github.com/bmad-code-org/BMAD-METHOD), 46
+skill, chia 4 giai đoạn:
 
 ```
 1-analysis  →  2-planning  →  3-solutioning  →  4-implementation
-CB brief       PRD ★ CU ux    CA ★ CE ★ IR ★    SP ★ CS ★ DS ★ CR QA ER
 ```
 
-★ = bắt buộc. Bảng lệnh đầy đủ ở `_bmad/bmm/module-help.csv`.
+Bảng lệnh đầy đủ ở `_bmad/bmm/module-help.csv`. Đội này chạy chín skill — danh sách ở
+[`docs/roles/`](docs/roles/README.md).
 
-**Đã sửa so với bản gốc:** `bmad-advanced-elicitation/methods.csv` được chèn thêm 12 method
-BABOK (71 → 83). Xem mục 2.
+### babok-guide
 
-> 📌 **Chỗ để so sánh framework khác** — spec kit, hoặc framework triển khai phần mềm khác —
-> là `docs/tooling/`. Hiện chưa có nội dung.
-
-### 2 · Tri thức phân tích nghiệp vụ
-
-**`.claude/skills/babok-guide/`** — skill tự viết, bổ trợ BMad bằng BABOK v3 ở **đúng những
-chỗ BMad khuyết**, đo được chứ không phỏng đoán.
+**`.claude/skills/babok-guide/`** — skill tự viết, bổ trợ BMad bằng tri thức BABOK v3 ở những
+chỗ BMad mỏng.
 
 | File | Vai trò |
 |---|---|
-| `SKILL.md` | Gap profile đo trên bản cài + 4 chức năng bù |
-| `assets/techniques.csv` | 50 kỹ thuật chương 10, kèm section, số trang, mức khuyết của BMad |
-| `references/steps/*.md` | Hướng dẫn từng bước — nạp riêng cho từng skill, không nạp cả file |
-| `references/workflow.md` | Luồng đầu-cuối: mỗi bước BMad chạy kỹ thuật BABOK nào, hỏi ai |
-| `references/bmad-gap-map.md` | BMad khuyết gì ở từng bước |
-| `references/bmad-custom/*.toml` | 4 override + bản tiêm catalog |
-| `scripts/apply-methods.py` | Chèn 12 method vào catalog BMad |
+| `SKILL.md` | Bốn chức năng bù và hồ sơ đo trên bản cài |
+| `assets/techniques.csv` | 50 kỹ thuật phân tích nghiệp vụ, kèm mức khuyết của BMad |
+| `references/steps/*.md` | Hướng dẫn riêng cho từng bước — nạp đúng phần cần dùng |
+| `references/workflow.md` | Luồng đầu-cuối: mỗi bước chạy kỹ thuật nào, hỏi ai |
+| `scripts/apply-methods.py` | Chèn 12 kỹ thuật BABOK vào danh mục của BMad |
 | `scripts/check-install.py` | Kiểm skill còn khớp bản cài BMad |
-| `scripts/gap-baseline.json` | Mốc so sánh, phát hiện BMad đổi |
 
-**Ba khuyết điểm được bù**, đo trên 234 file của bản cài:
+**Ba chỗ được bù**, đo trên 234 file của bản cài:
 
-- **Tầng mô hình nghiệp vụ** — `process model`, `roles & permissions matrix`,
-  `sequence diagram` đều **0 file**. BMad đi từ PRD văn xuôi thẳng tới architecture.
-- **Khai thác người thật** — catalog gốc 71 method, **0** kỹ thuật lấy thông tin từ người
-  thật. BMad mô phỏng persona để bù cho việc không có stakeholder.
-- **Chỗ mỏng** — `glossary` 5 file, `non-functional` 7 file.
+- **Mô hình nghiệp vụ** — sơ đồ quy trình, ma trận vai trò và quyền, sơ đồ tuần tự đều không có
+  file nào. BMad đi từ PRD văn xuôi thẳng tới kiến trúc.
+- **Khai thác người thật** — danh mục gốc có 71 kỹ thuật, không cái nào để lấy thông tin từ
+  người thật. BMad mô phỏng nhân vật để bù cho việc không có người thật.
+- **Chỗ mỏng** — bảng từ vựng và yêu cầu phi chức năng.
 
-**Không can thiệp** chỗ BMad mạnh: `acceptance criteria` 23 file, `prioritization` 23,
-`user stories` 23.
+Không can thiệp chỗ BMad mạnh: tiêu chí nghiệm thu, ưu tiên hoá, user story.
 
-**Độ phủ của phép đo — nói rõ để khỏi hiểu nhầm:** chỉ **17/50** kỹ thuật đo được bằng từ
-khoá. Cột `bmad_gap` có bốn giá trị:
+Nguyên văn BABOK không nằm trong repo — bản gốc có bản quyền. Repo chỉ giữ số mục, số trang và
+phần diễn giải tự viết.
 
-| Giá trị | Nghĩa | Số dòng |
-|---|---|---|
-| `absent` · `thin` · `covered` | Đã đo, phân loại theo ngưỡng 3 và 8 | 17 |
-| `unmeasurable` | Từ khoá quá thông thường, mọi pattern đều cho dương tính giả | 4 |
-| *(trống)* | **Chưa đo** — đừng suy diễn từ ô trống | 29 |
+### Cấu hình
 
-Bốn kỹ thuật `unmeasurable` là `10.25` Interviews · `10.31` Observation · `10.37` Reviews ·
-`10.45` Survey. Với chúng có một bằng chứng khác mạnh hơn: catalog elicitation của BMad có
-**71 method, không cái nào là kỹ thuật khai thác người thật**.
-
-⚠ Nguyên văn BABOK **không** nằm trong repo này. Nguồn mang dòng *"Complimentary IIBA Member
-Copy. Not for Distribution or Resale."* Repo chỉ giữ số section, số trang và diễn giải tự
-viết. Ai cần chiều sâu tự tra bản của mình.
-
-### 3 · Cấu hình BMad
-
-**`_bmad/`** — config, resolver script, và **`_bmad/custom/`** chứa 4 file override:
-
-| File | Nạp gì vào bước nào |
-|---|---|
-| `bmad-product-brief.toml` | `CB` — Document Analysis 10.18, công tắc người-thật, định tuyến theo vai |
-| `bmad-prd.toml` | `PRD` — glossary trước luật, tách as-is/to-be, NFR có ngưỡng |
-| `bmad-architecture.toml` | `CA` — 5 thuộc tính interface, 3 tầng data model, tách luật khỏi luồng |
-| `bmad-spec.toml` | `SPC` — 4 mức thực thi luật, state transition, roles matrix hỏi 2 người |
-
-Cơ chế: `persistent_facts` — BMad nạp file hướng dẫn **của riêng bước đó**
-(`references/steps/*.md`, mỗi file 2.6–4.4 KB) cùng các ràng buộc, ngay khi khởi động
-workflow. Đã xác minh chạy thật.
-
-Cố ý **không** nạp cả `workflow.md` (10.8 KB × 4 skill = 43 KB) — tách theo bước giảm 68%
-chi phí ngữ cảnh mà không mất thông tin nào cần cho bước đang chạy.
-
-### 4 · Chiến lược phát triển dự án 📌 *chưa có nội dung*
-
-**`docs/strategy/`** — chưa có nội dung. Dự kiến chứa:
-
-- Các chiến lược phát triển được cân nhắc, kèm đánh đổi
-- **Plan triển khai theo từng chiến lược** — mốc thời gian, thứ tự việc, điều kiện chuyển
-- Tiêu chí chọn chiến lược cho hackathon 1 tuần
-
-Đây là phần **quan trọng nhất với hackathon**: thời gian ngắn thì chọn sai chiến lược tốn
-hơn nhiều so với viết code chậm.
-
-### 5 · Công cụ và framework 📌 *chưa có nội dung*
-
-**`docs/tooling/`** — dự kiến chứa:
-
-- **AI workflow framework**: BMad Method (đang dùng), spec kit, và các lựa chọn khác — so
-  sánh, khi nào hợp cái nào
-- **Framework triển khai phần mềm**: stack, thư viện, công cụ CI/CD
-- Tiêu chí đánh giá và lý do chọn
-
-### 6 · Phân công vai trò 📌 *chưa có nội dung*
-
-**`docs/roles/`** — dự kiến chứa: ai làm gì, ai quyết gì, ai trả lời câu hỏi nào.
-
-Nền tham chiếu có sẵn: BABOK `2.4` định nghĩa 11 vai chung. Bảng định tuyến câu hỏi theo vai
-đã có trong `babok-guide/SKILL.md` mục 3 — dùng lại được, chỉ cần điền tên người.
-
-Lưu ý từ `2.4`: *"a single individual may fill more than one role"* — cho phép, nhưng mối
-kiểm tra giữa hai vai bị gộp thì mất. Đáng chú ý nhất là **BA + Tester**, vì `2.4.11` giả
-định Tester kiểm yêu cầu **do người khác** định nghĩa.
-
-### 7 · Nghiên cứu kiến trúc software mới 📌 *chưa có nội dung*
-
-**`docs/architecture/`** — dự kiến chứa: khảo sát kiến trúc, pattern, đánh giá phù hợp với
-CRM và với ràng buộc 1 tuần.
-
-BMad có sẵn `TR` technical-research và `DR` domain-research ở phase `1-analysis` để hỗ trợ
-phần này.
+**`_bmad/custom/`** chứa bốn file nạp hướng dẫn `babok-guide` vào đúng bước tương ứng — brief,
+PRD, kiến trúc, spec. BMad đọc chúng ngay khi khởi động workflow.
 
 ---
 
@@ -152,72 +181,40 @@ phần này.
 ```
 crm-hackathon-workspace/
 ├── README.md                    file này
-├── CHECKLIST.md                 việc cần làm, theo nhóm
-├── LICENSE                      MIT cho nội dung của repo
-├── THIRD-PARTY.md               license bên thứ ba (BMad)
-├── .githooks/                   post-merge tự đồng bộ bản vá
+├── CHECKLIST.md                 việc cần làm
 ├── .claude/skills/
-│   ├── babok-guide/             ← mục 2 (SKILL.md · assets · references · scripts)
-│   └── bmad-*/                  ← mục 1 (46 skill)
-├── _bmad/                       ← mục 3
-│   ├── custom/                  4 file override
-│   ├── bmm/ core/               config + bảng lệnh
-│   └── scripts/                 resolver
-├── _bmad-output/                brief, PRD, epic — **được track**, là sản phẩm chung
+│   ├── babok-guide/             skill tự viết
+│   └── bmad-*/                  46 skill BMad
+├── _bmad/                       cấu hình + 4 file override
+├── _bmad-output/                brief, PRD, epic sinh ra ở đây
 └── docs/
-    ├── strategy/                ← mục 4 📌
-    ├── tooling/                 ← mục 5 📌
-    ├── roles/                   ← mục 6 📌
-    └── architecture/            ← mục 7 📌
+    ├── kickoff.md               hỏi gì, hỏi ai
+    ├── roles/                   ai làm gì
+    ├── plan/                    hai phương án + lịch
+    └── architecture/            khảo sát 5 hệ thống + kiến trúc đề xuất
 ```
-
-⚠ `_bmad/bmm/config.yaml` đặt `project_knowledge: {project-root}/docs`, nên
-`bmad-generate-project-context` sẽ ghi `kernel.md` vào **thẳng `docs/`**. Bốn thư mục con
-nằm cạnh nó, không đè nhau.
 
 ---
 
 ## Bảo trì
 
-Sau **mỗi** lần update BMad, chạy hai lệnh:
+Sau mỗi lần update BMad, chạy hai lệnh:
 
 ```bash
 python .claude/skills/babok-guide/scripts/apply-methods.py
 python .claude/skills/babok-guide/scripts/check-install.py
 ```
 
-Update **ghi đè `methods.csv`** và xoá mất 12 method BABOK. Lệnh đầu chèn lại (idempotent),
-lệnh sau kiểm **7 mục**:
+Update ghi đè `methods.csv` và xoá mất 12 kỹ thuật BABOK đã chèn. Lệnh đầu chèn lại, lệnh sau
+kiểm bảy mục: danh mục còn đủ · bốn override nạp được · bản cài khớp nguồn · tên skill còn đúng ·
+mọi số mục BABOK có thật · mỗi trích dẫn có phân định nguồn · hồ sơ đo còn khớp mốc.
 
-| # | Kiểm gì | Bắt được lỗi nào |
-|---|---|---|
-| 1 | Catalog còn đủ 12 method BABOK | Update BMad ghi đè `methods.csv` |
-| 2 | 4 override resolve được | Override không được nạp |
-| 3 | **Diff nguồn ↔ bản cài từng cặp file** | Nguồn đúng mà bản cài là bản cũ — cùng số dòng nên đếm không phát hiện được |
-| 4 | Tên skill và mã lệnh trong `workflow.md` | BMad đổi tên skill (`bmad-build` → `CS`/`DS`) |
-| 5 | **Mọi số hiệu section tồn tại trong văn bản BABOK** | Trích dẫn lệch cấp hoặc bịa section |
-| 6 | **Mỗi fact trích BABOK có dấu phân định nguồn** | Gán kinh nghiệm thực hành cho BABOK |
-| 7 | Gap profile lệch baseline bao nhiêu | BMad bổ sung hoặc bỏ tính năng |
-
-Mục 5 cần bản `BABOK_Guide_v3_Member.txt` — file có bản quyền, **không nằm trong repo**.
-Truyền qua `--babok-txt <đường-dẫn>` hoặc biến môi trường `BABOK_TXT`. Không có thì mục này
-báo bỏ qua, các mục khác vẫn chạy.
-
-**Giới hạn của mục 5 và 6:** chúng bắt được *section không tồn tại* và *chưa ai phân định
-nguồn*. Chúng **không** bắt được *diễn giải sai ngữ nghĩa* — hai loại đó cần đọc hiểu, phải
-đối chiếu bằng mắt với nguyên văn.
-
-**Vì sao cần:** skill này ban đầu được dựng theo **source GitHub** của BMad chứ không phải
-**bản cài**, và hai thứ khác nhau đáng kể — đã gây 4 lỗi thật, gồm cả việc gap profile lệch
-ở 12/14 khái niệm. `check-install.py` biến cả lớp lỗi đó thành một lệnh.
+Mục kiểm số mục BABOK cần bản văn bản gốc, truyền qua `--babok-txt <đường-dẫn>` hoặc biến môi
+trường `BABOK_TXT`. Không có thì mục đó bỏ qua, các mục khác vẫn chạy.
 
 ---
 
 ## Nguồn tri thức
 
-Bản ghi nguyên văn BABOK (có số section, kiểm chứng bằng citation) nằm **ngoài repo**, ở kho
-cá nhân `PARA\3_Resources\ba\babok-v3\`. Cột `cached` trong `techniques.csv` cho biết kỹ
-thuật nào đã có bản ghi.
-
-Sinh bản ghi mới: dùng `QUERY-TEMPLATE.md` trong kho đó — **một query cho một kỹ thuật,
-không gộp**.
+Bản ghi nguyên văn BABOK nằm ngoài repo, ở kho cá nhân `PARA/3_Resources/ba/babok-v3/`. Cột
+`cached` trong `techniques.csv` cho biết kỹ thuật nào đã có bản ghi.
