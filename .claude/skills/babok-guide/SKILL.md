@@ -14,8 +14,8 @@ Nguyên tắc: BMad mạnh chỗ nào thì **không can thiệp**. Đo trước,
 
 > **Đo trên bản cài** `.claude/skills/` — BMad **v6.10.0**, ngày **2026-08-08**, quét 234 file,
 > **loại `bmad-advanced-elicitation/methods.csv`** vì đó là 12 method skill này tự chèn.
-> Baseline lưu ở `references/bmad-custom/gap-baseline.json`.
-> Đo lại sau mỗi lần update BMad: `python references/bmad-custom/check-install.py`
+> Baseline lưu ở `scripts/gap-baseline.json`.
+> Đo lại sau mỗi lần update BMad: `python scripts/check-install.py`
 
 ⚠ Số cũ trong các phiên bản trước của file này đo trên **source GitHub**, lệch với bản cài ở
 **12/14 khái niệm**. Đừng dùng lại số đó.
@@ -144,7 +144,7 @@ Sau `npx bmad-method install`, chạy **hai** bước — hai cơ chế khác nh
 cp .claude/skills/babok-guide/references/bmad-custom/bmad-{prd,architecture,spec,product-brief}.toml _bmad/custom/
 
 # 2. Chèn 12 method BABOK vào catalog elicitation
-python .claude/skills/babok-guide/references/bmad-custom/apply-methods.py
+python .claude/skills/babok-guide/scripts/apply-methods.py
 ```
 
 | Cơ chế | File | Tác dụng |

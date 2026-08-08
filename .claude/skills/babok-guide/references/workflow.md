@@ -11,7 +11,7 @@ khác nhau đáng kể. Phần ghép với BABOK là **đánh giá của ngườ
 khác gọi ở mọi điểm dừng, nên chúng tự nổi lên trong menu.
 
 ⚠ **Update BMad sẽ ghi đè `methods.csv`.** Chạy lại sau mỗi lần update:
-`python .claude/skills/babok-guide/references/bmad-custom/apply-methods.py`
+`python .claude/skills/babok-guide/scripts/apply-methods.py`
 
 **2 · Chủ động.** `_bmad/custom/bmad-{prd,architecture,spec}.toml` nạp file này + ràng buộc riêng
 của từng bước qua `persistent_facts`.
@@ -83,7 +83,7 @@ Thứ tự 1 trước 2 là **bắt buộc**: `10.9.2` đòi *"basing them on st
 Với 1 tuần: làm **glossary** rồi dừng. `10.11.2` mở đầu bằng *"A concept model starts with a
 glossary"* — đó là phần 20% đáng làm.
 
-**Trong lúc chạy:** NFR `10.30`, dùng **15 category** làm checklist, mỗi cái có **ngưỡng số**.
+**Trong lúc chạy:** NFR `10.30`, dùng **15 category** của `10.30.3.1` làm checklist, mỗi cái có **ngưỡng số**.
 
 ⚠ **Đừng đưa ERD cho trưởng sales** — `10.11.2`, `10.15.4.2`, `10.42.4.2` cùng cảnh báo.
 
@@ -105,8 +105,8 @@ BMad khuyết nặng: `ER diagram` **0 file**, `sequence diagram` **0 file**, `d
 
 | Kỹ thuật | Hỏi ai | Sinh ra |
 |---|---|---|
-| State Modelling `10.44` | Domain SME | Stage nào sang được stage nào, điều kiện canh |
-| Business Rules `10.9` | Domain SME | Mỗi luật kèm **một trong 4 mức thực thi** |
+| State Modelling `10.44` | Domain SME | Stage nào sang được stage nào, điều kiện canh. **Hỏi cả chiều quay lui** — `10.44.3.2` nói vòng đời *"are not always linear"* |
+| Business Rules `10.9` | Domain SME | Phân loại definitional / behavioural trước; **chỉ behavioural** mới gắn 1 trong 4 mức |
 | Roles Matrix `10.39` | **Cả hai** | Sponsor quyết *ai **được** thấy*; Domain SME biết *ai **cần** thấy* |
 
 Cộng `10.39.3.4`: **Delegation** và **Inheritance** — **yêu cầu dữ liệu**, muộn thì phải migrate.
@@ -117,12 +117,25 @@ Cộng `10.39.3.4`: **Delegation** và **Inheritance** — **yêu cầu dữ li�
 |---|---|
 | Data Modelling `10.15` | Ba tầng conceptual → logical → physical; `10.15.2` gán physical cho **Implementation SME** `2.4.5` |
 | Data Dictionary `10.12` | Rút **từ** ERD. Cột `Values/Meanings` khớp enum của state model |
-| Interface Analysis `10.24` | Mỗi interface đủ **5 thuộc tính** `10.24.3` |
+| Interface Analysis `10.24` | Mỗi interface đủ **5 thuộc tính** `10.24.3.3` |
 | Sequence Diagrams `10.42` | **Chỉ 3 kịch bản** — `10.42.4.2` cảnh báo vẽ hết là lãng phí |
 
-### 4c · Bốn mức thực thi quyết định luật sống ở đâu
+### 4c · Phân loại luật trước, rồi mới gắn mức thực thi
 
-| Mức (`10.9.3`, nguyên văn) | Luật sống ở đâu | Kéo theo |
+⚠ **Bước phân loại này không được bỏ.** `10.9.3` chia luật làm hai loại dùng cơ chế khác hẳn nhau:
+
+| Loại | `10.9.3` | Đặc tính | Cài thế nào |
+|---|---|---|---|
+| **Definitional** | `.1` | *"cannot be violated but they can be misapplied"* | Hàm dẫn xuất / phép tính. **Không có mức thực thi** |
+| **Behavioural** | `.2` | Luôn có thể bị vi phạm | Chốt chặn — chọn một trong bốn mức dưới |
+
+Ví dụ CRM: *"khách được coi là Ưu tiên nếu đặt hơn 10 đơn/tháng"* là **definitional** — hỏi nó nên
+chặn cứng hay cho override là câu hỏi vô nghĩa. Còn *"không được chuyển sang giai đoạn Báo giá khi
+chưa có người liên hệ"* là **behavioural**.
+
+**Bốn mức, chỉ áp cho behavioural rule** (`10.9.3.2`, nguyên văn):
+
+| Mức | Luật sống ở đâu | Kéo theo |
 |---|---|---|
 | *Allow no violations* | DB constraint / service layer | Không cần UI ngoại lệ |
 | *Override by authorized actor* | Service layer + kiểm quyền | **Cần** bảng phân quyền + audit log |

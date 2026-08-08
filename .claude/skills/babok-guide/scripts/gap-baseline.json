@@ -1,6 +1,7 @@
 {
   "bmad_version": "6.10.0",
-  "measured_at": "see git log",
+  "measured_at": "2026-08-08",
+  "scanned_files": 234,
   "excluded": [
     "bmad-advanced-elicitation/methods.csv"
   ],

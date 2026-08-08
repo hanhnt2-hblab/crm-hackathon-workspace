@@ -24,6 +24,7 @@ Exit code 0 = moi thu khop. 1 = co canh bao can xu ly.
 
 import argparse
 import csv
+import datetime
 import json
 import os
 import re
@@ -31,8 +32,9 @@ import subprocess
 import sys
 
 HERE = os.path.dirname(os.path.abspath(__file__))
-SKILL_ROOT = os.path.abspath(os.path.join(HERE, "..", ".."))
+SKILL_ROOT = os.path.dirname(HERE)
 BASELINE = os.path.join(HERE, "gap-baseline.json")
+CUSTOM_DIR = os.path.join(SKILL_ROOT, "references", "bmad-custom")
 
 # Noi dung do CHINH SKILL NAY chen vao — phai loai khi do, neu khong se do chinh minh.
 SELF_INJECTED = ["bmad-advanced-elicitation/methods.csv"]
@@ -84,6 +86,15 @@ UNMEASURABLE = {
 }
 
 # Nguong phan loai. `covered` = BMad manh, DUNG bu. `absent` = cho dang bu nhat.
+#
+# VI SAO 8 VA 3: chon tu phan bo thuc te tren 234 file cua ban cai. So lieu tach thanh hai
+# cum ro rang, khong co gia tri nao roi vao khoang 8..10 hay 3..4:
+#   0, 0, 0, 2, 2, 2, 2, 2   <- nhac thoang hoac khong co
+#   5, 7                     <- co nhung mong
+#   11, 11, 20, 23, 23, 23, 45  <- phu that
+# Nguong dat vao giua hai khe trong do. Doi nguong se lam mot so ky thuat doi phan loai —
+# vi du COVERED_MIN=12 se day `data model` (11) tu covered xuong thin va dao nguoc ket luan
+# ve 10.15. Neu doi, phai chay lai --update-baseline va doc lai SKILL.md.
 COVERED_MIN, THIN_MIN = 8, 3
 
 
@@ -134,7 +145,7 @@ def check_methods(project_root, problems):
     with open(csv_p, encoding="utf-8") as f:
         rows = list(csv.DictReader(f))
     n = sum(1 for r in rows if r.get("category") == "babok")
-    toml_p = os.path.join(HERE, "bmad-advanced-elicitation.toml")
+    toml_p = os.path.join(CUSTOM_DIR, "bmad-advanced-elicitation.toml")
     import tomllib
     with open(toml_p, "rb") as f:
         want = len(tomllib.load(f)["workflow"]["additional_methods"])
@@ -224,6 +235,11 @@ def main():
         old = json.load(open(BASELINE, encoding="utf-8")).get("counts", {})
     drift = [(s, old[s], v) for s, v in sorted(prof.items(), key=lambda x: (float(x[0][3:].split("-")[0]), x[0]))
              if s in old and old[s] != v]
+    erd = prof.get("10.15-erd")
+    if erd is not None:
+        print(f"  [SAC THAI] artifact ERD: {erd} file — `data model` la covered ({prof.get('10.15','?')} file)")
+        print("             nhung BMad co y gioi han ERD o 'names + relationships only'.")
+        print("             Bu cua 10.15 = cardinality + thuoc tinh + ba tang, khong phai bu khai niem.")
     if old and drift:
         for s, o, n in drift:
             print(f"  [LECH] {s}: {o} -> {n}  ({classify(o)} -> {classify(n)})")
@@ -234,7 +250,15 @@ def main():
         print("  [INFO] chua co baseline — chay lai voi --update-baseline")
 
     if a.update_baseline:
-        json.dump({"bmad_version": "6.10.0", "measured_at": "see git log",
+        bmad_ver = "?"
+        mf = os.path.join(root, "_bmad", "_config", "manifest.yaml")
+        if os.path.exists(mf):
+            m = re.search(r"version:\s*([\d.]+)", open(mf, encoding="utf-8").read())
+            if m:
+                bmad_ver = m.group(1)
+        json.dump({"bmad_version": bmad_ver,
+                   "measured_at": datetime.date.today().isoformat(),
+                   "scanned_files": nfiles,
                    "excluded": SELF_INJECTED, "thresholds": {"covered": COVERED_MIN, "thin": THIN_MIN},
                    "counts": prof},
                   open(BASELINE, "w", encoding="utf-8"), indent=2, ensure_ascii=False)
@@ -248,9 +272,9 @@ def main():
         changed = []
         for r in rows:
             sec = r["section"]
-            if sec in UNMEASURABLE and r["bmad_gap"]:
-                changed.append(f"{sec} {r['name_en']}: {r['bmad_gap']} -> (trong, khong do duoc)")
-                r["bmad_gap"] = ""
+            if sec in UNMEASURABLE and r["bmad_gap"] != "unmeasurable":
+                changed.append(f"{sec} {r['name_en']}: {r['bmad_gap'] or '(trong)'} -> unmeasurable")
+                r["bmad_gap"] = "unmeasurable"
             elif sec in prof and "-" not in sec:
                 new = classify(prof[sec])
                 if r["bmad_gap"] != new:

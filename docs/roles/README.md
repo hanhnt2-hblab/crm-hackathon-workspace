@@ -1,30 +1,21 @@
 # Phân công vai trò
 
-📌 **Chưa có nội dung.** Thư mục dành cho phần anh bổ sung sau.
+📌 **Chưa có nội dung.** Thư mục dành cho phần bổ sung sau.
 
-## Dự kiến chứa
+## Cần điền gì
 
 - Ai làm gì
 - **Ai quyết gì** — quan trọng hơn "ai làm gì"
 - Ai trả lời câu hỏi loại nào
 
-## Nền tham chiếu đã có
+## Nguồn tham chiếu — đừng chép lại vào đây
 
-BABOK `2.4` định nghĩa 11 vai chung: business analyst · customer · domain SME · end user ·
-implementation SME · operational support · project manager · regulator · sponsor · supplier ·
-tester.
+Bảng định tuyến câu hỏi theo vai và hai bẫy khi phân vai đã có sẵn, **giữ ở đúng một nơi**:
 
-Bảng định tuyến câu hỏi theo vai đã có trong
-[`babok-guide/SKILL.md`](../../.claude/skills/babok-guide/SKILL.md) mục 3 — dùng lại được,
-chỉ cần điền tên người.
+→ [`.claude/skills/babok-guide/SKILL.md`](../../.claude/skills/babok-guide/SKILL.md) mục **3 · Định tuyến câu hỏi theo vai**
 
-## Hai điều cần lưu khi điền
+Nội dung đó dựa trên BABOK `2.4` (11 vai chung) và dùng lại được cho dự án khác — ở đây chỉ
+cần **điền tên người vào từng vai**, không cần chép lại lý thuyết.
 
-**Một người giữ nhiều vai là hợp lệ nhưng không vô hại.** `2.4` nguyên văn: *"a single
-individual may fill more than one role"*. Nó cho phép, không nói vô hại — mối kiểm tra giữa
-hai vai bị gộp thì **mất**. Đáng chú ý nhất là **BA + Tester**, vì `2.4.11` định nghĩa Tester
-kiểm yêu cầu *"defined by the business analyst"*, tức giả định hai người.
-
-**Domain SME không tự động là End User.** `2.4.3` nói *managers, process owners*; `2.4.4` đòi
-*"directly interact with the solution"*. Một trưởng bộ phận chỉ là End User nếu họ thật sự
-dùng hằng ngày — **kiểm chứng, đừng giả định**.
+Khi làm việc với stakeholder, checklist thao tác ở
+[`references/steps/product-brief.md`](../../.claude/skills/babok-guide/references/steps/product-brief.md).

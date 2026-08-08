@@ -7,16 +7,17 @@ hỗ trợ phát triển, tri thức phân tích nghiệp vụ, chiến lược 
 
 ---
 
-## Cài trong 3 lệnh
+## Cài
+
+BMad và bản vá đã nằm sẵn trong repo — **không cần chạy `npx bmad-method install`**.
 
 ```bash
 git clone <repo> && cd crm-hackathon-workspace
-python .claude/skills/babok-guide/references/bmad-custom/apply-methods.py
-python .claude/skills/babok-guide/references/bmad-custom/check-install.py
+git config core.hooksPath .githooks                              # tự đồng bộ sau khi pull
+python .claude/skills/babok-guide/scripts/check-install.py       # xác minh môi trường
 ```
 
-Lệnh 1 không cần — BMad và bản vá đã nằm sẵn trong repo. Lệnh 2 và 3 chỉ để **xác minh**
-môi trường khớp; chạy lại chúng **sau mỗi lần update BMad**.
+Đạt khi báo `Moi thu khop voi ban cai` và 4/4 mục `[OK]`.
 
 Yêu cầu: Node ≥ 20.12 · Python ≥ 3.10 · [`uv`](https://docs.astral.sh/uv/)
 
@@ -51,12 +52,13 @@ chỗ BMad khuyết**, đo được chứ không phỏng đoán.
 |---|---|
 | `SKILL.md` | Gap profile đo trên bản cài + 4 chức năng bù |
 | `assets/techniques.csv` | 50 kỹ thuật chương 10, kèm section, số trang, mức khuyết của BMad |
+| `references/steps/*.md` | Hướng dẫn từng bước — nạp riêng cho từng skill, không nạp cả file |
 | `references/workflow.md` | Luồng đầu-cuối: mỗi bước BMad chạy kỹ thuật BABOK nào, hỏi ai |
 | `references/bmad-gap-map.md` | BMad khuyết gì ở từng bước |
 | `references/bmad-custom/*.toml` | 4 override + bản tiêm catalog |
-| `references/bmad-custom/apply-methods.py` | Chèn 12 method vào catalog BMad |
-| `references/bmad-custom/check-install.py` | Kiểm skill còn khớp bản cài BMad |
-| `references/bmad-custom/gap-baseline.json` | Mốc so sánh, phát hiện BMad đổi |
+| `scripts/apply-methods.py` | Chèn 12 method vào catalog BMad |
+| `scripts/check-install.py` | Kiểm skill còn khớp bản cài BMad |
+| `scripts/gap-baseline.json` | Mốc so sánh, phát hiện BMad đổi |
 
 **Ba khuyết điểm được bù**, đo trên 234 file của bản cài:
 
@@ -68,6 +70,19 @@ chỗ BMad khuyết**, đo được chứ không phỏng đoán.
 
 **Không can thiệp** chỗ BMad mạnh: `acceptance criteria` 23 file, `prioritization` 23,
 `user stories` 23.
+
+**Độ phủ của phép đo — nói rõ để khỏi hiểu nhầm:** chỉ **17/50** kỹ thuật đo được bằng từ
+khoá. Cột `bmad_gap` có bốn giá trị:
+
+| Giá trị | Nghĩa | Số dòng |
+|---|---|---|
+| `absent` · `thin` · `covered` | Đã đo, phân loại theo ngưỡng 3 và 8 | 17 |
+| `unmeasurable` | Từ khoá quá thông thường, mọi pattern đều cho dương tính giả | 4 |
+| *(trống)* | **Chưa đo** — đừng suy diễn từ ô trống | 29 |
+
+Bốn kỹ thuật `unmeasurable` là `10.25` Interviews · `10.31` Observation · `10.37` Reviews ·
+`10.45` Survey. Với chúng có một bằng chứng khác mạnh hơn: catalog elicitation của BMad có
+**71 method, không cái nào là kỹ thuật khai thác người thật**.
 
 ⚠ Nguyên văn BABOK **không** nằm trong repo này. Nguồn mang dòng *"Complimentary IIBA Member
 Copy. Not for Distribution or Resale."* Repo chỉ giữ số section, số trang và diễn giải tự
@@ -84,12 +99,16 @@ viết. Ai cần chiều sâu tự tra bản của mình.
 | `bmad-architecture.toml` | `CA` — 5 thuộc tính interface, 3 tầng data model, tách luật khỏi luồng |
 | `bmad-spec.toml` | `SPC` — 4 mức thực thi luật, state transition, roles matrix hỏi 2 người |
 
-Cơ chế: `persistent_facts` — BMad nạp `workflow.md` và các ràng buộc ngay khi khởi động
+Cơ chế: `persistent_facts` — BMad nạp file hướng dẫn **của riêng bước đó**
+(`references/steps/*.md`, mỗi file 2.6–4.4 KB) cùng các ràng buộc, ngay khi khởi động
 workflow. Đã xác minh chạy thật.
+
+Cố ý **không** nạp cả `workflow.md` (10.8 KB × 4 skill = 43 KB) — tách theo bước giảm 68%
+chi phí ngữ cảnh mà không mất thông tin nào cần cho bước đang chạy.
 
 ### 4 · Chiến lược phát triển dự án 📌 *chưa có nội dung*
 
-**`docs/strategy/`** — phần anh sẽ bổ sung. Dự kiến chứa:
+**`docs/strategy/`** — chưa có nội dung. Dự kiến chứa:
 
 - Các chiến lược phát triển được cân nhắc, kèm đánh đổi
 - **Plan triển khai theo từng chiến lược** — mốc thời gian, thứ tự việc, điều kiện chuyển
@@ -134,15 +153,17 @@ phần này.
 crm-hackathon-workspace/
 ├── README.md                    file này
 ├── CHECKLIST.md                 việc cần làm, theo nhóm
-├── THIRD-PARTY.md               license bên thứ ba
+├── LICENSE                      MIT cho nội dung của repo
+├── THIRD-PARTY.md               license bên thứ ba (BMad)
+├── .githooks/                   post-merge tự đồng bộ bản vá
 ├── .claude/skills/
-│   ├── babok-guide/             ← mục 2
+│   ├── babok-guide/             ← mục 2 (SKILL.md · assets · references · scripts)
 │   └── bmad-*/                  ← mục 1 (46 skill)
 ├── _bmad/                       ← mục 3
 │   ├── custom/                  4 file override
 │   ├── bmm/ core/               config + bảng lệnh
 │   └── scripts/                 resolver
-├── _bmad-output/                artifact BMad sinh ra (gitignored)
+├── _bmad-output/                brief, PRD, epic — **được track**, là sản phẩm chung
 └── docs/
     ├── strategy/                ← mục 4 📌
     ├── tooling/                 ← mục 5 📌
@@ -161,8 +182,8 @@ nằm cạnh nó, không đè nhau.
 Sau **mỗi** lần update BMad, chạy hai lệnh:
 
 ```bash
-python .claude/skills/babok-guide/references/bmad-custom/apply-methods.py
-python .claude/skills/babok-guide/references/bmad-custom/check-install.py
+python .claude/skills/babok-guide/scripts/apply-methods.py
+python .claude/skills/babok-guide/scripts/check-install.py
 ```
 
 Update **ghi đè `methods.csv`** và xoá mất 12 method BABOK. Lệnh đầu chèn lại (idempotent),

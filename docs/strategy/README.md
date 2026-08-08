@@ -1,8 +1,8 @@
 # Chiến lược phát triển dự án
 
-📌 **Chưa có nội dung.** Thư mục dành cho phần anh bổ sung sau.
+📌 **Chưa có nội dung.** Thư mục dành cho phần bổ sung sau.
 
-## Dự kiến chứa
+## Cần điền gì
 
 - **Các chiến lược được cân nhắc** — mỗi cái kèm đánh đổi, không chỉ mô tả
 - **Plan triển khai theo từng chiến lược** — mốc thời gian, thứ tự việc, điều kiện chuyển
@@ -13,15 +13,14 @@
 Với 1 tuần, chọn sai chiến lược tốn hơn nhiều so với viết code chậm. Sai chiến lược thì code
 nhanh cũng đi sai hướng; code chậm mà đúng hướng vẫn còn cứu được.
 
-## Công cụ sẵn có hỗ trợ
+## Công cụ sẵn có
 
 | Cần gì | Dùng |
 |---|---|
 | Chốt biên phạm vi | BABOK `10.41` Scope Modelling |
 | Thứ tự ưu tiên và **thứ tự cắt** | BABOK `10.33` Prioritization — BMad cũng mạnh (23 file) |
 | Chọn giữa nhiều phương án | BABOK `10.16` Decision Analysis |
-| Phản biện chiến lược trước khi chốt | `/bmad-advanced-elicitation` → `59` Pre-mortem · `64` Assumption Audit · `31` Inversion |
+| Phản biện trước khi chốt | `/bmad-advanced-elicitation` → `59` Pre-mortem · `64` Assumption Audit · `31` Inversion |
 
-⚠ Quyền chốt phạm vi thuộc **Sponsor**, không thuộc PM — BABOK `2.4.9`: sponsor *"control the
-budget and scope"*; `2.4.7` nói PM *"balancing"* các yếu tố. Nên **xin duyệt thứ tự cắt scope
-ngay buổi đầu**, thay vì xin phép giữa lúc code.
+⚠ Quyền chốt phạm vi thuộc **Sponsor**, không thuộc PM — BABOK `2.4.9` vs `2.4.7`. Xin duyệt
+**thứ tự cắt scope** ngay buổi đầu, thay vì xin phép giữa lúc code.

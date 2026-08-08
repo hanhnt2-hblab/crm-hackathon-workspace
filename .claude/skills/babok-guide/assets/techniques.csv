@@ -23,19 +23,19 @@ section,page,name_en,name_vi,bmad_gap,crm_priority,bmad_phase,cached
 10.22,283,Functional Decomposition,Phân rã chức năng,,high,epics-stories,no
 10.23,286,Glossary,Bảng thuật ngữ,thin,medium,prd,no
 10.24,287,Interface Analysis,Phân tích giao diện,,high,architecture,yes
-10.25,290,Interviews,Phỏng vấn,,high,brief,yes
+10.25,290,Interviews,Phỏng vấn,unmeasurable,high,brief,yes
 10.26,294,Item Tracking,Theo dõi vấn đề,,medium,sprint-planning,no
 10.27,296,Lessons Learned,Bài học kinh nghiệm,covered,low,review,no
 10.28,297,Metrics and Key Performance Indicators (KPIs),Chỉ số và KPI,,medium,prd,no
 10.29,299,Mind Mapping,Sơ đồ tư duy,,low,brief,no
 10.30,302,Non-Functional Requirements Analysis,Phân tích yêu cầu phi chức năng,thin,high,prd,yes
-10.31,305,Observation,Quan sát,,low,brief,no
+10.31,305,Observation,Quan sát,unmeasurable,low,brief,no
 10.32,308,Organizational Modelling,Mô hình hóa tổ chức,,low,brief,no
 10.33,311,Prioritization,Ưu tiên hóa,covered,high,prd,no
 10.34,314,Process Analysis,Phân tích quy trình,,medium,prd,no
 10.35,318,Process Modelling,Mô hình hóa quy trình,absent,high,prd,yes
 10.36,323,Prototyping,Tạo mẫu thử,,medium,ux,no
-10.37,326,Reviews,Rà soát,,medium,review,no
+10.37,326,Reviews,Rà soát,unmeasurable,medium,review,no
 10.38,329,Risk Analysis and Management,Phân tích và quản lý rủi ro,,medium,architecture,no
 10.39,333,Roles and Permissions Matrix,Ma trận vai trò và quyền,absent,high,spec,yes
 10.40,335,Root Cause Analysis,Phân tích nguyên nhân gốc,,low,review,no
@@ -43,7 +43,7 @@ section,page,name_en,name_vi,bmad_gap,crm_priority,bmad_phase,cached
 10.42,341,Sequence Diagrams,Sơ đồ tuần tự,absent,medium,architecture,yes
 10.43,344,"Stakeholder List, Map, or Personas","Danh sách, bản đồ, persona stakeholder",covered,medium,ux,no
 10.44,348,State Modelling,Mô hình hóa trạng thái,absent,high,spec,yes
-10.45,350,Survey or Questionnaire,Khảo sát hoặc bảng câu hỏi,,low,brief,no
+10.45,350,Survey or Questionnaire,Khảo sát hoặc bảng câu hỏi,unmeasurable,low,brief,no
 10.46,353,SWOT Analysis,Phân tích SWOT,,medium,brief,no
 10.47,356,Use Cases and Scenarios,Use case và tình huống,,medium,spec,no
 10.48,359,User Stories,User story,covered,high,epics-stories,no

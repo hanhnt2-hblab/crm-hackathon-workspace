@@ -10,13 +10,9 @@
 [workflow]
 
 persistent_facts = [
-  # `file:` la tien to DUY NHAT duoc SKILL.md cua BMad bao dam nap
-  # (bmad-prd SKILL.md: "entries prefixed `file:` are loaded").
-  # Tien to `skill:` co trong comment cua customize.toml nhung khong co chi dan nap
-  # trong SKILL.md, nen khong dung mot minh.
-  "file:{project-root}/.claude/skills/babok-guide/references/workflow.md",
+  "file:{project-root}/.claude/skills/babok-guide/references/steps/prd.md",
 
-  "Skill `babok-guide` chua catalog 50 ky thuat BABOK kem so section va so trang, cung ban do khuyet diem cua BMad. Goi no khi can tra sau mot ky thuat cu the.",
+  "Skill `babok-guide` chứa catalog 50 kỹ thuật BABOK kèm số section và số trang, cùng bản đồ khuyết điểm của BMad đã đo trên bản cài. Gọi nó khi cần tra sâu một kỹ thuật cụ thể.",
 
   "Chốt bảng thuật ngữ (BABOK 10.11 Concept Modelling) TRƯỚC khi thu thập business rules. 10.9.4.2 ghi rõ: nếu từ vựng không đủ phong phú hoặc định nghĩa kém thì quy tắc rút ra sẽ sai hoặc mâu thuẫn. Với CRM, ranh giới Lead / Contact / Account / Opportunity là chỗ phải chốt đầu tiên.",
 

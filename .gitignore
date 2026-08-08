@@ -1,5 +1,7 @@
-# Artifact BMad sinh ra trong lúc chạy workflow — không phải nguồn
-_bmad-output/
+# Cấu hình cá nhân — installer ghi "Holds install answers scoped to YOU personally"
+_bmad/config.user.toml
+_bmad/custom/config.user.toml
+.claude/settings.local.json
 
 # Tài liệu có bản quyền — "Not for Distribution or Resale"
 BABOK_Guide_v3_Member.pdf
@@ -8,6 +10,3 @@ BABOK_Guide_v3_Member.txt
 
 # File khoá của WPS Office
 ~$*
-
-# Cấu hình cá nhân (BMad tự gitignore *.user.toml trong _bmad/custom/)
-.claude/settings.local.json
