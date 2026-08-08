@@ -187,8 +187,25 @@ python .claude/skills/babok-guide/scripts/check-install.py
 ```
 
 Update **ghi đè `methods.csv`** và xoá mất 12 method BABOK. Lệnh đầu chèn lại (idempotent),
-lệnh sau kiểm 4 thứ: catalog · override · tên skill trong `workflow.md` · gap profile lệch
-baseline bao nhiêu.
+lệnh sau kiểm **7 mục**:
+
+| # | Kiểm gì | Bắt được lỗi nào |
+|---|---|---|
+| 1 | Catalog còn đủ 12 method BABOK | Update BMad ghi đè `methods.csv` |
+| 2 | 4 override resolve được | Override không được nạp |
+| 3 | **Diff nguồn ↔ bản cài từng cặp file** | Nguồn đúng mà bản cài là bản cũ — cùng số dòng nên đếm không phát hiện được |
+| 4 | Tên skill và mã lệnh trong `workflow.md` | BMad đổi tên skill (`bmad-build` → `CS`/`DS`) |
+| 5 | **Mọi số hiệu section tồn tại trong văn bản BABOK** | Trích dẫn lệch cấp hoặc bịa section |
+| 6 | **Mỗi fact trích BABOK có dấu phân định nguồn** | Gán kinh nghiệm thực hành cho BABOK |
+| 7 | Gap profile lệch baseline bao nhiêu | BMad bổ sung hoặc bỏ tính năng |
+
+Mục 5 cần bản `BABOK_Guide_v3_Member.txt` — file có bản quyền, **không nằm trong repo**.
+Truyền qua `--babok-txt <đường-dẫn>` hoặc biến môi trường `BABOK_TXT`. Không có thì mục này
+báo bỏ qua, các mục khác vẫn chạy.
+
+**Giới hạn của mục 5 và 6:** chúng bắt được *section không tồn tại* và *chưa ai phân định
+nguồn*. Chúng **không** bắt được *diễn giải sai ngữ nghĩa* — hai loại đó cần đọc hiểu, phải
+đối chiếu bằng mắt với nguyên văn.
 
 **Vì sao cần:** skill này ban đầu được dựng theo **source GitHub** của BMad chứ không phải
 **bản cài**, và hai thứ khác nhau đáng kể — đã gây 4 lỗi thật, gồm cả việc gap profile lệch

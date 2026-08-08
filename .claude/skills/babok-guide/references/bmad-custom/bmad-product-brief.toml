@@ -16,11 +16,11 @@ persistent_facts = [
 
   "Skill `babok-guide` chứa catalog 50 kỹ thuật BABOK kèm số section và số trang, cùng bản đồ khuyết điểm của BMad đã đo trên bản cài. Gọi nó khi cần tra sâu một kỹ thuật cụ thể.",
 
-  "Trước khi tự nghĩ ra yêu cầu, hãy bóc từ tài liệu sẵn có bằng Document Analysis (BABOK 10.18): tài liệu CRM đối thủ, hợp đồng, chính sách, màn hình hệ thống cũ, sách nghiệp vụ. Kỹ thuật này đo được là `absent` trong BMad. Kết quả còn dùng để đối chiếu chéo với những gì kỹ thuật khác sinh ra.",
+  "Trước khi tự nghĩ ra yêu cầu, hãy bóc từ tài liệu sẵn có bằng Document Analysis (BABOK 10.18): tài liệu CRM đối thủ, hợp đồng, chính sách, màn hình hệ thống cũ, sách nghiệp vụ. Kỹ thuật này đo được là `absent` trong BMad. Kết quả còn dùng để đối chiếu chéo với những gì kỹ thuật khác sinh ra. [BABOK: mục đích và các nguồn của Document Analysis (10.18); đo được: `absent` trong BMad là kết quả đo của repo này, không phải BABOK.]",
 
   "Khi có chuyên gia nghiệp vụ thật tham gia phiên, khai thác trực tiếp thay vì mô phỏng persona hay chạy party-mode. Catalog elicitation của BMad có 71 method nhưng không cái nào là kỹ thuật khai thác người thật — mô phỏng là phương án dự phòng cho stakeholder vắng mặt, không phải mặc định.",
 
-  "Định tuyến câu hỏi theo vai (BABOK 2.4): phạm vi và thứ tự cắt thuộc Sponsor (2.4.9 — sponsor 'control the budget and scope'); quy trình, thuật ngữ, quy tắc thuộc Domain SME (2.4.3); số field và số click thuộc End User (2.4.4 — 'directly interact with the solution'). Một trưởng bộ phận là Domain SME nhưng không tự động là End User — phải kiểm chứng.",
+  "Định tuyến câu hỏi theo vai (BABOK 2.4): phạm vi và thứ tự cắt thuộc Sponsor (2.4.9 — sponsor 'control the budget and scope'); quy trình, thuật ngữ, quy tắc thuộc Domain SME (2.4.3); số field và số click thuộc End User (2.4.4 — 'directly interact with the solution'). Một trưởng bộ phận là Domain SME nhưng không tự động là End User — phải kiểm chứng. [BABOK: định nghĩa các vai (2.4.3, 2.4.4, 2.4.9); thực hành: việc gán loại câu hỏi cho từng vai.]",
 
-  "Nếu sẽ có cắt scope về sau, xin Sponsor duyệt thứ tự cắt ngay từ buổi đầu, thay vì xin phép giữa lúc code. Quyền chốt phạm vi thuộc Sponsor chứ không thuộc PM — 2.4.7 nói PM 'balancing' các yếu tố, không phải quyết định.",
+  "Nếu sẽ có cắt scope về sau, xin Sponsor duyệt thứ tự cắt ngay từ buổi đầu, thay vì xin phép giữa lúc code. Quyền chốt phạm vi thuộc Sponsor chứ không thuộc PM — 2.4.7 nói PM 'balancing' các yếu tố, không phải quyết định. [BABOK: quyền chốt phạm vi thuộc sponsor (2.4.9) và PM chỉ cân đối (2.4.7); thực hành: chiến thuật xin duyệt thứ tự cắt từ buổi đầu.]",
 ]

@@ -31,6 +31,7 @@ import os
 import re
 import subprocess
 import sys
+import tomllib
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 SKILL_ROOT = os.path.dirname(HERE)
@@ -147,7 +148,6 @@ def check_methods(project_root, problems):
         rows = list(csv.DictReader(f))
     n = sum(1 for r in rows if r.get("category") == "babok")
     toml_p = os.path.join(CUSTOM_DIR, "bmad-advanced-elicitation.toml")
-    import tomllib
     with open(toml_p, "rb") as f:
         want = len(tomllib.load(f)["workflow"]["additional_methods"])
     status = "OK" if n == want else "THIEU"
@@ -327,6 +327,49 @@ def check_citations(project_root, problems, txt_path=None):
         print(f"         {sec:12} {f}:{i}")
     problems.append(f"{len(seen)} trich dan section khong ton tai trong BABOK")
 
+
+def check_provenance(problems):
+    """Moi persistent_fact co trich so hieu BABOK phai mang dau phan dinh nguon.
+
+    VI SAO: check_citations chi xac nhan section CO TON TAI. No khong bat duoc viec gan kinh
+    nghiem thuc hanh cho BABOK — loai loi nguy hiem hon, vi nguoi doc tin do la chuan.
+    Vi du that: "hoi as-is va to-be tach hai lan" nghe nhu BABOK, thuc ra 10.35.2 chi phan
+    biet hai MO HINH; viec hoi tach la kinh nghiem.
+
+    Quy uoc kiem duoc: fact nao trich section thi phai co mot trong hai dang
+        [BABOK: ...]                       toan bo la noi dung tai lieu
+        [BABOK: ...; thuc hanh: ...]       co tron, noi ro phan nao khong phai BABOK
+    Grep khong doc hieu duoc noi dung, nhung ep duoc viec CO AI DO DA PHAN DINH.
+    """
+    files = sorted(f for f in os.listdir(CUSTOM_DIR)
+                   if f.startswith("bmad-") and f.endswith(".toml"))
+    total = tagged = 0
+    missing = []
+    for fn in files:
+        with open(os.path.join(CUSTOM_DIR, fn), "rb") as fh:
+            facts = tomllib.load(fh)["workflow"].get("persistent_facts", [])
+        for x in facts:
+            if not isinstance(x, str) or x.startswith("file:"):
+                continue
+            if not re.search(r"(?<![\w.])\d{1,2}\.\d{1,2}(?:\.\d{1,2}){0,2}(?![\w.])", x):
+                continue
+            total += 1
+            if re.search(r"\[BABOK[:\]]", x):
+                tagged += 1
+            else:
+                missing.append((fn, x[:70]))
+    if total == 0:
+        print("  [BO QUA] khong co fact nao trich section")
+        return
+    print(f"  {tagged}/{total} fact trich section co dau phan dinh nguon")
+    if missing:
+        print(f"  [THIEU] {len(missing)} fact chua phan dinh:")
+        for fn, snip in missing:
+            print(f"          {fn}: {snip}...")
+        problems.append(f"{len(missing)} fact trich BABOK nhung chua phan dinh nguon")
+    else:
+        print("  [OK] moi fact trich BABOK deu ghi ro phan nao la tai lieu, phan nao la thuc hanh")
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--project-root", default=os.getcwd())
@@ -352,7 +395,10 @@ def main():
     print("\n== 5. Trich dan section BABOK ==")
     check_citations(root, problems, a.babok_txt)
 
-    print("\n== 6. Gap profile (do tren ban cai, loai noi dung tu chen) ==")
+    print("\n== 6. Phan dinh nguon trong persistent_facts ==")
+    check_provenance(problems)
+
+    print("\n== 7. Gap profile (do tren ban cai, loai noi dung tu chen) ==")
     prof, nfiles, broad = measure(root)
     print(f"  quet {nfiles} file trong .claude/skills/ (tru babok-guide va methods.csv)")
     for b in broad:

@@ -79,9 +79,17 @@ python .claude/skills/babok-guide/scripts/apply-methods.py
 python .claude/skills/babok-guide/scripts/check-install.py
 ```
 
-- [ ] Catalog vẫn đủ 12 method BABOK
-- [ ] 4 override vẫn resolve được
-- [ ] Gap profile không lệch baseline — lệch nghĩa là BMad đã đổi, phải đọc lại `SKILL.md`
+Kiểm 7 mục. Ba mục đáng chú ý:
+
+- [ ] **Mục 3** — nguồn và bản cài phải khớp từng byte. Đếm số fact không đủ: hai phiên bản
+      khác nội dung mà cùng số dòng vẫn qua được
+- [ ] **Mục 5** — mọi số hiệu section phải tồn tại thật. Cần bản `BABOK_Guide_v3_Member.txt`
+      của riêng mình: `--babok-txt <đường-dẫn>`
+- [ ] **Mục 6** — mỗi fact trích BABOK phải ghi rõ phần nào là tài liệu, phần nào là kinh
+      nghiệm. Quy ước: `[BABOK: …]` hoặc `[BABOK: …; thực hành: …]`
+
+⚠ Không check nào bắt được **diễn giải sai ngữ nghĩa** — section có thật, dấu có đủ, nhưng
+nội dung dẫn không đúng ý mục đó. Loại này phải đối chiếu bằng mắt với nguyên văn.
 
 Hỏng thì hoàn nguyên: `python .claude/skills/babok-guide/scripts/apply-methods.py --restore`
 
