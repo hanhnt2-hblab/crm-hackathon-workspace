@@ -1,0 +1,132 @@
+# Override team cho bmad-advanced-elicitation — nhúng kỹ thuật BABOK v3.
+#
+# Sparse: chỉ field thay đổi. Mọi field khác kế thừa từ customize.toml.
+# Dùng additional_methods (nối thêm), KHÔNG dùng methods_file (thay cả catalog)
+# — giữ nguyên 71 method gốc.
+#
+# Mọi code mang tiền tố `babok-` vì BMad không có cơ chế xoá: chỉ ghi đè được
+# theo code. Tiền tố nhất quán là cách duy nhất gỡ được entry sai về sau.
+
+[workflow]
+
+preferences = [
+  "Với công việc phân tích nghiệp vụ — làm rõ yêu cầu, xác định phạm vi, đánh giá phương án — ưu tiên method nhóm babok trước method tư duy chung.",
+
+  # BABOK `10.40`: Root Cause Analysis nhận diện nguyên nhân nền tảng của vấn đề.
+  "Khi chưa rõ vấn đề thật là gì, đề xuất Root Cause Analysis trước bất kỳ method thiết kế giải pháp nào.",
+
+  # BABOK `4.1`: Prepare for Elicitation gồm việc chọn kỹ thuật khai thác.
+  #   `10.50` Workshops, `10.25` Interviews: khai thác từ người thật.
+  #   `10.45` Survey, `10.31` Observation, `10.4` Benchmarking: lấy dữ liệu khi
+  #   người biết câu trả lời không ở trong tổ chức.
+  # thực hành: cả công tắc và vế đảo của nó là chính sách của repo này. BMad mô
+  #   phỏng góc nhìn để bù cho việc không có người thật, nên khi có người thật
+  #   thì mô phỏng là lựa chọn kém hơn — nhưng áp ngược lại cho sản phẩm ra thị
+  #   trường là đẩy đội đi hỏi sai người.
+  "CÔNG TẮC NGƯỜI-THẬT. Trước khi đề xuất bất kỳ method mô phỏng góc nhìn nào — round table, lens rotation, persona panel — hỏi trước: người biết câu trả lời này có ở trong tổ chức không? Nếu CÓ, mô phỏng là lựa chọn kém hơn: đề xuất hỏi thẳng họ bằng Workshops hoặc Interviews. Nếu KHÔNG — người dùng cuối nằm ngoài tổ chức, hoặc cần góc nhìn của vai không tồn tại trong đội — thì nghiên cứu và mô phỏng CHÍNH LÀ phương pháp đúng: đề xuất Survey or Questionnaire, Observation, Benchmarking and Market Analysis. Áp quy tắc nửa đầu cho sản phẩm ra thị trường là đẩy đội đi hỏi nhân viên nội bộ nói thay khách hàng, tức thất bại proxy-user.",
+]
+
+[[workflow.additional_methods]]
+code = "babok-root-cause-analysis"
+category = "babok"
+method_name = "Root Cause Analysis"
+description = "Trace a problem back to a cause you can actually act on before designing anything - keep asking why until the answer stops being a symptom"
+output_pattern = "symptom → causes → actionable root"
+
+[[workflow.additional_methods]]
+code = "babok-scope-modelling"
+category = "babok"
+method_name = "Scope Modelling"
+description = "Draw the line, then name what falls outside it - the outside half is the half that stops scope creep, and most people write only the inside half"
+output_pattern = "objective → boundary → in / out"
+
+[[workflow.additional_methods]]
+code = "babok-functional-decomposition"
+category = "babok"
+method_name = "Functional Decomposition"
+description = "Split work that is too big to hold in your head into parts you can estimate and check one at a time - each part belongs to exactly one parent"
+output_pattern = "whole → parts → per-part analysis"
+
+[[workflow.additional_methods]]
+code = "babok-nfr-analysis"
+category = "babok"
+method_name = "Non-Functional Requirements Analysis"
+description = "Turn 'it should be fast and secure' into numbers - pick the quality attributes that matter here and attach a threshold and a way to measure each"
+output_pattern = "quality attribute → threshold → context"
+
+[[workflow.additional_methods]]
+code = "babok-acceptance-criteria"
+category = "babok"
+method_name = "Acceptance and Evaluation Criteria"
+description = "Say what 'good enough' means before building - pass/fail wording when one option is on the table, comparative wording when several are"
+output_pattern = "value attributes → measures → accept or rank"
+
+[[workflow.additional_methods]]
+code = "babok-business-rules-analysis"
+category = "babok"
+method_name = "Business Rules Analysis"
+description = "Collect the business logic scattered through the description into named rules, and mark which ones the system must enforce versus which ones people can break and need a recovery path"
+output_pattern = "scattered logic → definitional / behavioural rules"
+
+[[workflow.additional_methods]]
+code = "babok-business-model-canvas"
+category = "babok"
+method_name = "Business Model Canvas"
+description = "Sketch how the business earns its keep on one page before arguing about features - customers, offer, channels, revenue, costs, partners"
+output_pattern = "nine blocks → value flow"
+
+[[workflow.additional_methods]]
+code = "babok-swot"
+category = "babok"
+method_name = "SWOT Analysis"
+description = "Position against the outside world, then do the part people skip: pair the quadrants to get actual strategies, not four lists"
+output_pattern = "four quadrants → four strategy sets"
+
+[[workflow.additional_methods]]
+code = "babok-business-case"
+category = "babok"
+method_name = "Business Case"
+description = "Argue that the work is worth doing - what hurts now, what should change, what else could be done including nothing, and why this one"
+output_pattern = "need → outcomes → alternatives → recommendation"
+
+[[workflow.additional_methods]]
+code = "babok-benchmarking"
+category = "babok"
+method_name = "Benchmarking and Market Analysis"
+description = "Look outside before deciding what good looks like - what comparable organisations do, what customers already expect"
+output_pattern = "reference point → gap → action"
+
+[[workflow.additional_methods]]
+code = "babok-decision-analysis"
+category = "babok"
+method_name = "Decision Analysis"
+description = "Make a choice under uncertainty explicit - name the criteria, weigh them, and compare options against them instead of arguing preferences"
+output_pattern = "options × weighted criteria → ranked choice"
+
+[[workflow.additional_methods]]
+code = "babok-financial-analysis"
+category = "babok"
+method_name = "Financial Analysis"
+description = "Put money on the options - what the change costs, what it returns, and which assumptions the numbers rest on so they can be challenged"
+output_pattern = "costs + benefits → stated assumptions → calculation"
+
+[[workflow.additional_methods]]
+code = "babok-interface-analysis"
+category = "babok"
+method_name = "Interface Analysis"
+description = "Pin down every place information crosses a boundary - what moves, when, how often, and who owns each side"
+output_pattern = "boundary → exchanges → interface contract"
+
+[[workflow.additional_methods]]
+code = "babok-vendor-assessment"
+category = "babok"
+method_name = "Vendor Assessment"
+description = "Check whether an outside party can actually deliver over time - pricing model, market position, contract terms, track record"
+output_pattern = "vendor → four dimensions → commitment risk"
+
+[[workflow.additional_methods]]
+code = "babok-stakeholder-map"
+category = "babok"
+method_name = "Stakeholder List, Map, or Personas"
+description = "Work out who must be asked before asking anyone - list them, place them by influence and impact, write personas where you cannot reach real people"
+output_pattern = "list → influence / impact map → personas"

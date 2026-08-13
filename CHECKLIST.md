@@ -16,10 +16,10 @@ và thao tác thật) · **Implementation SME + Tester** (thực thi và kiểm)
       ```
 - [ ] Xác minh môi trường:
       ```
-      python .claude/skills/babok-guide/scripts/check-install.py
+      python ~/.claude/skills/babok-business-analysis/verify.py --project-root .
       ```
       Đạt khi báo `Moi thu khop voi ban cai` — 7 mục kiểm, không mục nào báo lỗi
-- [ ] Xác minh skill nạp được — gõ `/` xem có `babok-guide` trong danh sách
+- [ ] Xác minh skill nạp được — gõ `/` xem có `babok-business-analysis` trong danh sách
 
 BMad và bản vá đã nằm sẵn trong repo, **không cần chạy `npx bmad-method install`**.
 
@@ -27,7 +27,7 @@ BMad và bản vá đã nằm sẵn trong repo, **không cần chạy `npx bmad-
 
 Cửa sổ gặp stakeholder không mở lại. Chuẩn bị trước để mỗi phút đổi lấy một quyết định.
 
-- [ ] Đọc [`references/steps/product-brief.md`](.claude/skills/babok-guide/references/steps/product-brief.md)
+- [ ] Đọc [`workflow.md`](~/.claude/skills/babok-business-analysis/workflow.md)
       — biết hỏi ai câu gì
 - [ ] Bóc tài liệu sẵn có trước (Document Analysis `10.18`): CRM đối thủ, hợp đồng, chính sách,
       màn hình hệ thống cũ. **Đọc rẻ hơn hỏi**
@@ -75,8 +75,8 @@ NGÀY | CẮT GÌ | VÌ SAO | THAY BẰNG GÌ | ĐÃ DUYỆT TRƯỚC?
 Bật hook ở mục A thì hai lệnh này tự chạy. Không bật thì phải tự nhớ:
 
 ```bash
-python .claude/skills/babok-guide/scripts/apply-methods.py
-python .claude/skills/babok-guide/scripts/check-install.py
+python ~/.claude/skills/babok-business-analysis/install.py --project-root .
+python ~/.claude/skills/babok-business-analysis/verify.py --project-root .
 ```
 
 Kiểm 7 mục. Ba mục đáng chú ý:
@@ -91,7 +91,7 @@ Kiểm 7 mục. Ba mục đáng chú ý:
 ⚠ Không check nào bắt được **diễn giải sai ngữ nghĩa** — section có thật, dấu có đủ, nhưng
 nội dung dẫn không đúng ý mục đó. Loại này phải đối chiếu bằng mắt với nguyên văn.
 
-Hỏng thì hoàn nguyên: `python .claude/skills/babok-guide/scripts/apply-methods.py --restore`
+Hỏng thì hoàn nguyên: `python ~/.claude/skills/babok-business-analysis/install.py --project-root . --check`
 
 ## F · Việc còn treo
 

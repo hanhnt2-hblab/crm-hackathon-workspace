@@ -2,12 +2,17 @@ MIT License
 
 Copyright (c) 2026 HBLAB — CRM Hackathon Team
 
-Áp dụng cho nội dung do repo này tạo ra: skill `babok-guide`, các script trong
-`.claude/skills/babok-guide/scripts/`, file override trong `_bmad/custom/`, và tài liệu
-trong `docs/`.
+Áp dụng cho nội dung do repo này tạo ra: tài liệu trong `docs/`, `README.md`,
+`CHECKLIST.md`, và script trong `.githooks/`.
 
-KHÔNG áp dụng cho: BMad Method (MIT riêng — xem THIRD-PARTY.md) và bất kỳ nội dung nào
-trích từ BABOK® Guide v3 của IIBA (xem ghi chú bản quyền trong README.md).
+KHÔNG áp dụng cho ba thứ sau, mỗi thứ có giấy phép riêng:
+
+- **BMad Method** — `.claude/skills/bmad-*/` và `_bmad/`. MIT riêng, kèm điều khoản
+  trademark. Xem THIRD-PARTY.md.
+- **File override trong `_bmad/custom/`** — sinh ra từ `babok-bmad-skill`, MIT riêng
+  của tác giả repo đó, không thuộc bản quyền HBLAB. Xem THIRD-PARTY.md.
+- **Nội dung trích từ BABOK® Guide v3** của IIBA. Repo này không chứa nội dung đó;
+  xem ghi chú bản quyền trong README.md.
 
 Permission is hereby granted, free of charge, to any person obtaining a copy of this
 software and associated documentation files (the "Software"), to deal in the Software

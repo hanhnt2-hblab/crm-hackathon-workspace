@@ -102,7 +102,7 @@ BMad có 46 skill. Chạy chín cái:
 | `bmad-dev-story` | Hanh — chỉ cho phần lõi |
 | `bmad-review-adversarial-general` | Tùng |
 | `bmad-code-review` | Hanh — chọn lọc trên phần lõi |
-| `babok-guide` | Cả ba — chạy kèm các skill khác |
+| `babok-business-analysis` | Cả ba — chạy kèm các skill khác |
 
 Phản biện giao cho Tùng chứ không phải người viết: người viết không tự phản biện được mình, và
 Tùng là chuyên gia nghiệp vụ nên bắt được lỗi nghiệp vụ chứ không chỉ lỗi trình bày.
@@ -156,4 +156,4 @@ phản biện.
 ---
 
 Cách đặt câu hỏi cho từng vai và checklist làm việc với stakeholder giữ ở
-[`babok-guide/SKILL.md`](../../.claude/skills/babok-guide/SKILL.md).
+[`babok-business-analysis/SKILL.md`](~/.claude/skills/babok-business-analysis/SKILL.md).

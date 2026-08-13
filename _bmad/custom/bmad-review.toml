@@ -1,0 +1,60 @@
+# Override team cho bmad-review — thêm lens Solution Evaluation (KA8).
+#
+# Sparse: chỉ field thay đổi.
+#
+# Vì sao thêm lens chứ không thêm directive: bmad-review có cơ chế `lenses`
+# thật, nên đây là thêm NĂNG LỰC chứ không phải thêm con trỏ. Solution
+# Evaluation hiện không được phục vụ ở đâu trong toàn bộ phần nhúng.
+#
+# instruction viết THẲNG, không trỏ vào file tham chiếu. Hai lý do: file tham
+# chiếu của bmad-review nằm trong thư mục do installer BMad quản nên sẽ bị ghi
+# đè; và agent đang bận một review lớn thường dừng ở chỉ thị, không mở file phụ.
+#
+# PHÂN ĐỊNH NGUỒN trong comment, không trong directive — resolver parse TOML nên
+# comment không tới agent.
+
+[workflow]
+
+persistent_facts = [
+  "skill:babok-business-analysis",
+]
+
+review_guidance = [
+  "Khi phát hiện liên quan tới việc giải pháp có đạt kỳ vọng hay không, nêu rõ giới hạn nằm ở bản thân giải pháp hay ở doanh nghiệp quanh nó. Không xếp được thì nói là chưa xếp được.",
+  "Nhắc tên khung phương pháp một lần làm xuất xứ là đủ. Không rải tham chiếu khung hay số hiệu mục qua từng phát hiện.",
+]
+
+# BABOK `8.1`–`8.5`: Measure Solution Performance, Analyze Performance Measures,
+#   Assess Solution Limitations, Assess Enterprise Limitations, Recommend Actions
+#   to Increase Solution Value.
+#   Cặp `8.3` và `8.4` tách bạch CÓ CHỦ ĐÍCH: giải pháp kém hiệu quả hoặc vì bản
+#   thân nó có giới hạn, hoặc vì doanh nghiệp quanh nó có giới hạn.
+#   `8.1` cần Business Objectives làm mốc so — không có mốc thì không đo được.
+# thực hành: buộc nêu rõ giới hạn nằm phía nào là đóng góp chính của lens này;
+#   chẩn đoán nhầm phía là sửa nhầm chỗ. Việc coi "không có mốc" là một phát
+#   hiện cũng là chính sách của repo này.
+[[workflow.lenses]]
+code = "babok-solution-eval"
+name = "Solution Evaluation"
+applies_to = "any"
+when = "Nội dung là một giải pháp ĐÃ TỒN TẠI hoặc đang chạy — mã đã viết, bản đã triển khai, bản pilot, hoặc tài liệu mô tả thứ đang vận hành. BỎ QUA khi nội dung là kế hoạch, PRD, spec, hay bất kỳ thứ gì mô tả giải pháp chưa tồn tại: đánh giá một giải pháp chưa có là suy đoán, không phải đánh giá."
+instruction = """
+Đánh giá giá trị giải pháp đang mang lại, theo bốn câu hỏi. Mỗi phát hiện dùng các trường chuẩn của bmad-review (location, trigger_condition, guard_snippet, potential_consequence).
+
+1 · CÓ MỐC ĐỂ SO KHÔNG
+Giá trị chỉ đo được khi có thứ để so. Tìm mục tiêu nghiệp vụ đo được, ngưỡng đã cam kết, hoặc số liệu trước-khi-làm. Không tìm thấy thì đó chính là phát hiện đầu tiên và nặng nhất — không có mốc thì mọi phát biểu 'giải pháp chạy tốt' đều không kiểm chứng được.
+
+2 · SỐ ĐO CÓ NÓI ĐIỀU NGƯỜI TA TƯỞNG KHÔNG
+Có số đo rồi thì hỏi: nó đo đúng thứ đáng quan tâm, hay đo thứ dễ đo? Có số đo nào đang được diễn giải quá mức không?
+
+3 · GIỚI HẠN NẰM PHÍA NÀO — ĐÂY LÀ PHẦN QUAN TRỌNG NHẤT
+Với mỗi chỗ giải pháp chưa đạt kỳ vọng, phân định rõ:
+  · GIỚI HẠN CỦA GIẢI PHÁP — bản thân nó thiếu năng lực, sai thiết kế, hoặc chất lượng kém.
+  · GIỚI HẠN CỦA DOANH NGHIỆP — giải pháp ổn nhưng quy trình, cơ cấu, kỹ năng, chính sách, hoặc dữ liệu xung quanh nó chặn giá trị lại.
+Nêu rõ bạn xếp vào phía nào và vì sao. Không xếp được thì nói là chưa xếp được, đừng đoán. Chẩn đoán nhầm phía dẫn tới sửa nhầm chỗ: viết thêm tính năng cho một vấn đề vận hành, hoặc đổi quy trình cho một lỗi thiết kế.
+
+4 · HÀNH ĐỘNG NÀO TĂNG ĐƯỢC GIÁ TRỊ
+Với mỗi giới hạn đã phân định, đề xuất hành động nhắm đúng phía đó. Hành động cho giới hạn doanh nghiệp thường không phải việc của người viết mã — nói rõ nó thuộc về ai.
+
+Không bịa số. Không có dữ liệu vận hành thì nói rõ đang đánh giá trên thiết kế và mã, và phần nào cần số thật mới kết luận được.
+"""

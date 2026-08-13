@@ -1,12 +1,16 @@
 #!/bin/sh
-# Chạy sau mỗi `git pull` / `git merge`.
-# Nếu BMad được cập nhật, methods.csv bị ghi đè và 12 method BABOK biến mất.
-# Hook này đắp lại rồi kiểm — biến việc "phải nhớ chạy" thành tự động.
+# Sau khi merge, nếu skill BMad thay đổi thì kiểm lại phần nhúng BABOK.
+# Hub nằm ở ~/.claude/skills/babok-business-analysis (junction sang repo nguồn).
 
 if git diff-tree -r --name-only ORIG_HEAD HEAD 2>/dev/null | grep -q "^\.claude/skills/bmad-"; then
-  echo "→ BMad thay đổi, đồng bộ lại bản vá babok-guide…"
-  python .claude/skills/babok-guide/scripts/apply-methods.py || exit 0
-  python .claude/skills/babok-guide/scripts/check-install.py || {
-    echo "⚠ check-install báo lệch — đọc output ở trên trước khi làm tiếp."
+  HUB="$HOME/.claude/skills/babok-business-analysis"
+  if [ ! -d "$HUB" ]; then
+    echo "⚠ Không thấy hub babok-business-analysis — bỏ qua phần kiểm BABOK."
+    exit 0
+  fi
+  echo "→ BMad thay đổi, kiểm lại phần nhúng BABOK…"
+  python "$HUB/install.py" --project-root . --quiet
+  python "$HUB/verify.py" --project-root . || {
+    echo "⚠ verify báo lệch — đọc output ở trên trước khi làm tiếp."
   }
 fi

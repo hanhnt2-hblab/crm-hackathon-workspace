@@ -1,0 +1,45 @@
+# Override team cho bmad-deep-recon — kỷ luật khai thác (KA4) cho việc nghiên
+# cứu ra bên ngoài.
+#
+# Sparse: chỉ field thay đổi.
+#
+# KHÔNG thêm research_type mới. Sáu loại ship sẵn đã phủ market, domain,
+# technical, competitive, user-voice, academic-lit; thêm một loại "BABOK" nữa
+# chỉ chồng lấn và làm menu khó chọn. Nhánh khai thác đã nối vào
+# bmad-product-brief rồi — ở đây chỉ cần directive nhắc đúng lúc.
+#
+# PHÂN ĐỊNH NGUỒN trong comment, không trong directive.
+
+[workflow]
+
+persistent_facts = [
+  "skill:babok-business-analysis",
+
+  # BABOK `4.3`: Confirm Elicitation Results — kết quả khai thác phải được xác
+  #   nhận trước khi dùng làm đầu vào cho phân tích.
+  # thực hành: áp quy tắc đó cho nghiên cứu ngoài, và bắt phân biệt ba mức bằng
+  #   nhãn — đây là chính sách của repo này.
+  "Kết quả nghiên cứu chưa được xác nhận thì chưa dùng làm căn cứ quyết định. Trong báo cáo, phân biệt rõ ba mức: điều nguồn nói và tra lại được, điều nhiều nguồn cùng nói nhưng chưa kiểm chứng độc lập, và điều mình suy ra. Trộn ba mức vào một giọng là chỗ nghiên cứu mất giá trị.",
+]
+
+external_sources = [
+  # BABOK `10.4`: đối chiếu cách làm với chuẩn tốt nhất của ngành và tìm hiểu
+  #   khách hàng muốn gì, đối thủ đang làm gì.
+  "Khi nghiên cứu để trả lời 'chuẩn tốt trông thế nào', tra Benchmarking and Market Analysis trong skill babok-business-analysis và nêu rõ đang đối chiếu với ai — so với một tổ chức khác bối cảnh thì kết luận không chuyển sang được.",
+
+  # BABOK `10.18`: khai thác từ tài liệu sẵn có.
+  "Khi câu hỏi nghiên cứu có thể đã được trả lời trong tài liệu nội bộ, tra Document Analysis và đọc nguồn trong nhà trước khi đi tìm nguồn ngoài.",
+
+  # BABOK `10.45`, `10.21`: Survey or Questionnaire và Focus Groups lấy dữ liệu
+  #   từ một nhóm người theo cách có cấu trúc.
+  # thực hành: chặn việc thay dữ liệu người dùng thật bằng suy đoán của model.
+  "Khi câu hỏi là về hành vi hoặc nhu cầu của người dùng cuối, tra Survey or Questionnaire và Focus Groups. Nếu không lấy được dữ liệu từ chính họ, nói rõ phần đó là suy đoán chứ đừng trình bày như phát hiện.",
+
+  # BABOK `10.49`: đánh giá khả năng nhà cung cấp thực hiện cam kết.
+  "Khi nghiên cứu để chọn giữa các nhà cung cấp hoặc sản phẩm thương mại, tra Vendor Assessment: mô hình cấp phép và giá, vị thế thị trường, điều khoản, kinh nghiệm và độ ổn định — không dừng ở so sánh tính năng.",
+]
+
+doc_standards = [
+  "Rà lại báo cáo: mỗi phát hiện có phân biệt được đâu là điều nguồn nói, đâu là điều mình suy ra không? Đánh dấu những chỗ chưa phân biệt.",
+  "Nhắc tên khung phương pháp một lần làm xuất xứ là đủ, không rải số hiệu mục qua từng phần.",
+]

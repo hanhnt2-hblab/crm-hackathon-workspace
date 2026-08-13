@@ -1,26 +1,97 @@
-# Override cho bmad-product-brief — bước CB, bắt buộc chạy trước PRD
-# (`bmad-prd` có `preceded-by: bmad-product-brief` trong module-help.csv).
+# Override team cho bmad-product-brief — KA6 Strategy Analysis + nhánh
+# Discovery (KA4 Elicitation).
 #
-# CÀI: cp .claude/skills/babok-guide/references/bmad-custom/bmad-*.toml _bmad/custom/
+# Sparse: chỉ field thay đổi.
 #
-# Gap đo trên BẢN CÀI v6.10.0, 234 file, 2026-08-08 (loại methods.csv tự chèn):
-#   `document analysis` = 2 file (absent)
-#   kỹ thuật khai thác người thật trong catalog 71 method = 0
+# Đây là bước khai thác. Hình thái bài toán làm thay đổi PHƯƠNG PHÁP khai
+# thác mạnh nhất ở chính bước này: doanh nghiệp nội bộ thì hỏi Domain SME có
+# thật, sản phẩm ra thị trường thì phải nghiên cứu vì không tồn tại SME nào
+# biết câu trả lời, thay hệ cũ thì đọc chính hệ đang chạy.
 #
-# `persistent_facts` là APPEND-MERGE, dòng mặc định project-context.md vẫn được giữ.
+# PHÂN ĐỊNH NGUỒN nằm trong COMMENT, không trong directive — resolver parse
+# TOML nên comment không tới agent, còn verify.py đọc văn bản thô nên vẫn đối
+# chiếu số hiệu với bản sách. Đặt số hiệu trong directive thì agent chép vào
+# tài liệu bàn giao.
 
 [workflow]
 
 persistent_facts = [
-  "file:{project-root}/.claude/skills/babok-guide/references/steps/product-brief.md",
+  "skill:babok-business-analysis",
 
-  "Skill `babok-guide` chứa catalog 50 kỹ thuật BABOK kèm số section và số trang, cùng bản đồ khuyết điểm của BMad đã đo trên bản cài. Gọi nó khi cần tra sâu một kỹ thuật cụ thể.",
+  # BABOK `6.1`, `6.2`: Analyze Current State đứng trước Define Future State.
+  # thực hành: khoảng cách giữa hai trạng thái là thứ biện minh cho thay đổi.
+  "Product brief thuộc giai đoạn Strategy Analysis của BABOK: phân tích hiện trạng rồi mới định nghĩa trạng thái tương lai. Không có mô tả hiện trạng thì trạng thái tương lai không có gốc để so.",
 
-  "Trước khi tự nghĩ ra yêu cầu, hãy bóc từ tài liệu sẵn có bằng Document Analysis (BABOK 10.18): tài liệu CRM đối thủ, hợp đồng, chính sách, màn hình hệ thống cũ, sách nghiệp vụ. Kỹ thuật này đo được là `absent` trong BMad. Kết quả còn dùng để đối chiếu chéo với những gì kỹ thuật khác sinh ra. [BABOK: mục đích và các nguồn của Document Analysis (10.18); đo được: `absent` trong BMad là kết quả đo của repo này, không phải BABOK.]",
+  # BABOK `3.1`: Plan Business Analysis Approach bắt chọn cách tiếp cận theo bối cảnh.
+  # thực hành: sáu hình thái là phân loại của repo này, KHÔNG phải của BABOK.
+  "Xác định hình thái bài toán ngay từ đầu theo bảng Bước 0 trong skill babok-business-analysis: vòng đời bản ghi, nền tảng dữ liệu, API/nền tảng, thay hệ cũ, sản phẩm ra thị trường, hay công cụ nội bộ nhỏ. Đây là bước đầu tiên của cả quy trình nên phân loại sai ở đây lan xuống mọi bước sau. Bài toán lai thì lấy hình thái trội làm bộ nền và nói rõ các hình thái phụ.",
 
-  "Khi có chuyên gia nghiệp vụ thật tham gia phiên, khai thác trực tiếp thay vì mô phỏng persona hay chạy party-mode. Catalog elicitation của BMad có 71 method nhưng không cái nào là kỹ thuật khai thác người thật — mô phỏng là phương án dự phòng cho stakeholder vắng mặt, không phải mặc định.",
+  # BABOK `4.1`: Prepare for Elicitation gồm việc chọn kỹ thuật khai thác.
+  # thực hành: vế đảo — người dùng cuối ngoài tổ chức thì nghiên cứu và mô phỏng
+  #   mới là phương pháp đúng. Đây là chính sách của repo này, không phải của BABOK.
+  "CÔNG TẮC NGƯỜI-THẬT — quyết định này đứng trước mọi kỹ thuật khác, vì chọn sai thì mọi bước sau thao tác trên dữ liệu suy đoán. Hỏi: người biết câu trả lời có ở trong tổ chức không? Có chuyên gia nghiệp vụ thật thì hỏi thẳng họ, đừng mô phỏng. Người dùng cuối nằm NGOÀI tổ chức thì ngược lại — nghiên cứu và mô phỏng mới là phương pháp đúng, và hỏi nhân viên nội bộ nói thay khách hàng là thất bại proxy-user.",
 
-  "Định tuyến câu hỏi theo vai (BABOK 2.4): phạm vi và thứ tự cắt thuộc Sponsor (2.4.9 — sponsor 'control the budget and scope'); quy trình, thuật ngữ, quy tắc thuộc Domain SME (2.4.3); số field và số click thuộc End User (2.4.4 — 'directly interact with the solution'). Một trưởng bộ phận là Domain SME nhưng không tự động là End User — phải kiểm chứng. [BABOK: định nghĩa các vai (2.4.3, 2.4.4, 2.4.9); thực hành: việc gán loại câu hỏi cho từng vai.]",
+  # BABOK `2.4`: phân vai Sponsor, Domain SME, End User, Implementation SME, Tester.
+  "Trước khi hỏi bất kỳ ai, xác định nên hỏi AI — tra bảng định tuyến theo vai trong skill babok-business-analysis.",
 
-  "Nếu sẽ có cắt scope về sau, xin Sponsor duyệt thứ tự cắt ngay từ buổi đầu, thay vì xin phép giữa lúc code. Quyền chốt phạm vi thuộc Sponsor chứ không thuộc PM — 2.4.7 nói PM 'balancing' các yếu tố, không phải quyết định. [BABOK: quyền chốt phạm vi thuộc sponsor (2.4.9) và PM chỉ cân đối (2.4.7); thực hành: chiến thuật xin duyệt thứ tự cắt từ buổi đầu.]",
+  "Khi cần người dùng quyết định giữa các phương án hữu hạn, hỏi bằng lựa chọn bấm được kèm khuyến nghị, không hỏi mở bắt gõ trả lời.",
 ]
+
+external_sources = [
+  # BABOK `10.40`: nhận diện và đánh giá nguyên nhân nền tảng của vấn đề.
+  "Khi chưa rõ vấn đề thật là gì, tra Root Cause Analysis trong skill babok-business-analysis trước khi mô tả bất kỳ giải pháp nào. Mô tả giải pháp trước khi hiểu nguyên nhân là lỗi thứ tự phổ biến nhất.",
+
+  # BABOK `10.18`: khai thác thông tin từ tài liệu sẵn có mô tả môi trường
+  #   nghiệp vụ hoặc tài sản tổ chức.
+  # thực hành: quy tắc đọc trước khi hỏi người.
+  "Khi có tài liệu, hệ thống, hoặc dữ liệu sẵn có mô tả cách việc đang diễn ra, tra Document Analysis trước khi đi hỏi người. Hỏi người những thứ đã ghi trong tài liệu là phí thời gian của họ và làm mất uy tín buổi khai thác.",
+
+  # BABOK `10.34`: đánh giá quy trình về hiệu quả và khả năng nhận diện cơ hội thay đổi.
+  "Khi hình thái là thay hệ cũ, tra Process Analysis trên chính quy trình đang chạy để dựng lại as-is trước khi bàn to-be. Quy trình thật thường khác quy trình được mô tả.",
+
+  # BABOK `10.50`: tập hợp stakeholder cùng cộng tác để đạt mục tiêu định trước.
+  # thực hành: đây là lựa chọn tốt hơn mô phỏng round table khi người thật sẵn có.
+  "Khi cần nhiều bên liên quan thống nhất trong thời gian ngắn và họ đều ở trong tổ chức, tra Workshops: có điều phối, có mục tiêu định trước, có đầu ra cam kết.",
+
+  # BABOK `10.25`: khai thác có hệ thống bằng cách hỏi và ghi lại câu trả lời.
+  "Khi cần hiểu sâu một vai cụ thể hoặc chủ đề nhạy cảm không nói được trước đám đông, tra Interviews và hỏi từng người.",
+
+  # BABOK `10.31`: khai thác bằng cách quan sát hoạt động cùng bối cảnh của nó.
+  "Khi nghi quy trình thật khác quy trình được mô tả, tra Observation và xem người ta làm thật, đừng chỉ nghe kể.",
+
+  # BABOK `10.45`, `10.21`: Survey or Questionnaire và Focus Groups lấy dữ liệu
+  #   từ một nhóm người theo cách có cấu trúc.
+  # thực hành: bắt buộc dùng khi người dùng cuối ngoài tổ chức.
+  "Khi hình thái là sản phẩm ra thị trường và người dùng cuối nằm ngoài tổ chức, tra Survey or Questionnaire và Focus Groups để lấy dữ liệu từ chính họ. Không thay bằng ý kiến nhân viên nội bộ.",
+
+  # BABOK `10.6`: khung xác định phạm vi và lập kế hoạch qua hiểu biết chung về
+  #   kết quả và mức độ khớp với chiến lược.
+  "Khi cần biết tổ chức đang thiếu năng lực nào chứ không phải thiếu tính năng nào, tra Business Capability Analysis.",
+
+  # BABOK `10.8`: mô tả cách doanh nghiệp tạo, chuyển giao, và thu về giá trị.
+  "Khi cần hiểu doanh nghiệp tạo và thu giá trị thế nào, tra Business Model Canvas và điền đủ chín ô.",
+
+  # BABOK `10.46`: đánh giá điểm mạnh, yếu, cơ hội, đe doạ với cả điều kiện
+  #   trong lẫn ngoài; bản gốc có ma trận suy ra bốn nhóm chiến lược từ các cặp.
+  # thực hành: bắt buộc làm nốt phần suy ra chiến lược — đó là nửa hay bị bỏ.
+  "Khi cần định vị so với bên ngoài, tra SWOT Analysis — và bắt buộc suy ra bốn nhóm chiến lược SO, ST, WO, WT từ các cặp giao nhau, không dừng ở bốn ô.",
+
+  # BABOK `10.7`: biện minh hướng hành động dựa trên lợi ích so với chi phí và
+  #   công sức; bốn phần need assessment, desired outcomes, alternatives, recommendation.
+  "Khi cần biện minh việc này đáng làm, tra Business Cases: need assessment, desired outcomes, alternatives gồm cả phương án không làm gì, rồi mới recommendation.",
+
+  # BABOK `10.4`: đối chiếu cách làm với chuẩn tốt nhất của ngành và tìm hiểu thị trường.
+  "Khi cần bằng chứng từ thị trường hoặc đối thủ, tra Benchmarking and Market Analysis.",
+]
+
+doc_standards = [
+  "Rà lại brief: đã mô tả hiện trạng trước khi mô tả trạng thái mong muốn chưa? Nếu thiếu hiện trạng, nêu rõ đó là khoảng trống.",
+  "Rà lại phần phương án: đã xét phương án không làm gì chưa? Đây là phương án bắt buộc phải cân nhắc.",
+  "Rà lại: hình thái bài toán đã được xác định và ghi ra chưa? Và phương pháp khai thác đã khớp với hình thái đó chưa — hỏi người thật hay nghiên cứu thị trường?",
+  "Rà lại cách trích khung phương pháp: nhắc tên khung một lần làm xuất xứ là đủ. Không rải tham chiếu khung hay số hiệu mục qua từng yêu cầu — người đọc cần yêu cầu, không cần biết yêu cầu tuân theo mục nào của tài liệu nào.",
+]
+
+# KHÔNG nối Stakeholder List, Map, or Personas qua external_sources: đo trên
+# bản cài BMad v6.11, `persona` xuất hiện trong 43/247 file — phủ dày nhì toàn
+# tập. Việc định tuyến câu hỏi theo vai vẫn cần, nên nó nằm ở persistent_facts
+# dưới dạng hướng dẫn, không phải dưới dạng bù kỹ thuật.

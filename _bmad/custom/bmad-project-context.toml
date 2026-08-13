@@ -1,0 +1,51 @@
+# Override team cho bmad-project-context — khảo sát hiện trạng theo kỷ luật
+# BABOK, và ghi khung phân tích vào khối AGENTS.md.
+#
+# Sparse: chỉ field thay đổi.
+#
+# Đây là điểm nhúng RỘNG NHẤT trong toàn bộ phần tuỳ biến: AGENTS.md được mọi
+# agent trong repo đọc, không riêng workflow BMad. Nó đi vòng qua vấn đề còn
+# sáu workflow chưa có override — bmad-build và bmad-code-review cũng thừa
+# hưởng kỷ luật phân loại yêu cầu qua đường này.
+#
+# Đánh đổi đã biết: khối AGENTS.md nạp háo mọi phiên, kể cả phiên không làm gì
+# liên quan phân tích nghiệp vụ. Nên giữ phần ghi vào đó THẬT NGẮN — khung để
+# phân loại, không phải hướng dẫn cách làm.
+#
+# PHÂN ĐỊNH NGUỒN trong comment, không trong directive.
+
+[workflow]
+
+persistent_facts = [
+  "skill:babok-business-analysis",
+
+  # BABOK `6.1`: Analyze Current State — mô tả hiện trạng để trạng thái tương
+  #   lai có gốc so sánh.  `3.4`: Plan Business Analysis Information Management
+  #   — tổ chức thông tin phân tích, mức trừu tượng, cách truy vết.
+  "Skill này chính là bước phân tích hiện trạng của dự án. Thứ nó ghi ra sẽ được các bước sau dùng làm gốc để so, nên ưu tiên những gì kiểm chứng được từ chính repo hơn là những gì nghe kể lại.",
+
+  "Khi cần người dùng quyết định giữa các phương án hữu hạn, hỏi bằng lựa chọn bấm được kèm khuyến nghị, không hỏi mở bắt gõ trả lời.",
+]
+
+external_sources = [
+  # BABOK `10.18`: khai thác thông tin từ tài liệu sẵn có mô tả môi trường
+  #   nghiệp vụ hoặc tài sản tổ chức.
+  "Khi khảo sát repo, tra Document Analysis trong skill babok-business-analysis: đọc tài liệu, cấu hình, script, và lịch sử commit trước khi hỏi người. Hỏi người những thứ đã ghi trong repo là phí thời gian của họ.",
+
+  # BABOK `10.24`: xác định ở đâu, cái gì, vì sao, khi nào, thế nào, cho ai
+  #   thông tin được trao đổi qua ranh giới.
+  "Khi repo có tích hợp ra ngoài — API, hàng đợi, job đồng bộ, hệ thống bên thứ ba — tra Interface Analysis và ghi lại ranh giới đó, vì đây là chỗ agent hay giả định sai nhất.",
+
+  # BABOK `10.6`: khung xác định phạm vi và lập kế hoạch qua hiểu biết chung về
+  #   kết quả và mức độ khớp với chiến lược.
+  "Khi cần mô tả repo làm được gì chứ không phải repo có gì, tra Business Capability Analysis và ghi theo năng lực thay vì theo thư mục.",
+]
+
+# BABOK `2.3`: Requirements Classification Schema — năm loại yêu cầu.
+#   `2.1`: BACCM — sáu khái niệm cốt lõi ràng buộc lẫn nhau.
+# thực hành: việc ghi khung này vào AGENTS.md là chính sách của repo này. Giữ
+#   ngắn vì khối đó nạp háo mọi phiên; đây là khung để PHÂN LOẠI, không phải
+#   hướng dẫn cách làm — hướng dẫn nằm ở hub, tra khi cần.
+activation_steps_append = [
+  "Khi soạn khối bmad:context cho AGENTS.md, thêm một mục ngắn tên 'Khung phân tích' gồm đúng hai thứ, không thêm gì khác. Thứ nhất, năm loại yêu cầu để mọi người phân loại nhất quán: business (vì sao thay đổi), stakeholder (nhu cầu bên liên quan), solution functional (làm gì), solution non-functional (tốt đến mức nào), transition (chỉ cần trong lúc chuyển đổi rồi bỏ). Thứ hai, sáu khái niệm phải xét cùng lúc khi bàn một thay đổi: Need, Change, Solution, Stakeholder, Value, Context — và lưu ý rằng đóng khung Solution trước khi hiểu Need là lỗi phổ biến nhất. Ghi như một quy ước của dự án, KHÔNG ghi như một sự kiện đã kiểm chứng từ repo, vì nó là khung phương pháp chứ không phải điều quan sát được từ mã. Nhắc tên khung một lần làm xuất xứ là đủ, không trích số hiệu mục.",
+]

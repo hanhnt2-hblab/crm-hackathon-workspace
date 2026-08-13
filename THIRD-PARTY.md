@@ -12,28 +12,53 @@
 
 ## BMad Method — `.claude/skills/bmad-*/` và `_bmad/`
 
-Nguồn: https://github.com/bmad-code-org/BMAD-METHOD — phiên bản **6.10.0**
-Cài bằng `npx bmad-method install`, ngày 2026-08-07.
+Nguồn: https://github.com/bmad-code-org/BMAD-METHOD — phiên bản **6.11.0**
+Cài bằng `npx bmad-method install`, ngày 2026-08-07; nâng lên 6.11.0 ngày 2026-08-13
+bằng `npx bmad-method install --action update`.
 
 ## Thay đổi so với bản phát hành gốc
 
-**Sửa nội dung file của BMad — đúng một file:**
+**Không sửa file nào của BMad.**
 
-- `.claude/skills/bmad-advanced-elicitation/methods.csv` — chèn thêm 12 dòng category `babok`
-  (num 72–83). Bản gốc 71 dòng giữ nguyên ở `methods.csv.orig`, được version-control để đối
-  chiếu. Hoàn nguyên bằng `scripts/apply-methods.py --restore`.
+Trước ngày 2026-08-13 repo có chèn 12 dòng vào `methods.csv` của
+`bmad-advanced-elicitation` và giữ bản gốc ở `methods.csv.orig` để hoàn nguyên. Cách
+làm đó đã bỏ. Phần method BABOK giờ nạp qua `additional_methods` trong file override,
+tức BMad tự gộp lúc resolve — file gốc giữ nguyên 71 method, không byte nào bị đụng.
 
-**Thêm file mới vào cây thư mục của BMad — không sửa file có sẵn:**
+**Chỉ thêm file mới vào thư mục override mà BMad thiết kế sẵn:**
 
-- `_bmad/custom/bmad-product-brief.toml`
 - `_bmad/custom/bmad-prd.toml`
+- `_bmad/custom/bmad-product-brief.toml`
 - `_bmad/custom/bmad-architecture.toml`
-- `_bmad/custom/bmad-spec.toml`
+- `_bmad/custom/bmad-advanced-elicitation.toml`
+- `_bmad/custom/bmad-review.toml`
+- `_bmad/custom/bmad-project-context.toml`
+- `_bmad/custom/bmad-deep-recon.toml`
 
-Bốn file này dùng đúng cơ chế override mà BMad thiết kế sẵn (`_bmad/custom/<skill>.toml`),
-không ghi đè file nào của BMad.
+Bảy file này dùng đúng cơ chế `_bmad/custom/<skill>.toml` mà BMad thiết kế cho việc
+tuỳ biến, không ghi đè file nào của BMad.
 
-**Không có thay đổi nào khác.**
+---
+
+## babok-bmad-skill — `_bmad/custom/*.toml`
+
+Nguồn: https://github.com/hanhnt2-hblab/babok-bmad-skill
+
+Bảy file override liệt kê ở trên **sinh ra từ repo đó**, không phải do repo này viết.
+Chúng thuộc MIT của repo nguồn, bản quyền tác giả repo nguồn — không thuộc bản quyền
+HBLAB nêu trong LICENSE.
+
+Skill tương ứng (`babok-business-analysis`) **không nằm trong repo này**. Nó cài riêng
+vào thư mục skill của agent:
+
+```
+git clone git@github.com:hanhnt2-hblab/babok-bmad-skill ~/.claude/skills/babok-business-analysis
+```
+
+Repo nguồn không chứa nội dung BABOK® Guide. Phần chi tiết từng kỹ thuật sinh tại chỗ
+từ bản sách của chính người dùng, và nằm trong thư mục đã gitignore.
+
+---
 
 ```
 MIT License

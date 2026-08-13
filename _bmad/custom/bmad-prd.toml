@@ -1,26 +1,105 @@
-# Override cho bmad-prd — nạp babok-guide và các ràng buộc BABOK cho bước PRD.
+# Override team cho bmad-prd — nhúng kỷ luật BABOK vào việc làm PRD.
 #
-# CÀI: copy cả thư mục này vào {project-root}/_bmad/custom/ sau khi chạy `npx bmad-method install`.
+# Sparse: chỉ field thay đổi.
 #
-# `persistent_facts` là APPEND-MERGE theo quy tắc BMad, nên dòng mặc định
-# "file:{project-root}/**/project-context.md" vẫn được giữ — không mất gì.
+# Luật háo/lười: persistent_facts giữ suốt phiên nên chỉ để khung mỏng và một
+# con trỏ skill. Tri thức nặng nằm ở external_sources, chỉ tra khi khớp điều kiện.
 #
-# Bù gap đã đo: `process model` = 0 file trong src/ của BMad, `glossary` và `non-functional` = 6 file.
+# Mỗi entry external_sources mô tả MỘT THỜI ĐIỂM và MỘT kỹ thuật. Gộp hai kỹ
+# thuật dưới một điều kiện thì chỉ nhánh khớp điều kiện bắn — đã đo được.
+#
+# PHÂN ĐỊNH NGUỒN nằm trong COMMENT, không nằm trong directive. Lý do: resolver
+# parse TOML nên comment không tới agent, còn verify.py đọc văn bản thô nên vẫn
+# đối chiếu được số hiệu với bản sách. Đặt số hiệu trong directive thì agent
+# thấy và có xu hướng chép vào tài liệu bàn giao — đã quan sát được BABOK lọt
+# vào prd.md 5 lần ngay khi cấu hình còn chưa có số hiệu nào.
+#
+# Quy ước comment:  BABOK <sections>: <điều tài liệu nói> | thực hành: <diễn giải của repo>
 
 [workflow]
 
 persistent_facts = [
-  "file:{project-root}/.claude/skills/babok-guide/references/steps/prd.md",
+  "skill:babok-business-analysis",
 
-  "Skill `babok-guide` chứa catalog 50 kỹ thuật BABOK kèm số section và số trang, cùng bản đồ khuyết điểm của BMad đã đo trên bản cài. Gọi nó khi cần tra sâu một kỹ thuật cụ thể.",
+  # BABOK `6.1`, `6.2`: Analyze Current State đứng trước Define Future State;
+  #   khoảng cách giữa hai trạng thái là thứ biện minh cho thay đổi.
+  # thực hành: bốn điều kiện công nhận hiện trạng, và việc dựng cổng cứng —
+  #   BMad để bmad-product-brief ở required=false nên không tự chặn việc bỏ qua.
+  "CỔNG CỨNG — KHÔNG viết bất kỳ yêu cầu nào khi chưa có phân tích hiện trạng. Coi là ĐÃ CÓ hiện trạng khi thoả một trong bốn: (a) đã có product brief cho việc này, (b) AGENTS.md hoặc project-context mô tả được hệ đang chạy và ràng buộc của nó, (c) người dùng đã mô tả hiện trạng trong hội thoại, (d) đây là bài toán hoàn toàn mới chưa có gì tồn tại — và nói rõ điều đó ra. Không thoả cái nào thì DỪNG, nói rõ đang thiếu gì, và hỏi người dùng bằng lựa chọn bấm được: chạy bmad-product-brief trước, hay mô tả hiện trạng ngay tại đây để tôi dựng một mục gọn trong PRD.",
 
-  "Chốt bảng thuật ngữ (BABOK 10.11 Concept Modelling) TRƯỚC khi thu thập business rules. 10.9.4.2 ghi rõ: nếu từ vựng không đủ phong phú hoặc định nghĩa kém thì quy tắc rút ra sẽ sai hoặc mâu thuẫn. Với CRM, ranh giới Lead / Contact / Account / Opportunity là chỗ phải chốt đầu tiên. [BABOK: hệ quả khi từ vựng kém (10.9.4.2); thực hành: thứ tự làm, và ví dụ Lead/Contact/Account/Opportunity của CRM.]",
+  # BABOK `3.1`: Plan Business Analysis Approach bắt chọn cách tiếp cận theo
+  #   bối cảnh trước khi làm gì khác.
+  # thực hành: sáu hình thái và bộ kỹ thuật gắn với từng cái là phân loại của
+  #   repo này, KHÔNG phải của BABOK.
+  "Trước khi chọn kỹ thuật phân tích, xác định hình thái bài toán theo bảng Bước 0 trong skill babok-business-analysis: vòng đời bản ghi, nền tảng dữ liệu, API/nền tảng, thay hệ cũ, sản phẩm ra thị trường, hay công cụ nội bộ nhỏ. Mỗi hình thái có bộ kỹ thuật riêng. Chưa rõ thì hỏi người dùng, đừng đoán.",
 
-  "BABOK 10.35.2 phân biệt as-is (current state) và to-be (future state) là hai mô hình khác nhau. Hỏi tách thành hai lần, đừng gộp — người mô tả quy trình có xu hướng kể cái NÊN LÀ thay vì cái ĐANG LÀ. [BABOK: phân biệt as-is và to-be là hai mô hình (10.35.2); thực hành: việc hỏi tách thành hai lần — BABOK không nói.]",
+  # BABOK `2.3`: Requirements Classification Schema định nghĩa năm loại này.
+  # thực hành: dùng việc không xếp được làm tín hiệu yêu cầu chưa rõ.
+  "Mọi yêu cầu trong PRD phải xếp được vào đúng một loại: business (vì sao thay đổi), stakeholder (nhu cầu bên liên quan), solution functional (làm gì), solution non-functional (tốt đến mức nào), hoặc transition (chỉ cần trong lúc chuyển đổi). Yêu cầu không xếp được là yêu cầu chưa hiểu rõ.",
 
-  "Mỗi yêu cầu phi chức năng phải có ngưỡng số đo được, không phải tính từ. Khuôn trong BABOK 10.30.2: 'transactions must be at least X% processed after S seconds'. Dùng 15 category của 10.30.3.1 làm checklist rà soát. [BABOK: toàn bộ — khuôn phát biểu (10.30.2) và 15 category (10.30.3.1).]",
+  "Khi cần người dùng quyết định giữa các phương án hữu hạn, hỏi bằng lựa chọn bấm được kèm khuyến nghị, không hỏi mở bắt gõ trả lời. Chỉ hỏi mở khi câu trả lời thực sự tự do — mô tả bối cảnh, kể vấn đề, đặt tên.",
+]
 
-  "Không đưa ERD hay sơ đồ kỹ thuật cho stakeholder nghiệp vụ. Ba mục BABOK cùng cảnh báo: 10.11.2 (stakeholder phản ứng với tính kỹ thuật của data model), 10.15.4.2 ('unfamiliar to people without a background in IT'), 10.42.4.2 ('too technical'). Dùng bảng thuật ngữ và sơ đồ quy trình thay thế. [BABOK: ba cảnh báo về tính kỹ thuật (10.11.2, 10.15.4.2, 10.42.4.2); thực hành: đề xuất dùng bảng thuật ngữ và sơ đồ quy trình thay thế.]",
+external_sources = [
+  # BABOK `10.40`: nhận diện và đánh giá nguyên nhân nền tảng của vấn đề.
+  # thực hành: mô tả giải pháp trước khi hiểu nguyên nhân là lỗi thứ tự phổ biến nhất.
+  "Khi chưa rõ vấn đề thật là gì, tra Root Cause Analysis trong skill babok-business-analysis trước khi mô tả bất kỳ giải pháp nào.",
 
-  "Khi có chuyên gia nghiệp vụ thật tham gia phiên, khai thác trực tiếp thay vì mô phỏng persona hay chạy party-mode. Mô phỏng là phương án dự phòng cho stakeholder vắng mặt, không phải mặc định.",
+  # BABOK `10.41`: định nghĩa ranh giới và đặt phần tử vào trong hoặc ngoài.
+  # thực hành: phía ngoài mới là phía chặn phình phạm vi.
+  "Khi chốt phạm vi, tra Scope Modelling và ghi rõ cả hai phía — cái trong phạm vi và cái ngoài. Ranh giới chỉ nêu một phía là chưa hoàn chỉnh.",
+
+  # BABOK `10.22`: chia nhỏ để phân tích từng phần độc lập; mỗi phần con thuộc
+  #   đúng một phần cha, và các con phải mô tả đầy đủ cha.
+  # thực hành: neo việc phân rã vào thời điểm trước khi viết FR.
+  "Trước khi viết yêu cầu chức năng cho một nhóm tính năng, tra Functional Decomposition và phân rã nhóm đó thành các phần độc lập ước lượng được. Mỗi phần con thuộc đúng một phần cha.",
+
+  # BABOK `10.30`: xem xét giải pháp phải thực hiện chức năng tốt đến mức nào.
+  # thực hành: bắt buộc có ngưỡng VÀ cách đo, vì nhiều NFR định tính nên khó đo.
+  "Khi yêu cầu mới chỉ nói làm gì mà chưa nói tốt đến đâu, tra Non-Functional Requirements Analysis và gắn ngưỡng đo được cùng cách đo cho từng nhóm phẩm chất liên quan.",
+
+  # BABOK `10.9`: phân biệt definitional rule (không thể vi phạm) với
+  #   behavioural rule (có thể vi phạm).
+  # thực hành: cài definitional như hàm dẫn xuất chứ không như chốt chặn;
+  #   behavioural phải có đường xử lý khi bị vi phạm.
+  "Khi logic nghiệp vụ nằm rải rác trong phần mô tả, tra Business Rules Analysis và tách thành definitional rules (không thể vi phạm, cài như hàm dẫn xuất) và behavioural rules (có thể vi phạm, cần đường xử lý khi vi phạm).",
+
+  # BABOK `10.1`: acceptance criteria dùng khi chỉ có một phương án (đạt/không
+  #   đạt); evaluation criteria dùng khi phải xếp hạng nhiều phương án. Yêu cầu
+  #   thống nhất value attributes với mọi stakeholder, không tự quyết.
+  # thực hành: chỉ giữ nhánh evaluation vì BMad đã phủ acceptance rất dày
+  #   (31/247 file); và không kết luận thay người dùng.
+  "Khi so sánh từ hai phương án trở lên — tự xây, mua, hay dùng cái sẵn có — nêu tên các tiêu chí đang dùng để loại, và trình bày như một quyết định để người dùng chọn. Không kết luận thay họ.",
+
+  # BABOK `10.44`: mỗi chuyển tiếp gồm event, condition, action; và chuỗi trạng
+  #   thái không phải lúc nào cũng tuyến tính — thực thể có thể quay lui.
+  # thực hành: hai câu hỏi cụ thể, và cảnh báo cài chặn tuyến tính rồi phải sửa
+  #   cả ma trận chuyển tiếp lẫn dữ liệu đã có.
+  "Khi hình thái là vòng đời bản ghi và thực thể chính có trạng thái, tra State Modelling. Liệt kê các chuyển tiếp ĐƯỢC PHÉP kèm điều kiện canh, không chỉ liệt kê danh sách trạng thái — mỗi chuyển tiếp gồm sự kiện gây ra nó, điều kiện quyết định có đáp lại hay không, và hành động đi kèm. Hỏi thẳng người nắm nghiệp vụ hai câu: thực thể có bao giờ quay lui trạng thái trước không, và trạng thái cuối có mở lại được không.",
+
+  # BABOK `10.39`: ma trận để phủ hết hoạt động và phát hiện vai còn thiếu.
+  #   `2.4`: Sponsor nắm ngân sách và phạm vi; Domain SME nắm quy trình.
+  # thực hành: quy tắc hỏi hai người — hỏi một người thì thiếu một nửa bảng.
+  "Khi giải pháp có nhiều vai với quyền khác nhau, tra Roles and Permissions Matrix và dựng bảng vai × hành động để tìm ô 'chạm được nhưng không nên'. Phải hỏi HAI người: 'ai ĐƯỢC phép thấy' là câu của người nắm ngân sách và phạm vi, 'ai CẦN thấy để làm việc' là câu của người nắm quy trình.",
+
+  # BABOK `10.35`: mô hình đồ hoạ chuẩn hoá chỉ ra công việc được thực hiện thế
+  #   nào, làm nền cho process analysis.
+  # thực hành: tính năng không gắn được vào bước quy trình nào là tính năng chưa
+  #   có chỗ đứng.
+  "Khi hình thái là vòng đời bản ghi hoặc thay hệ cũ, tra Process Modelling và mô tả quy trình đầu-cuối trước khi mô tả tính năng.",
+
+  # BABOK `2.3`: transition requirements là năng lực chỉ cần trong lúc chuyển
+  #   đổi, mang tính tạm thời — chuyển đổi dữ liệu, đào tạo, duy trì hoạt động.
+  # thực hành: với hình thái thay hệ cũ chúng là loại chiếm phần lớn, không phải mục phụ.
+  "Khi bài toán thuộc hình thái thay hệ cũ, tra nhánh transition requirements: nhập liệu, đối soát, bổ khuyết dữ liệu, chạy song song, đào tạo, ngưng hệ cũ.",
+
+  # BABOK `5.1`: Trace Requirements.
+  # thực hành: việc nâng mức bắt buộc theo miền chịu quản lý là chính sách của repo này.
+  "Khi miền thuộc diện chịu quản lý — tài chính, y tế, khu vực công — nâng traceability từ 'nên có' lên bắt buộc có bằng chứng, và bổ sung yêu cầu lưu vết kiểm toán cùng giữ hồ sơ.",
+]
+
+doc_standards = [
+  "Rà lại PRD: mỗi yêu cầu có xếp được vào đúng một loại trong bảng phân loại yêu cầu không? Nêu rõ những mục không xếp được.",
+  "Rà lại phần phạm vi: đã ghi rõ cái nằm ngoài phạm vi chưa, hay chỉ liệt kê cái nằm trong?",
+  "Rà lại: hình thái bài toán đã được xác định và ghi ra chưa? Nếu chưa, các kỹ thuật đã dùng có thể lệch bộ.",
 ]

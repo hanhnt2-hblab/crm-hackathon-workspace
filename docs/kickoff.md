@@ -93,7 +93,7 @@ Nếu điều Tùng nói không khớp điều đề bài đòi, hỏi lại —
 | **HanhNT2** | PM · techlead · dev · BA — **điều phối** |
 | **Tung Nguyen** | chuyên gia nghiệp vụ · tester duy nhất · BA — **cấp nội dung** |
 | Tuần chạy | 10–16/8/2026 |
-| Quy trình | BMad Method v6.10.0 + skill `babok-guide` |
+| Quy trình | BMad Method v6.11.0 + skill `babok-business-analysis` |
 | Tài liệu tin được | [`architecture/systems.md`](architecture/systems.md) — khảo sát năm hệ thống thật |
 
 Mang `systems.md` theo buổi 2 và 3: nó là năm cách làm đã chạy được ngoài thực tế, dùng để hỏi

@@ -12,7 +12,7 @@ triển có AI hỗ trợ, tri thức phân tích nghiệp vụ, và các tài l
 ```bash
 git clone <repo> && cd crm-hackathon-workspace
 git config core.hooksPath .githooks
-python .claude/skills/babok-guide/scripts/check-install.py
+python ~/.claude/skills/babok-business-analysis/verify.py --project-root .
 ```
 
 Đạt khi báo `Moi thu khop voi ban cai`. BMad và bản vá đã nằm sẵn trong repo — không cần chạy
@@ -40,7 +40,7 @@ Yêu cầu: Node ≥ 20.12 · Python ≥ 3.10 · [`uv`](https://docs.astral.sh/u
 ## Tài liệu sẽ sinh ra khi chạy quy trình
 
 Chạy các skill BMad sẽ tự sinh tài liệu vào `_bmad-output/planning-artifacts/`. Skill
-`babok-guide` nạp thêm hướng dẫn nghiệp vụ vào từng bước, nên mỗi bước sinh thêm những artifact
+`babok-business-analysis` nạp thêm hướng dẫn nghiệp vụ vào từng bước, nên mỗi bước sinh thêm những artifact
 mà BMad gốc không có.
 
 ```
@@ -57,7 +57,7 @@ bmad-product-brief  →  bmad-prd  →  bmad-architecture  →  bmad-create-epic
 - `addendum.md` — chi tiết chưa vào brief nhưng cần cho bước sau
 - `.memlog.md` — nhật ký quyết định trong lúc làm
 
-**`babok-guide` thêm vào:**
+**`babok-business-analysis` thêm vào:**
 
 - **Document Analysis** — bóc yêu cầu từ tài liệu sẵn có *trước khi* tự nghĩ ra: tài liệu CRM
   đối thủ, hợp đồng, chính sách công ty, màn hình hệ thống cũ, sách nghiệp vụ
@@ -76,7 +76,7 @@ bmad-product-brief  →  bmad-prd  →  bmad-architecture  →  bmad-create-epic
 - `addendum.md` — phương án đã cân nhắc và loại, chi tiết kỹ thuật
 - `review-*.md` — kết quả soát của từng người soát
 
-**`babok-guide` thêm vào — theo đúng thứ tự này:**
+**`babok-business-analysis` thêm vào — theo đúng thứ tự này:**
 
 - **Concept Model** — bảng thuật ngữ chốt trước mọi thứ khác: `Lead` / `Contact` / `Account` /
   `Opportunity` khác nhau chỗ nào. Từ vựng nghèo thì luật viết ra sẽ mâu thuẫn
@@ -96,7 +96,7 @@ bmad-product-brief  →  bmad-prd  →  bmad-architecture  →  bmad-create-epic
 
 - `architecture.md` — thành phần, luồng dữ liệu, quyết định kỹ thuật và lý do
 
-**`babok-guide` thêm vào — bốn artifact:**
+**`babok-business-analysis` thêm vào — bốn artifact:**
 
 - **Data Model** — ba tầng `conceptual` → `logical` → `physical`. Tầng conceptual thuộc phía
   nghiệp vụ, tầng physical thuộc phía kỹ thuật. Đừng nhảy thẳng vào physical
@@ -116,7 +116,7 @@ bmad-product-brief  →  bmad-prd  →  bmad-architecture  →  bmad-create-epic
 - `epics.md` — nhóm việc lớn
 - `stories/*.md` — từng việc kèm tiêu chí nghiệm thu
 
-**`babok-guide` thêm vào — ba artifact, tất cả đều phải lấy từ người thật:**
+**`babok-business-analysis` thêm vào — ba artifact, tất cả đều phải lấy từ người thật:**
 
 - **State Model** — vòng đời của từng đối tượng chính, hỏi chuyên gia nghiệp vụ
 - **Business Rules** — tách hai loại, đừng gộp:
@@ -130,7 +130,7 @@ bmad-product-brief  →  bmad-prd  →  bmad-architecture  →  bmad-create-epic
 
 ## Công cụ trong repo
 
-### BMad Method v6.10.0
+### BMad Method v6.11.0
 
 **`.claude/skills/bmad-*/`** — [BMad Method](https://github.com/bmad-code-org/BMAD-METHOD), 46
 skill, chia 4 giai đoạn:
@@ -142,9 +142,9 @@ skill, chia 4 giai đoạn:
 Bảng lệnh đầy đủ ở `_bmad/bmm/module-help.csv`. Đội này chạy chín skill — danh sách ở
 [`docs/roles/`](docs/roles/README.md).
 
-### babok-guide
+### babok-business-analysis
 
-**`.claude/skills/babok-guide/`** — skill tự viết, bổ trợ BMad bằng tri thức BABOK v3 ở những
+**`~/.claude/skills/babok-business-analysis/`** — skill tự viết, bổ trợ BMad bằng tri thức BABOK v3 ở những
 chỗ BMad mỏng.
 
 | File | Vai trò |
@@ -171,7 +171,7 @@ phần diễn giải tự viết.
 
 ### Cấu hình
 
-**`_bmad/custom/`** chứa bốn file nạp hướng dẫn `babok-guide` vào đúng bước tương ứng — brief,
+**`_bmad/custom/`** chứa bốn file nạp hướng dẫn `babok-business-analysis` vào đúng bước tương ứng — brief,
 PRD, kiến trúc, spec. BMad đọc chúng ngay khi khởi động workflow.
 
 ---
@@ -183,7 +183,7 @@ crm-hackathon-workspace/
 ├── README.md                    file này
 ├── CHECKLIST.md                 việc cần làm
 ├── .claude/skills/
-│   ├── babok-guide/             skill tự viết
+│   ├── (gỡ — hub nằm ngoài repo)
 │   └── bmad-*/                  46 skill BMad
 ├── _bmad/                       cấu hình + 4 file override
 ├── _bmad-output/                brief, PRD, epic sinh ra ở đây
@@ -201,8 +201,8 @@ crm-hackathon-workspace/
 Sau mỗi lần update BMad, chạy hai lệnh:
 
 ```bash
-python .claude/skills/babok-guide/scripts/apply-methods.py
-python .claude/skills/babok-guide/scripts/check-install.py
+python ~/.claude/skills/babok-business-analysis/install.py --project-root .
+python ~/.claude/skills/babok-business-analysis/verify.py --project-root .
 ```
 
 Update ghi đè `methods.csv` và xoá mất 12 kỹ thuật BABOK đã chèn. Lệnh đầu chèn lại, lệnh sau

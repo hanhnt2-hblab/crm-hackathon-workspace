@@ -1,29 +1,73 @@
-# Override cho bmad-architecture — nạp babok-guide và các ràng buộc BABOK cho bước CA.
+# Override team cho bmad-architecture — KA7 (Define Design Options, Analyze
+# Potential Value and Recommend Solution).
 #
-# CÀI: copy cả thư mục này vào {project-root}/_bmad/custom/ sau khi chạy `npx bmad-method install`.
+# Sparse: chỉ field thay đổi.
 #
-# `persistent_facts` là APPEND-MERGE, nên dòng mặc định
-# "file:{project-root}/**/project-context.md" vẫn được giữ.
+# Mỗi entry external_sources mô tả MỘT THỜI ĐIỂM và MỘT kỹ thuật, và phần lớn
+# có điều kiện hình thái — bộ kỹ thuật đúng cho hệ có vòng đời bản ghi thì sai
+# cho nền tảng dữ liệu hoặc API.
 #
-# Bù gap đã đo: `entity relationship / ER diagram` = 0 file, `sequence diagram` = 0 file,
-# `data model` = 6 file (được nhắc, không có artifact).
+# PHÂN ĐỊNH NGUỒN nằm trong COMMENT, không trong directive — resolver parse
+# TOML nên comment không tới agent, còn verify.py đọc văn bản thô nên vẫn đối
+# chiếu số hiệu với bản sách.
 
 [workflow]
 
 persistent_facts = [
-  "file:{project-root}/.claude/skills/babok-guide/references/steps/architecture.md",
+  "skill:babok-business-analysis",
 
-  "Skill `babok-guide` chứa catalog 50 kỹ thuật BABOK kèm số section và số trang, cùng bản đồ khuyết điểm của BMad đã đo trên bản cài. Gọi nó khi cần tra sâu một kỹ thuật cụ thể.",
+  # BABOK `3.1`: Plan Business Analysis Approach bắt chọn cách tiếp cận theo bối cảnh.
+  "Trước khi chọn kỹ thuật, xác định hình thái bài toán theo bảng Bước 0 trong skill babok-business-analysis. Kiến trúc cho hệ có vòng đời bản ghi, cho nền tảng dữ liệu, và cho API/nền tảng có mối lo khác hẳn nhau.",
 
-  "Mỗi interface phải đặc tả đủ 5 thuộc tính theo BABOK 10.24.3.3 (Define Interfaces): name, coverage/span, exchange method, message format, exchange frequency. Thiếu ô nào thì interface đó chưa xong. [BABOK: toàn bộ — 10.24.3.3 liệt kê đúng 5 thuộc tính này.]",
+  # BABOK `7.5`, `7.6`: Define Design Options rồi Analyze Potential Value and
+  #   Recommend Solution. Design Options là số nhiều trong chính tên task.
+  # thực hành: coi việc chỉ trình bày một phương án là khoảng trống phân tích.
+  "Kiến trúc thuộc bước định nghĩa các phương án thiết kế rồi phân tích giá trị tiềm năng để khuyến nghị. Phương án là SỐ NHIỀU — trình bày một phương án duy nhất mà không nêu phương án đã loại và lý do loại là bỏ qua chính bước phân tích.",
 
-  "Data model có ba tầng (BABOK 10.15.2) và mỗi tầng có người đọc khác nhau: conceptual độc lập công nghệ (phía nghiệp vụ), logical chuẩn hoá (thiết kế giải pháp), physical do implementation subject matter expert làm (hiệu năng, concurrency, bảo mật). Đừng nhảy thẳng vào physical và bỏ mất tầng conceptual. [BABOK: ba tầng và người đọc từng tầng (10.15.2); thực hành: cảnh báo đừng nhảy thẳng vào physical.]",
+  "Khi cần người dùng quyết định giữa các phương án hữu hạn, hỏi bằng lựa chọn bấm được kèm khuyến nghị, không hỏi mở bắt gõ trả lời.",
+]
 
-  "Data dictionary rút TỪ ERD chứ không làm song song — BABOK 10.12.2: 'often used in conjunction with an entity relationship diagram... may be extracted from a data model'. Cột Values/Meanings phải khớp đúng enum của state model. [BABOK: quan hệ giữa data dictionary và ERD (10.12.2); thực hành: yêu cầu khớp Values/Meanings với enum state model.]",
+external_sources = [
+  # BABOK `10.16`: đánh giá bài toán và các quyết định khả dĩ trong điều kiện
+  #   bất định; công cụ gồm decision matrix và decision tree.
+  # thực hành: nêu tên tiêu chí trước khi chấm, và trình bày như quyết định cho
+  #   người dùng chọn.
+  "Khi phải chọn giữa nhiều phương án kỹ thuật, tra Decision Analysis và dùng decision matrix có trọng số, hoặc decision tree nếu quyết định phân nhánh theo xác suất. Nêu tên tiêu chí trước khi chấm, và trình bày kết quả như một quyết định để người dùng chọn.",
 
-  "Chỉ vẽ sequence diagram cho kịch bản có nhiều bên tham gia hoặc có nhánh lỗi đáng lo. BABOK 10.42.4.2 cảnh báo vẽ đủ bộ cho mọi use case là lãng phí. Với CRM thường chỉ cần ba: chuyển stage kèm duyệt, import dữ liệu, tích hợp ngoài. [BABOK: cảnh báo vẽ đủ bộ là lãng phí (10.42.4.2); thực hành: chọn đúng ba kịch bản cho CRM.]",
+  # BABOK `10.24`: xác định ở đâu, cái gì, vì sao, khi nào, thế nào, cho ai
+  #   thông tin được trao đổi qua ranh giới giải pháp.
+  "Khi hai thành phần phải trao đổi với nhau, tra Interface Analysis: ở đâu, cái gì, vì sao, khi nào, thế nào, cho ai — kèm định dạng, tần suất, khối lượng, bên chịu trách nhiệm mỗi phía.",
 
-  "Business rule không được nhét vào giữa luồng xử lý. BABOK 10.35.4.2 và 10.9.2 cùng đòi tách luật khỏi quy trình — 10.35.4.2 nói mô hình trở nên rối không đọc nổi chính vì điều này. [BABOK: tách luật khỏi quy trình (10.35.4.2, 10.9.2); thực hành: áp cùng nguyên tắc đó vào cấu trúc code.]",
+  # BABOK `10.42`: mô hình hoá logic kịch bản sử dụng qua thông tin truyền giữa
+  #   các đối tượng; bản gốc cảnh báo vẽ đủ bộ cho mọi use case là lãng phí.
+  # thực hành: kịch bản đáng vẽ phụ thuộc hình thái — đây là bổ sung của repo này.
+  "Khi cần vẽ Sequence Diagram, hỏi trước xem kịch bản nào đáng vẽ thay vì vẽ đủ bộ. Kịch bản đáng vẽ phụ thuộc hình thái: hệ có vòng đời bản ghi thì là chuyển trạng thái kèm duyệt và tích hợp ngoài; API/nền tảng thì là luồng xác thực, retry và idempotency, hành vi khi chạm giới hạn; nền tảng dữ liệu thì là nạp dữ liệu và chạy bù.",
 
-  "Sequence diagram cho thấy các đối tượng tương tác nhưng KHÔNG cho thấy quan hệ giữa chúng (BABOK 10.42.2). Quan hệ tĩnh là việc của data model. Hai thứ bù nhau, không thay nhau. [BABOK: sequence diagram không thể hiện quan hệ tĩnh (10.42.2); thực hành: kết luận hai kỹ thuật bù nhau.]",
+  # BABOK `10.15`: mô tả thực thể, thuộc tính, và quan hệ để tạo ngữ nghĩa chung.
+  # thực hành: BMad cố ý chỉ sinh ERD tối giản gồm tên và quan hệ, nên phần bù
+  #   nằm ở chi tiết chứ không ở khái niệm.
+  "Khi hình thái là vòng đời bản ghi hoặc nền tảng dữ liệu, tra Data Modelling ở mức hơn danh sách thực thể: cardinality, thuộc tính, và tách ba tầng conceptual/logical/physical khi cần. BMad mặc định chỉ sinh ERD tối giản gồm tên và quan hệ — đó là chủ ý của BMad, phần bù nằm ở chi tiết.",
+
+  # BABOK `10.39`: ma trận vai × hành động.
+  # thực hành: nửa cưỡng chế là việc của kiến trúc, nửa quyền là việc của PRD.
+  "Khi PRD đã có ma trận vai × hành động, chuyển nó thành mô hình cưỡng chế: quyền kiểm ở tầng nào, phạm vi bản ghi mà mỗi vai thấy được xác định bởi gì, và điều gì xảy ra khi vai đổi hoặc người rời tổ chức.",
+
+  # BABOK `10.49`: đánh giá khả năng nhà cung cấp thực hiện cam kết — cấp phép
+  #   và giá, vị thế thị trường, điều khoản, kinh nghiệm và độ ổn định.
+  "Khi cân nhắc dùng SaaS, thư viện thương mại, hoặc đối tác bên ngoài, tra Vendor Assessment: mô hình cấp phép và giá, vị thế thị trường, điều khoản, kinh nghiệm và độ ổn định.",
+
+  # BABOK `10.20`: hiểu khía cạnh tài chính của một khoản đầu tư; bản gốc nhấn
+  #   rằng giả định và ước lượng phải được phát biểu rõ để có thể bị chất vấn.
+  "Khi cần so sánh các phương án về mặt chi phí, tra Financial Analysis và phát biểu rõ mọi giả định để chúng có thể bị chất vấn.",
+
+  # BABOK `5.1`: Trace Requirements.
+  # thực hành: nâng mức bắt buộc theo miền chịu quản lý là chính sách của repo này.
+  "Khi miền thuộc diện chịu quản lý — tài chính, y tế, khu vực công — bổ sung yêu cầu lưu vết kiểm toán, giữ hồ sơ, và truy vết từ quyết định kiến trúc về yêu cầu đã sinh ra nó.",
+]
+
+doc_standards = [
+  "Rà lại tài liệu kiến trúc: các phương án đã bị loại có được nêu cùng lý do loại không? Nếu chỉ có một phương án, nêu rõ đó là khoảng trống phân tích.",
+  "Rà lại các quyết định công nghệ: giả định nào đang chống đỡ quyết định đó, và giả định đó đã được phát biểu rõ chưa?",
+  "Rà lại: hình thái bài toán đã được xác định chưa? Kiến trúc cho hình thái sai là sai từ gốc.",
+  "Rà lại cách trích khung phương pháp: nhắc tên khung một lần làm xuất xứ là đủ. Không rải tham chiếu khung hay số hiệu mục qua từng quyết định.",
 ]
