@@ -1,0 +1,52 @@
+# KHÔNG do hub babok-bmad-skill sinh ra — đội tự viết. install.py không đụng tệp này.
+#
+# Lý do tồn tại: barem vòng 1 gọi tên hai kỹ thuật mà bản cài BMad không có ở đâu.
+#   Testing Mức 2: "AI sinh test case theo Equivalence Partitioning / Boundary Value Analysis"
+#   Testing Mức 4: "tự phát hiện edge case, self-healing"
+# Grep toàn bộ .claude/skills/ không tệp nào nhắc EP, BVA hay self-healing.
+#
+# Tệp này cũng nối memlog vào nửa thực thi: chín skill phase plan đã ghi memlog,
+# nhưng build, code-review và QA thì không, nên 60 điểm nặng nhất đang chạy mà
+# không để lại bản ghi quyết định nào để đỡ vấn đáp vòng 2.
+
+[workflow]
+
+activation_steps_append = [
+  "Đọc Mục 0 của `{project-root}/docs/Đề bài/Phản biện và phân tích yêu cầu.md` — chỉ Mục 0, không đọc cả tệp. Bảng 0.1 là enum chuẩn, bảng 0.2 là ngưỡng và bảng số. Mọi lớp tương đương và mọi giá trị biên phải lấy từ đó; không tự nghĩ ra tập giá trị song song, vì Mục 0 là nguồn duy nhất của các con số trong dự án này.",
+  "Chuẩn bị bản ghi quyết định chung của nửa thực thi tại `{project-root}/_bmad-output/implementation-artifacts/.memlog.md`. **Kiểm tệp có tồn tại chưa rồi mới quyết**: chưa có thì chạy `python {project-root}/_bmad/scripts/memlog.py init --path <đường-dẫn>` (lệnh này tự tạo thư mục cha); đã có thì BỎ QUA bước init và dùng thẳng `append`. Gọi `init` trên tệp đã tồn tại sẽ báo lỗi `already exists` và làm hỏng bước kích hoạt.",
+
+  "Trước khi khẳng định qua MCP, kiểm `tabularis` có chạy không. Có thì dùng nó. **Không có thì đi đường dự phòng**: khẳng định bằng lệnh truy vấn của chính stack (psql, sqlite3, hoặc lớp truy cập dữ liệu của sản phẩm), và ghi rõ trong memlog là đã dùng đường dự phòng cùng lý do. Tuyệt đối không bỏ phần khẳng định trạng thái dữ liệu chỉ vì MCP không lên.",
+]
+
+persistent_facts = [
+  "Với mọi trường nhập liệu và mọi enum, sinh test theo Equivalence Partitioning và Boundary Value Analysis, không sinh theo cảm tính. Phân hoạch tương đương: một ca đại diện cho mỗi lớp hợp lệ, một ca cho mỗi lớp không hợp lệ. Giá trị biên: ngay dưới biên, đúng biên, ngay trên biên.",
+
+  "Các enum phải phủ, lấy từ Mục 0: loại công ty (5 giá trị) · giai đoạn cơ hội (7, thứ tự cố định) · mức chắc chắn (3) · loại tin (6) · signal_subtype (13, chỉ khi loại tin là `other`) · relevance (3) · lý do bỏ gợi ý (5). Mỗi enum kiểm thêm một giá trị NGOÀI tập — hệ thống phải từ chối, không im lặng nhận.",
+
+  "Các biên số phải phủ: cửa sổ hoàn tác 7 ngày (ngày 0, ngày 7, ngày 8 — nút phải biến mất sau biên) · chu kỳ vòng quét (mặc định 60 giây, và giá trị nhỏ nhất cấu hình được) · ngày hạn Việc tiếp theo (hôm nay, đúng hạn, quá hạn một ngày) · giá trị tiền của cơ hội (0, số âm, số rất lớn).",
+
+  "Self-healing trong dự án này có nghĩa hẹp và cụ thể: khi một test đỏ, đọc log thất bại, chẩn đoán nguyên nhân, sửa, chạy lại — tối đa ba vòng. Không sửa được trong ba vòng thì **hoàn nguyên toàn bộ thay đổi của ba vòng đó**, rồi mới dừng và báo cáo nguyên nhân. Để lại ba lần sửa hỏng chồng lên nhau còn khó gỡ hơn lỗi ban đầu, và người đọc sau không phân biệt được đâu là mã thật đâu là dấu vết chữa cháy.",
+
+  "Tuyệt đối không nới lỏng khẳng định, không thêm chờ, không bỏ ca kiểm để làm test xanh. Test xanh nhờ hạ chuẩn là dạng hỏng tệ hơn test đỏ, vì nó xoá mất tín hiệu. Nếu cách duy nhất để xanh là đổi khẳng định, thì thứ sai là mã sản phẩm hoặc là chính khẳng định đó — nói ra, đừng lặng lẽ sửa.",
+
+  "Bộ kiểm thử phải tự dựng và tự dọn dữ liệu của nó. Chạy hai lần liên tiếp phải cho cùng kết quả, không phụ thuộc lần chạy trước.",
+
+  "T-1…T-10 ở §6 đề bài là kịch bản nghiệm thu, không phải bài toán phân hoạch — giữ chúng làm lớp ngoài theo `D36`, và đặt phần EP/BVA ở lớp kiểm trường nhập liệu bên dưới, không trộn hai loại vào nhau.",
+
+  "Ba điểm nghiệm thu khẳng định về TRẠNG THÁI DỮ LIỆU chứ không về màn hình: `T-4` hồ sơ công ty không đổi sau ba chu kỳ · `T-8` đúng số mục mới xuất hiện trên dòng thời gian · `T-9` dữ liệu đã sinh còn nguyên sau khi tắt AI. Với ba điểm này, khẳng định thẳng vào cơ sở dữ liệu qua MCP `tabularis` (`describe_table` để biết cột, `run_query` để đọc), rồi mới đối chiếu với giao diện. Kiểm qua giao diện là kiểm gián tiếp: màn hình có thể đúng trong khi dữ liệu sai, và ngược lại.",
+
+  "Chỉ dùng `tabularis` để ĐỌC khi kiểm thử. Không sửa dữ liệu qua `run_query` để làm một test xanh — dựng dữ liệu phải đi qua đúng đường mà sản phẩm dùng, nếu không thì bài kiểm không chứng minh được gì về sản phẩm.",
+  "Ghi memlog NGAY khi chốt một quyết định, không dồn tới lúc kết thúc. Lần chạy bị huỷ, hết giờ, hay lỗi giữa chừng là lần dễ bị vòng 2 hỏi nhất — vì nó để lại mã nửa vời — mà cũng chính là lần `on_complete` không bao giờ chạy tới. Lệnh: `python {project-root}/_bmad/scripts/memlog.py append --path {project-root}/_bmad-output/implementation-artifacts/.memlog.md --type <loại> --by <ai> --text \"<quyết gì, vì sao>\"`.",
+]
+
+on_complete = """
+Ghi một dòng vào bản ghi quyết định chung trước khi kết thúc:
+
+  python {project-root}/_bmad/scripts/memlog.py append \\
+    --path {project-root}/_bmad-output/implementation-artifacts/.memlog.md \\
+    --type test --by qa \\
+    --text "<sinh test cho cái gì · lớp tương đương và biên nào đã phủ · ca nào cố ý bỏ và vì sao · vòng self-healing nào đã chạy và sửa gì>"
+
+Một dòng, nêu quyết định và lý do — không chép lại nội dung test. Dòng này là thứ
+dùng để trả lời khi vòng 2 bốc trúng câu hỏi về phần kiểm thử.
+"""

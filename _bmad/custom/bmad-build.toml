@@ -1,0 +1,29 @@
+# KHÔNG do hub babok-bmad-skill sinh ra — đội tự viết. install.py không đụng tệp này.
+#
+# Lý do: chín skill phase plan đã ghi memlog, nhưng bmad-build thì không. Cột
+# Development nặng 25 điểm và là phần sinh nhiều log nhất trong ngày thi, mà không
+# để lại bản ghi quyết định nào — trong khi vòng 2 bốc ngẫu nhiên 3-5 câu hỏi từ
+# chính log đó.
+
+[workflow]
+
+persistent_facts = [
+  "Mọi đầu ra AI giữ lại trong ngày thi phải có một người đọc và nói được lý do trong một câu. Nói không được thì bỏ, đừng giữ. Bề mặt mã tối đa bằng bề mặt hai người đọc kịp, không bằng bề mặt AI sinh kịp.",
+
+  "Trước khi quyết một chi tiết đề bài để trống, tra Mục 0 của `docs/Đề bài/Phản biện và phân tích yêu cầu.md` — `D1`–`D41` đã chốt enum, ngưỡng và con số. Đừng quyết lại thứ đã quyết; trích `Dn` ngay trong mã và trong kiểm thử để truy được về sau.",
+
+  "Ranh giới §5 của đề bài phải chặn ở tầng nghiệp vụ, không chặn bằng lời dặn trong prompt và không chỉ ẩn trên giao diện — đề bài nói thẳng một lời dặn suông không tính là đã chặn.",
+  "Ghi memlog NGAY khi chốt một quyết định, không dồn tới lúc kết thúc. Lần chạy bị huỷ, hết giờ, hay lỗi giữa chừng là lần dễ bị vòng 2 hỏi nhất — vì nó để lại mã nửa vời — mà cũng chính là lần `on_complete` không bao giờ chạy tới. Lệnh: `python {project-root}/_bmad/scripts/memlog.py append --path {project-root}/_bmad-output/implementation-artifacts/.memlog.md --type <loại> --by <ai> --text \"<quyết gì, vì sao>\"`.",
+]
+
+on_complete = """
+Ghi một dòng vào bản ghi quyết định chung trước khi kết thúc:
+
+  python {project-root}/_bmad/scripts/memlog.py append \\
+    --path {project-root}/_bmad-output/implementation-artifacts/.memlog.md \\
+    --type build --by dev \\
+    --text "<đã cài gì · chọn cách nào và loại cách nào, vì sao · trích Dn nếu có · chỗ nào còn nợ>"
+
+Một dòng, nêu quyết định và lý do — không chép lại mã. Đây là thứ dùng để trả lời
+khi vòng 2 bốc trúng câu hỏi về phần này.
+"""

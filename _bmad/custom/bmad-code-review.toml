@@ -1,0 +1,25 @@
+# KHÔNG do hub babok-bmad-skill sinh ra — đội tự viết. install.py không đụng tệp này.
+#
+# Lý do: cùng lý do với bmad-build.toml — nối memlog vào nửa thực thi, để phần
+# rà soát cũng để lại bản ghi quyết định cho vấn đáp vòng 2.
+
+[workflow]
+
+persistent_facts = [
+  "Khi một phát hiện đụng tới chi tiết đề bài đã chốt, đối chiếu với `D1`–`D41` ở Mục 0 của `docs/Đề bài/Phản biện và phân tích yêu cầu.md` trước khi kết luận là lỗi. Mã lệch khỏi `Dn` là lỗi; mã lệch khỏi thói quen cá nhân thì không.",
+
+  "Ưu tiên rà đúng chỗ đề bài đặt cược: ranh giới §5 có chặn ở tầng nghiệp vụ không · câu trích của phát hiện có khớp nguyên văn bản lưu không · gợi ý đã bỏ có mọc lại không · số đo của Quản trị có tách bạch *duyệt* với *sửa rồi duyệt* không.",
+  "Ghi memlog NGAY khi chốt một quyết định, không dồn tới lúc kết thúc. Lần chạy bị huỷ, hết giờ, hay lỗi giữa chừng là lần dễ bị vòng 2 hỏi nhất — vì nó để lại mã nửa vời — mà cũng chính là lần `on_complete` không bao giờ chạy tới. Lệnh: `python {project-root}/_bmad/scripts/memlog.py append --path {project-root}/_bmad-output/implementation-artifacts/.memlog.md --type <loại> --by <ai> --text \"<quyết gì, vì sao>\"`.",
+]
+
+on_complete = """
+Ghi một dòng vào bản ghi quyết định chung trước khi kết thúc:
+
+  python {project-root}/_bmad/scripts/memlog.py append \\
+    --path {project-root}/_bmad-output/implementation-artifacts/.memlog.md \\
+    --type review --by dev \\
+    --text "<rà cái gì · phát hiện nào nhận, phát hiện nào bác và vì sao>"
+
+Một dòng, nêu quyết định và lý do. Phát hiện bị bác mà có lý do rõ là bằng chứng
+tốt cho vòng 2, hơn hẳn một danh sách phát hiện không ai xử.
+"""
