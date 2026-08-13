@@ -1,0 +1,57 @@
+# Override team cho bmad-ux — bù ba khoảng trống đo được ở bước thiết kế
+# trải nghiệm.
+#
+# Sparse: chỉ field thay đổi.
+#
+# KHÔNG nối Stakeholder List, Map, or Personas: đo trên bản cài v6.11,
+# `persona` xuất hiện 43/247 file theo CẢ HAI cách đo — phủ dày nhất toàn tập.
+# Đây là chỗ BMad mạnh nhất so với BABOK, bù vào chỉ thêm nhiễu.
+#
+# Ba kỹ thuật dưới đây đều là khoảng trống đo được, hai cách đo đồng thuận:
+#   `10.47` Use Cases and Scenarios   1/247 file — VẮNG
+#   `10.31` Observation               3/247 file — mỏng
+#   `10.36` Prototyping               3/247 file — mỏng
+#
+# PHÂN ĐỊNH NGUỒN trong comment, không trong directive.
+
+[workflow]
+
+persistent_facts = [
+  "skill:babok-business-analysis",
+
+  # BABOK `3.1`: Plan Business Analysis Approach — chọn cách tiếp cận theo bối cảnh.
+  "Xác định hình thái bài toán theo bảng Bước 0 trong skill babok-business-analysis trước khi chọn kỹ thuật. Thiết kế trải nghiệm cho công cụ nội bộ có vòng đời bản ghi khác hẳn cho sản phẩm ra thị trường.",
+
+  # BABOK `4.1`: Prepare for Elicitation gồm việc chọn kỹ thuật khai thác.
+  # thực hành: vế đảo là chính sách của repo này.
+  "CÔNG TẮC NGƯỜI-THẬT: người dùng thật có ở trong tổ chức thì quan sát và hỏi họ, đừng dựng persona thay thế. Người dùng cuối nằm ngoài tổ chức thì ngược lại — nghiên cứu và persona mới là phương pháp đúng, và hỏi nhân viên nội bộ nói thay khách hàng là thất bại proxy-user.",
+
+  "Khi cần người dùng quyết định giữa các phương án hữu hạn, hỏi bằng lựa chọn bấm được kèm khuyến nghị, không hỏi mở bắt gõ trả lời.",
+]
+
+external_sources = [
+  # BABOK `10.47`: mô tả cách một người hoặc hệ thống tương tác với giải pháp
+  #   để đạt một mục tiêu; gồm luồng chính và các luồng ngoại lệ.
+  # thực hành: nhấn vào luồng ngoại lệ, vì đó là phần hay bị bỏ và cũng là phần
+  #   sinh ra phần lớn công việc thật.
+  "Khi mô tả người dùng làm gì với giải pháp, tra Use Cases and Scenarios trong skill babok-business-analysis. Viết luồng chính TRƯỚC, rồi liệt kê luồng ngoại lệ: người dùng bỏ giữa chừng, dữ liệu sai, quyền không đủ, hệ thống ngoài không phản hồi. Chỉ có luồng chính là mô tả ngày đẹp trời, không phải mô tả sản phẩm.",
+
+  # BABOK `10.31`: khai thác bằng cách quan sát hoạt động cùng bối cảnh của nó.
+  # thực hành: dùng để bắt khoảng cách giữa quy trình được mô tả và quy trình thật.
+  "Khi có người dùng thật tiếp cận được, tra Observation và xem họ làm thật thay vì chỉ hỏi. Thứ người ta kể mình làm và thứ người ta làm thường khác nhau, và khoảng cách đó chính là chỗ thiết kế hay hỏng.",
+
+  # BABOK `10.36`: khai thác và kiểm chứng nhu cầu qua quá trình lặp tạo mô hình
+  #   hoặc thiết kế; cũng dùng để đánh giá phương án thiết kế.
+  # thực hành: nêu rõ prototype dùng để HỎI hay để CHỐT — hai mục đích cần hai
+  #   mức hoàn thiện khác nhau.
+  "Khi dựng prototype, tra Prototyping và nói rõ nó dùng để làm gì: khai thác nhu cầu còn mơ hồ, hay chốt một phương án đã chọn. Prototype để hỏi thì càng thô càng tốt vì người ta dám chê; prototype để chốt thì phải đủ thật để phát hiện vấn đề.",
+
+  # BABOK `10.30`: xem xét giải pháp phải thực hiện chức năng tốt đến mức nào.
+  "Khi yêu cầu trải nghiệm chỉ nói làm gì mà chưa nói tốt đến đâu, tra Non-Functional Requirements Analysis: thời gian phản hồi cảm nhận được, số bước tới đích, khả năng tiếp cận, hành vi khi mất mạng — mỗi cái một ngưỡng đo được.",
+]
+
+doc_standards = [
+  "Rà lại: mỗi kịch bản có luồng ngoại lệ chưa, hay chỉ có luồng ngày đẹp trời?",
+  "Rà lại: persona hay nghiên cứu người dùng ở đây dựa trên người thật hay dựa trên suy đoán? Nếu là suy đoán, ghi rõ.",
+  "Nhắc tên khung phương pháp một lần làm xuất xứ là đủ, không rải số hiệu mục qua từng phần.",
+]

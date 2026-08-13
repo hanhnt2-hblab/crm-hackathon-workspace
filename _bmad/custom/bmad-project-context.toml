@@ -43,9 +43,15 @@ external_sources = [
 
 # BABOK `2.3`: Requirements Classification Schema — năm loại yêu cầu.
 #   `2.1`: BACCM — sáu khái niệm cốt lõi ràng buộc lẫn nhau.
+#   `5.1`: Trace Requirements — truy vết theo cả hai chiều, xuôi tới thứ hiện
+#     thực hoá yêu cầu và ngược về nhu cầu sinh ra nó.
+# thực hành: đo được `5.1` traceability chỉ 4/247 file (hai cách đo đồng thuận,
+#   tầng mỏng). Đặt ở AGENTS.md thay vì ở bmad-sprint-planning vì truy vết là
+#   quy tắc XUYÊN SUỐT — bmad-build và bmad-code-review cũng cần, mà cả hai
+#   chưa có override riêng.
 # thực hành: việc ghi khung này vào AGENTS.md là chính sách của repo này. Giữ
 #   ngắn vì khối đó nạp háo mọi phiên; đây là khung để PHÂN LOẠI, không phải
 #   hướng dẫn cách làm — hướng dẫn nằm ở hub, tra khi cần.
 activation_steps_append = [
-  "Khi soạn khối bmad:context cho AGENTS.md, thêm một mục ngắn tên 'Khung phân tích' gồm đúng hai thứ, không thêm gì khác. Thứ nhất, năm loại yêu cầu để mọi người phân loại nhất quán: business (vì sao thay đổi), stakeholder (nhu cầu bên liên quan), solution functional (làm gì), solution non-functional (tốt đến mức nào), transition (chỉ cần trong lúc chuyển đổi rồi bỏ). Thứ hai, sáu khái niệm phải xét cùng lúc khi bàn một thay đổi: Need, Change, Solution, Stakeholder, Value, Context — và lưu ý rằng đóng khung Solution trước khi hiểu Need là lỗi phổ biến nhất. Ghi như một quy ước của dự án, KHÔNG ghi như một sự kiện đã kiểm chứng từ repo, vì nó là khung phương pháp chứ không phải điều quan sát được từ mã. Nhắc tên khung một lần làm xuất xứ là đủ, không trích số hiệu mục.",
+  "Khi soạn khối bmad:context cho AGENTS.md, thêm một mục ngắn tên 'Khung phân tích' gồm đúng ba thứ, không thêm gì khác. Thứ nhất, năm loại yêu cầu để mọi người phân loại nhất quán: business (vì sao thay đổi), stakeholder (nhu cầu bên liên quan), solution functional (làm gì), solution non-functional (tốt đến mức nào), transition (chỉ cần trong lúc chuyển đổi rồi bỏ). Thứ hai, sáu khái niệm phải xét cùng lúc khi bàn một thay đổi: Need, Change, Solution, Stakeholder, Value, Context — và lưu ý rằng đóng khung Solution trước khi hiểu Need là lỗi phổ biến nhất. Thứ ba, quy ước truy vết: mỗi story truy được về yêu cầu sinh ra nó, mỗi yêu cầu truy được về nhu cầu nghiệp vụ sinh ra nó — không truy được thì không biết vì sao nó tồn tại, và không biết khi nhu cầu đổi thì phải sửa ở đâu. Ghi như một quy ước của dự án, KHÔNG ghi như một sự kiện đã kiểm chứng từ repo, vì nó là khung phương pháp chứ không phải điều quan sát được từ mã. Nhắc tên khung một lần làm xuất xứ là đủ, không trích số hiệu mục.",
 ]
