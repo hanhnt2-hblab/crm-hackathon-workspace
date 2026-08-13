@@ -66,7 +66,7 @@ Mục 0 thì tổng hợp kết luận của cả năm mục, nên nó dùng c�
 
 | Mục | Nội dung | Đọc khi nào |
 |---|---|---|
-| **Mục 0** | Tầng chuẩn: từ vựng, enum, bảng số, 41 quyết định chốt `D1`…`D41`, trạng thái mọi `Q` và `F` | Trước khi viết dòng mã đầu tiên |
+| **Mục 0** | Tầng chuẩn: từ vựng, enum, bảng số, 45 quyết định chốt `D1`…`D45`, trạng thái mọi `Q` và `F` | Trước khi viết dòng mã đầu tiên |
 | **Mức 1** | Diễn giải lại đề bài, chấp nhận nguyên bản, không đánh giá | Khi cần bản rút gọn của đề bài |
 | **Mức 2** | 22 điểm mơ hồ `Q1`…`Q22`, mỗi điểm một câu hỏi cho BTC và một hướng đi | Khi cần biết vì sao một chi tiết phải tự quyết |
 | **Mức 3** | 7 epic, 41 story, tiêu chí nghiệm thu, ánh xạ `T`, lỗ hổng phủ kiểm thử | Khi lập kế hoạch sprint và viết kiểm thử |
@@ -244,7 +244,7 @@ Thứ tự hàng đợi = `relevance` × mức chắc chắn × (công ty có c�
 
 Tổng 11, mục tiêu vận hành **> 0,70**. Điền địa chỉ trang web đáng giá gấp đôi điền năm thành lập.
 
-## 0.3. Bảng quyết định chốt `D1`–`D41`
+## 0.3. Bảng quyết định chốt `D1`–`D45`
 
 Cột **Quan hệ với đề bài**: `giữ` = chép đúng đề bài · `bổ sung` = đề bài để trống, đội tự chốt ·
 `làm chặt hơn` = đội tự đặt ràng buộc nghiêm hơn đề bài · `chờ BTC` = chưa chốt được.
@@ -269,7 +269,7 @@ Cột **Rủi ro nghiệm thu**: chỗ nào một quyết định `làm chặt h
 
 | ID | Quyết định | Quan hệ với đề bài | Nguồn | Rủi ro nghiệm thu |
 |---|---|---|---|---|
-| `D16` | **Quy tắc một dòng: thêm thì tự do, ghi đè thì phải duyệt.** Ba mức quyền ghi — *tự do* (thêm mục dòng thời gian, ghi trường chỉ-AI) · *xác nhận đơn* (điền ô đang trống, một cú bấm) · *xác nhận kỹ* (ghi đè ô đã có giá trị: buộc hiện diff và buộc chọn lý do) | bổ sung | `F1`, `F2` | không |
+| `D16` | **Quy tắc một dòng: thêm thì tự do, ghi đè thì phải duyệt.** Ba mức quyền ghi — *tự do* (thêm mục dòng thời gian · ghi trường chỉ-AI · **điền ô Việc tiếp theo đang trống của cơ hội đang chạy**, vì `§4/nhóm 4` nói thẳng hệ thống tự điền *"ngay lập tức, không hỏi ai"*) · *xác nhận đơn* (điền ô **hồ sơ công ty** đang trống, một cú bấm) · *xác nhận kỹ* (ghi đè ô đã có giá trị: buộc hiện diff và buộc chọn lý do) | bổ sung | `F1`, `F2` | không |
 | `D17` | Công ty **Đang theo dõi**: nhóm 5 tự thêm mục dòng thời gian, nhóm 3 **không** sinh gợi ý loại "thêm tin mới". Công ty **không** theo dõi: ngược lại — nhóm 3 sinh gợi ý, nhóm 5 không chạm | bổ sung | `F1` | không |
 | `D4` | **"Đáng chú ý" = `relevance = high` VÀ mức chắc chắn ∈ {`chac`, `co_the`}.** `doan` không bao giờ tự đặt. Đây là định nghĩa duy nhất của cụm từ này trong toàn bộ tài liệu | bổ sung | `Q2`, `F10` | không |
 | `D10` | Tự đặt áp cho **mọi** cơ hội đang mở của công ty; mỗi cơ hội một bản ghi tự đặt và một nút Hoàn tác riêng | bổ sung | `Q3` | có — `T-6` phải khẳng định quan hệ, không khẳng định con số (`D36`) |
@@ -305,8 +305,8 @@ Cột **Rủi ro nghiệm thu**: chỗ nào một quyết định `làm chặt h
 | ID | Quyết định | Quan hệ với đề bài | Nguồn | Rủi ro nghiệm thu |
 |---|---|---|---|---|
 | `D29` | Mỗi số đo hiện **cả luỹ kế và cửa sổ 24 giờ**, kèm ngưỡng ở 0.2.2. Tỉ lệ duyệt và thời gian quyết trung bình hiện **cạnh nhau**, có khối cảnh báo duyệt mù. Ngôn từ cảnh báo là *"3 gợi ý cần rà lại"*, không phải *"phát hiện bất thường"* | bổ sung | `Q21`, `F11` | không |
-| `D30` | Thêm **`error-detection rate`** = số phát hiện bị người bác bỏ với lý do `thong_tin_sai` / tổng số phát hiện có phản hồi. Cơ chế thu: hai nút "hữu ích / không hữu ích" trên mỗi phát hiện, và hỏi một lý do ngắn khi Sales xoá mục do hệ thống thêm. Mục bị xoá dùng **xoá mềm** để vẫn còn làm dữ liệu đo. Đặt cạnh `auto-accept rate` | bổ sung | `F12` | không |
-| `D31` | Hàng đợi **có thứ tự**: `relevance` × mức chắc chắn × (công ty có cơ hội mở hay không), nhóm được theo công ty. Gợi ý điền ô trống xếp theo trọng số hoàn thiện ở 0.2.3 | bổ sung | `F13` | không |
+| `D30` | Thêm **`error-detection rate`** = số phát hiện bị người bác bỏ với lý do `thong_tin_sai` / tổng số phát hiện có phản hồi. Cơ chế thu, **đúng hai nguồn vào mẫu số**: nút "không hữu ích" trên một phát hiện, và lý do `thong_tin_sai` khi bỏ một gợi ý. Lý do ngắn khi Sales xoá mục do hệ thống thêm là **tuỳ chọn**, nên **không** vào mẫu số — mẫu số co giãn theo mức chăm chỉ của người dùng thì không so được giữa hai kỳ. Mục bị xoá dùng **xoá mềm** để vẫn còn làm dữ liệu đo. Đặt cạnh `auto-accept rate` | bổ sung | `F12` | không |
+| `D31` | Hàng đợi **có thứ tự**: khoá xếp là bộ ba (`relevance`, mức chắc chắn, công ty có cơ hội **đang chạy** hay không), **so lần lượt theo thứ tự đó** — không phải một phép nhân số học, vì ba enum không nhân được. *Đang chạy* = bốn giai đoạn đầu, **không** gồm `tam_dung`, cho khớp `D11`. Gom theo công ty là khoá ngoài. Gợi ý điền ô trống xếp theo trọng số hoàn thiện ở 0.2.3 | bổ sung | `F13` | không |
 | `D27` | Lý do thua chọn từ **enum dạng mảng** cộng một ô ghi chú tự do, không phải một câu tự do — để đếm được, và Sales bấm nhanh hơn | bổ sung | `F16` | không |
 | `D34` | Một đơn vị tiền **duy nhất** trong phạm vi hackathon, ghi rõ trên giao diện. Tổng giá trị theo giai đoạn gọi đúng tên **"tổng giá trị ước tính (chưa nhân xác suất)"**, không gọi là pipeline value và không bao giờ gọi là doanh thu | bổ sung | `F27` | không |
 
@@ -320,6 +320,17 @@ Cột **Rủi ro nghiệm thu**: chỗ nào một quyết định `làm chặt h
 | `D39` | Mọi việc quan trọng có sinh log phải diễn ra **lại** trong ngày thi (viết kiểm thử, refactor, sinh tài liệu). BTC xác nhận 14/8: chỉ log ngày 15/8 được tính, và chạy lại phân tích trong ngày thi là đúng cách, không phải lách | giữ — BTC đã chốt | `Q22`, `F24` | không |
 | `D40` | **Không tối ưu khối lượng log.** Mọi đầu ra AI giữ lại trong ngày thi phải có một người đọc và nói được lý do trong một câu; nói không được thì bỏ, không giữ. Thể lệ cho vòng 2 rút **ngẫu nhiên 3–5 câu hỏi từ chính log của đội**, nên phần log không ai đọc chính là bề mặt bị hỏi | bổ sung | `F39` · thể lệ | không |
 | `D41` | **Giữ trống một nửa quỹ giờ ngày thi cho tính năng BTC phát thêm.** Kế hoạch 15/8 chia ba khối: nạp dữ liệu thật và sửa lớp ánh xạ · tính năng mới · hoàn thiện. Không xếp việc bắt buộc nào vào khối giữa. Thứ phải tập trước không phải sản phẩm mà là **một vòng đầy đủ RA → thiết kế → mã → kiểm thử → triển khai chạy được trong khoảng hai tiếng** | bổ sung | `F40` · giải đáp BTC 14/8 | không |
+
+### Nhóm G — Bổ sung từ bước PRD
+
+Quyết định sinh ra khi dựng PRD, sau khi Mục 0 đã chốt `D1`–`D41`.
+
+| ID | Quyết định | Quan hệ với đề bài | Nguồn | Rủi ro nghiệm thu |
+|---|---|---|---|---|
+| `D42` | Thêm trường **giai đoạn mở gần nhất**: giai đoạn **đang chạy** cuối cùng của cơ hội trước khi nó sang `tam_dung`, `thang` hoặc `thua`. Một trường phục vụ hai đường quay lại — ra khỏi `tam_dung`, và khi Quản trị mở lại cơ hội đã đóng. Đi từ `tam_dung` sang `thang`/`thua` thì **giữ nguyên** giá trị đã lưu, không ghi đè bằng `tam_dung` | bổ sung | PRD §5.3 | không — `T-1` không chạm `tam_dung` |
+| `D43` | **Mở lại cơ hội đã đóng chỉ vai Quản trị.** `§4/nhóm 1` viết *"đi lùi và nhảy cóc đều được, hệ thống không chặn"*; giới hạn này chặt hơn câu đó. Lý do: số thắng/thua là gốc của mọi báo cáo | làm chặt hơn | PRD §5.2 | không — không điểm `T` nào kiểm việc mở lại cơ hội đã đóng |
+| `D44` | **Cơ hội mới luôn bắt đầu ở `tiep_can`**, người tạo không chọn được giai đoạn khác | làm chặt hơn | PRD §5.1 | không — `T-1` tạo cơ hội rồi mới kéo qua ba giai đoạn |
+| `D45` | Phát hiện có `relevance = low` **không** vào hàng đợi gợi ý; nó chỉ nằm ở vùng đọc của nhóm 2, đúng như `0.1.6` đã định nghĩa. Đề bài không lọc theo độ liên quan | làm chặt hơn | PRD `FR-18`, `D3` | không — không điểm `T` nào đòi hàng đợi chứa phát hiện `low` |
 
 ## 0.4. Trạng thái 22 câu hỏi `Q1`–`Q22`
 
