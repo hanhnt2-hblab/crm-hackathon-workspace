@@ -42,6 +42,26 @@ tuỳ biến, không ghi đè file nào của BMad.
 
 ---
 
+## agent-skills — bốn skill deploy dưới `.claude/skills/`
+
+Nguồn: https://github.com/addyosmani/agent-skills — **MIT License, Copyright (c) 2025 Addy Osmani**
+
+Cài ngày 2026-08-13 bằng `npx skills add addyosmani/agent-skills -s <tên> -a claude-code --copy`:
+
+- `.claude/skills/ci-cd-and-automation/`
+- `.claude/skills/security-and-hardening/`
+- `.claude/skills/shipping-and-launch/`
+- `.claude/skills/observability-and-instrumentation/`
+
+**Không sửa file nào của chúng.** `skills-lock.json` ở gốc repo giữ nguồn và hash từng tệp, nên
+mọi thay đổi tại chỗ đều phát hiện được. Phần chỉnh cho hợp cuộc thi nằm ở
+`.claude/skills/hackathon-deploy/` — file do đội tự viết, thuộc bản quyền HBLAB nêu trong LICENSE.
+
+Lý do mượn: BMad không có bước deployment nào trong bốn phase của nó, mà barem chấm cột đó 15 điểm
+và `§7.3` biến nó thành điều kiện nộp bài.
+
+---
+
 ## babok-bmad-skill — `_bmad/custom/*.toml`
 
 Nguồn: https://github.com/hanhnt2-hblab/babok-bmad-skill
