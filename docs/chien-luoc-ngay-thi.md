@@ -5,7 +5,7 @@
 
 Tài liệu này nói **thứ tự làm và vì sao**. Không chốt lại chi tiết kỹ thuật nào — những thứ đó ở
 Mục 0 của [Phản biện và phân tích yêu cầu](Đề%20bài/Phản%20biện%20và%20phân%20tích%20yêu%20cầu.md)
-dưới dạng `D1`–`D41`. Hai bên nói khác nhau thì Mục 0 đúng.
+dưới dạng `D1`–`D45`. Hai bên nói khác nhau thì Mục 0 đúng.
 
 ---
 
@@ -186,7 +186,7 @@ Mỗi bẫy đã được lập luận ở mục ghi kèm; đây là bản nhắ
 
 - **Tối ưu khối lượng log** → mục 1 và `D40`. Bề mặt mã tối đa bằng bề mặt hai người đọc kịp.
 - **Tưởng chuẩn bị nhiều là thắng** → mục 2. Thứ dễ sao chép sẽ bị san bằng; ba thứ không sao chép
-  kịp là sổ `D1`–`D41`, `hackathon-deploy` có lịch sử commit, và đồng đội đang quản lý giám khảo
+  kịp là sổ `D1`–`D45`, `hackathon-deploy` có lịch sử commit, và đồng đội đang quản lý giám khảo
   vòng 3.
 - **Đặt phạm vi theo mong muốn** → mục 6. Đội đặt phạm vi tham vọng nhất là đội ước lượng sai nhiều
   nhất.

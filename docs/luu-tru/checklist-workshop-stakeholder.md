@@ -1,7 +1,7 @@
 # Lưu trữ — kịch bản workshop với stakeholder
 
 Ba mục này tách khỏi `CHECKLIST.md` ngày 2026-08-14. Lý do: kế hoạch hai giai đoạn không có buổi
-workshop nào, đội là hai dev cộng một quản lý, và yêu cầu đã đóng băng ở `D1`–`D41` của
+workshop nào, đội là hai dev cộng một quản lý, và yêu cầu đã đóng băng ở `D1`–`D45` của
 [Phản biện và phân tích yêu cầu](../Đề%20bài/Phản%20biện%20và%20phân%20tích%20yêu%20cầu.md).
 
 Giữ lại vì chúng đúng về phương pháp và dùng được cho vòng sau, hoặc cho dự án CRM thật nếu sản

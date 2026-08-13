@@ -33,7 +33,7 @@ Nhánh tích hợp là `develop` — **không có `main`**.
 ## Đề bài và phân tích
 
 **Điểm vào là [`docs/Đề bài/Phản biện và phân tích yêu cầu.md`](docs/Đề%20bài/Phản%20biện%20và%20phân%20tích%20yêu%20cầu.md)**
-— chốt 41 quyết định `D1`–`D41`, theo dõi 22 điểm mơ hồ `Q1`–`Q22` và 40 mâu thuẫn `F1`–`F40`,
+— chốt 45 quyết định `D1`–`D45`, theo dõi 22 điểm mơ hồ `Q1`–`Q22` và 40 mâu thuẫn `F1`–`F40`,
 và tự đặt thứ tự ưu tiên khi các tài liệu nói khác nhau. **Đọc Mục 0 trước khi viết dòng mã đầu
 tiên.**
 
@@ -80,8 +80,8 @@ CB ─→ PRD ─→ CU ─→ CA ─→ CE ─→ SP ─→ BD ─┬─→ CR 
 | 4 | Kiến trúc **(bắt buộc)** | `CA` | architecture · memlog | **BABOK** — Data Model ba tầng, Data Dictionary, Interface Analysis, **Decision Analysis** (ma trận quyết định có trọng số) | Design 20 |
 | 5 | Epic & story **(bắt buộc)** | `CE` | epics · stories | **BABOK** — khung căn cứ ưu tiên | Requirement 20 |
 | 6 | Sprint planning **(bắt buộc)** | `SP` | sprint status | — | — |
-| 7 | Build **(bắt buộc)** | `BD` | mã · spec thực thi | **Đội** — tra `D1`–`D41` trước khi tự quyết · ranh giới `§5` chặn ở tầng nghiệp vụ · `D40` đọc trước khi giữ · ghi memlog | Development 25 |
-| 8 | Code review | `CR` | phát hiện đã phân loại | **Đội** — đối chiếu `D1`–`D41` · ghi memlog | Development 25 |
+| 7 | Build **(bắt buộc)** | `BD` | mã · spec thực thi | **Đội** — tra `D1`–`D45` trước khi tự quyết · ranh giới `§5` chặn ở tầng nghiệp vụ · `D40` đọc trước khi giữ · ghi memlog | Development 25 |
+| 8 | Code review | `CR` | phát hiện đã phân loại | **Đội** — đối chiếu `D1`–`D45` · ghi memlog | Development 25 |
 | 9 | Sinh e2e test | `QA` | bộ kiểm thử | **Đội** — **EP/BVA** trên enum và trường nhập liệu · self-healing tối đa ba vòng · khẳng định trạng thái CSDL qua MCP · ghi memlog | Testing 20 |
 | 10 | **Triển khai** | *(không có trong BMad)* | Dockerfile · CI · production config | **`hackathon-deploy`** cộng bốn skill mượn | **Deployment 15** |
 | 11 | Retrospective | `ER` | retrospective | — | — |

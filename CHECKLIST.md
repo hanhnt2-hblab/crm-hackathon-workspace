@@ -5,20 +5,22 @@ Thi **15/08/2026**, 9:30–15:00. Đội: hai dev + một Sales Manager.
 Tệp này chỉ chứa **việc phải làm trước và trong ngày thi**. Thứ tự làm và lý do nằm ở
 [`docs/chien-luoc-ngay-thi.md`](docs/chien-luoc-ngay-thi.md); chi tiết kỹ thuật đã chốt nằm ở Mục 0
 của [Phản biện và phân tích yêu cầu](docs/Đề%20bài/Phản%20biện%20và%20phân%20tích%20yêu%20cầu.md)
-dưới dạng `D1`–`D41`.
+dưới dạng `D1`–`D45`.
 
 ---
 
 ## A · Setup — mỗi bản clone làm một lần
 
-- [ ] Cài `uv` · Node ≥ 20.12 · Python ≥ 3.10
-- [ ] Bật git hook: `git config core.hooksPath .githooks`
-- [ ] **Đưa `tabularis` vào `PATH`** (Windows: `%LOCALAPPDATA%\tabularis\`), kiểm bằng
+- [x] Cài `uv` · Node ≥ 20.12 · Python ≥ 3.10
+- [x] Bật git hook: `git config core.hooksPath .githooks`
+- [x] **Đưa `tabularis` vào `PATH`** (Windows: `%LOCALAPPDATA%\tabularis\`), kiểm bằng
       `tabularis --mcp`. Không có thì MCP cơ sở dữ liệu không khởi động được, và bộ kiểm thử
-      phải đi đường dự phòng khi khẳng định `T-4`, `T-8`, `T-9`
-- [ ] Xác minh phần nối BABOK: `python ~/.claude/skills/babok-business-analysis/verify.py --project-root .`
+      phải đi đường dự phòng khi khẳng định `T-4`, `T-8`, `T-9`. Kiểm đúng cách là **xem MCP có
+      khởi động trong phiên agent không** — `command -v tabularis` trong Git Bash có thể không
+      thấy vì hai tiến trình dùng `PATH` khác nhau
+- [x] Xác minh phần nối BABOK: `python ~/.claude/skills/babok-business-analysis/verify.py --project-root .`
       — đạt khi in `Mọi phép kiểm đạt.`
-- [ ] Xác minh skill nạp được — gõ `/` xem có `babok-business-analysis` và `hackathon-deploy`
+- [x] Xác minh skill nạp được — gõ `/` xem có `babok-business-analysis` và `hackathon-deploy`
 
 Không chạy `npx bmad-method install` — BMad đã nằm sẵn trong repo.
 
@@ -28,8 +30,10 @@ Hoàn thiện sản phẩm. Phần này phục vụ **vòng 2 và vòng 3**; log
 
 - [ ] **Log Claude Code → Grafana chảy thật**, kiểm bằng một lần chạy và nhìn bảng (`D37`).
       Hỏng cái này là mất cả vòng 1, không cứu được — **làm trước mọi thứ khác**
-- [ ] **Chốt stack cho `src/`** — chặn ba cột Dev/Testing/Deployment, và bốn dòng lệnh trong
-      `hackathon-deploy` đang để trống chờ nó
+- [ ] **Chạy luồng `CB → PRD → CU → CA`** theo [README](README.md) mục *Luồng phát triển*.
+      Stack cho `src/` là **đầu ra của `CA`**, chốt bằng ma trận quyết định có trọng số — không
+      chốt tay ngoài luồng: quyết định ngoài workflow không sinh artifact và không sinh log, nên
+      vòng 1 không có gì để chấm ở hai cột Requirement và Design
 - [ ] Gửi [bộ câu hỏi cho sáu giám khảo vòng 3](docs/Đề%20bài/Câu%20hỏi%20cho%20ban%20giám%20khảo%20vòng%203.md)
       — câu `B3` đóng `Q10` bằng số lấy từ chính người chấm
 - [ ] Sáu nhóm `§4` tới đúng mức `T-1`…`T-10` quan sát được

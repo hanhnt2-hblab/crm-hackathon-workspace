@@ -32,7 +32,7 @@ artifact sinh ra ở `_bmad-output/planning-artifacts/` và `_bmad-output/implem
 ## Where things are
 
 - **Trước khi viết dòng mã đầu tiên, đọc Mục 0 của `docs/Đề bài/Phản biện và phân tích yêu cầu.md`.**
-  Nó chốt mọi chi tiết đề bài để trống — enum, ngưỡng, con số — thành `D1`–`D41`, và tự đặt thứ tự
+  Nó chốt mọi chi tiết đề bài để trống — enum, ngưỡng, con số — thành `D1`–`D45`, và tự đặt thứ tự
   ưu tiên khi các tài liệu nói khác nhau. Đừng quyết lại thứ nó đã quyết; trích `Dn` trong mã và
   trong kiểm thử.
 - **Skill nào chạy ở bước nào, và nó nuôi cột chấm điểm nào:** `README.md` mục *Luồng phát triển*.
