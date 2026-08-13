@@ -21,11 +21,21 @@ _bmad/**                                        linguist-vendored
 # Nhị phân: không chuyển đầu dòng, không diff theo dòng.
 # Repo hiện chưa track tệp nhị phân nào; đây là lưới an toàn cho ảnh chụp màn hình
 # và tài liệu mà phần demo có thể thêm vào.
-*.png  binary
-*.jpg  binary
-*.jpeg binary
-*.gif  binary
-*.pdf  binary
-*.xlsx binary
-*.docx binary
-*.pptx binary
+*.png    binary
+*.jpg    binary
+*.jpeg   binary
+*.gif    binary
+*.ico    binary
+*.woff2  binary
+*.pdf    binary
+*.xlsx   binary
+*.docx   binary
+*.pptx   binary
+*.zip    binary
+
+# Quan trọng hơn phần trên: §7.3 đòi cơ sở dữ liệu thật, và bộ dữ liệu mẫu rất có thể
+# là một tệp SQLite. Chuyển đầu dòng một tệp CSDL là hỏng không hồi phục, mà triệu chứng
+# chỉ lộ ở máy khác — đúng loại lỗi tốn cả buổi sáng ngày thi.
+*.db     binary
+*.sqlite binary
+*.sqlite3 binary

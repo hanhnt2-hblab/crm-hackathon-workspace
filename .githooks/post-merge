@@ -1,16 +1,32 @@
 #!/bin/sh
-# Sau khi merge, nếu skill BMad thay đổi thì kiểm lại phần nhúng BABOK.
-# Hub nằm ở ~/.claude/skills/babok-business-analysis (junction sang repo nguồn).
+# Sau khi merge: kiểm hai thứ được mang từ ngoài vào, mỗi thứ một cách.
+#   1. Phần nhúng BABOK — hub ~/.claude/skills/babok-business-analysis (junction sang repo nguồn)
+#   2. Bốn skill mượn từ addyosmani/agent-skills — đối chiếu hash trong skills-lock.json
+# Hook cố ý KHÔNG chặn: nó cảnh báo chứ không làm hỏng merge.
 
 if git diff-tree -r --name-only ORIG_HEAD HEAD 2>/dev/null | grep -q "^\.claude/skills/bmad-"; then
   HUB="$HOME/.claude/skills/babok-business-analysis"
   if [ ! -d "$HUB" ]; then
     echo "⚠ Không thấy hub babok-business-analysis — bỏ qua phần kiểm BABOK."
-    exit 0
+  else
+    echo "→ BMad thay đổi, kiểm lại phần nhúng BABOK…"
+    python "$HUB/install.py" --project-root . --quiet
+    python "$HUB/verify.py" --project-root . || {
+      echo "⚠ verify báo lệch — đọc output ở trên trước khi làm tiếp."
+    }
   fi
-  echo "→ BMad thay đổi, kiểm lại phần nhúng BABOK…"
-  python "$HUB/install.py" --project-root . --quiet
-  python "$HUB/verify.py" --project-root . || {
-    echo "⚠ verify báo lệch — đọc output ở trên trước khi làm tiếp."
-  }
+fi
+
+# Bốn skill mượn từ addyosmani/agent-skills là bản chép, AGENTS.md cấm sửa tại chỗ.
+#
+# KHÔNG so hash với skills-lock.json: `computedHash` ở đó không phải sha256 của tệp đã cài
+# (đã thử bốn cách chuẩn hoá, không cách nào khớp), nên so sẽ báo lệch giả mỗi lần merge.
+# Thay vào đó, báo khi một merge vừa CHẠM vào chúng — đủ để người xem lại có phải sửa tay không.
+CHAM=$(git diff-tree -r --name-only ORIG_HEAD HEAD 2>/dev/null \
+  | grep -E "^\.claude/skills/(ci-cd-and-automation|security-and-hardening|shipping-and-launch|observability-and-instrumentation)/")
+if [ -n "$CHAM" ]; then
+  echo "⚠ Merge vừa đổi skill mượn:"
+  echo "$CHAM" | sed 's/^/    /'
+  echo "  Chúng là bản chép. Sửa tại chỗ sẽ mất khi cập nhật —"
+  echo "  cần chỉnh thì viết đè trong .claude/skills/hackathon-deploy/."
 fi
