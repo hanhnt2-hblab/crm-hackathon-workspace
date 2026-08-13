@@ -40,6 +40,48 @@ tức BMad tự gộp lúc resolve — file gốc giữ nguyên 71 method, khôn
 Chín file này dùng đúng cơ chế `_bmad/custom/<skill>.toml` mà BMad thiết kế cho việc
 tuỳ biến, không ghi đè file nào của BMad.
 
+Trong cùng thư mục còn **ba file do đội tự viết**, không thuộc hub và không thuộc BMad:
+`bmad-build.toml` · `bmad-code-review.toml` · `bmad-qa-generate-e2e-tests.toml`. Chúng
+bù hai chỗ barem gọi tên mà bản cài không có — Equivalence Partitioning / Boundary Value
+Analysis, và bản ghi quyết định cho nửa thực thi. Bản quyền HBLAB theo LICENSE. Đầu mỗi
+file có dòng ghi rõ nó không do hub sinh ra, để `install.py` và người đọc không nhầm.
+
+---
+
+## bonanno-game-theory — `.claude/skills/bonanno-game-theory/`
+
+**20 tệp đang được track**, sinh từ *"Game Theory: An open access textbook with 165 solved
+exercises"* của **Giacomo Bonanno** (University of California, Davis).
+
+Sách gốc là **open access** — tác giả phát hành miễn phí, cho phép dùng và trích. Đây là lý do
+nó khác trường hợp BABOK: BABOK ghi *"Not for Distribution or Resale"* nên nguyên văn không được
+vào repo, còn bản này thì được.
+
+Nội dung trong skill là **phần diễn giải và cấu trúc lại**, không phải bản quét nguyên văn.
+
+⚠ Chưa đối chiếu điều khoản cụ thể của bản phát hành open access đó. Nên làm trước khi nộp bài,
+vì repo sẽ được giám khảo đọc.
+
+---
+
+## tabularis — máy chủ MCP cơ sở dữ liệu, khai báo ở `.mcp.json`
+
+Phần mềm **bên thứ ba**, cài riêng trên máy từng người. Repo **không chứa mã nguồn, không chứa
+tệp nhị phân** của nó — `.mcp.json` chỉ khai báo cách gọi (`tabularis --mcp`), nên không có gì
+được phát hành lại và không phát sinh nghĩa vụ license cho repo này.
+
+Vai trò: công cụ **thời gian phát triển**, để agent truy vấn thẳng cơ sở dữ liệu khi kiểm `T-4`,
+`T-8`, `T-9` — ba điểm nghiệm thu khẳng định về trạng thái dữ liệu. **Không phải thành phần của
+sản phẩm dự thi**, không chạy trong bản production nộp bài.
+
+Cấu hình khai báo không chứa bí mật: `env` rỗng, không chuỗi kết nối, không khoá. Kết nối do
+tabularis tự quản trên từng máy. **Giữ nguyên như vậy** — nhét chuỗi kết nối vào `.mcp.json` là
+vừa rò rỉ vào lịch sử git, vừa trái `§7.3` vốn đòi cấu hình nằm ở biến môi trường.
+
+**License: Apache License 2.0**, repo `TabularisDB/tabularis` — cho phép dùng thương mại, sửa và
+phân phối lại, chỉ đòi kèm bản license và ghi rõ phần đã sửa. Đội không sửa và không phân phối lại
+nó, nên không phát sinh nghĩa vụ nào cho repo này.
+
 ---
 
 ## agent-skills — bốn skill deploy dưới `.claude/skills/`

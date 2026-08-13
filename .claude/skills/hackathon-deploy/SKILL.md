@@ -1,6 +1,6 @@
 ---
 name: hackathon-deploy
-description: Lớp thuế cho bốn skill deploy mượn từ addyosmani/agent-skills, chỉnh về đúng ràng buộc hackathon CRM. Dùng khi làm bất cứ việc gì thuộc cột Deployment của barem, khi dựng bản chạy production, khi viết Dockerfile hoặc lệnh khởi động, hoặc trước khi nộp bài theo §7.
+description: Bước triển khai mà BMad không có. Chỉnh bốn skill deploy mượn từ addyosmani/agent-skills về đúng ràng buộc hackathon CRM — nói rõ phần nào áp dụng, phần nào bỏ — và bù phần Dockerfile, cấu hình production, lệnh khởi động một bước. Dùng khi làm bất cứ việc gì thuộc cột Deployment của barem, khi dựng bản chạy production, hoặc trước khi nộp bài theo §7.
 ---
 
 # Deploy trong phạm vi hackathon CRM
@@ -88,6 +88,20 @@ Xong khi cả bốn lệnh dưới đây chạy được từ một bản clone 
 
 Chưa chốt stack cho `src/` nên chưa điền được lệnh thật. Chốt xong thì thay bốn dòng trên bằng lệnh
 thật, ở đây và ở `AGENTS.md`.
+
+> **Bốn dòng trên còn là chỗ trống thì KHÔNG được tuyên bố "đã deploy", không được đánh dấu cột
+> Deployment là xong, và không được ghi vào memlog rằng bước triển khai đã đạt.** Một mục kiểm gồm
+> toàn chỗ trống thì chạy qua lúc nào cũng "đạt" — đó đúng là kiểu cắt scope tệ nhất mà
+> `CHECKLIST.md` cảnh báo: vẫn nói là có, nhưng bên trong hỏng.
+
+## Ràng buộc với MCP cơ sở dữ liệu
+
+`tabularis` **chỉ dùng để đọc**, kể cả khi dựng bản production. Không sửa dữ liệu, không tạo bảng,
+không chạy migration qua `run_query`.
+
+Mọi thay đổi dữ liệu phải đi qua đúng đường mà sản phẩm dùng — lệnh nạp dữ liệu ở `§7.5`, hoặc
+migration của chính stack. Sửa tay một chỗ qua MCP là `§7.5` *"chạy lệnh lần nữa thì về đúng trạng
+thái ban đầu"* hết đúng, mà giám khảo dùng chính lệnh đó để diễn lại kịch bản demo.
 
 **Không tự khai đã xong** khi mới chạy được trên máy đang phát triển: điều kiện là **bản clone
 sạch**. Đây là chỗ hay trượt nhất, vì máy dev luôn có sẵn biến môi trường và dữ liệu từ lần chạy

@@ -1,0 +1,9 @@
+{
+  "mcpServers": {
+    "tabularis": {
+      "type": "stdio",
+      "command": "tabularis",
+      "args": ["--mcp"]
+    }
+  }
+}
