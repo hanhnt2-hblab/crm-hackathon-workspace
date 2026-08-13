@@ -20,13 +20,19 @@ và cách chúng ta làm việc — bản cài BMad Method cùng các file nối
 - Không đặt tên sản phẩm hay bài dự thi chứa "BMad" (mọi cách viết hoa) — nhãn hiệu của BMad
   Code, LLC. Nhắc tên để ghi nguồn thì được; chi tiết ở `THIRD-PARTY.md`.
 - Mang mã từ ngoài vào `src/` thì ghi nguồn và license vào `THIRD-PARTY.md` trong cùng commit.
+- Không sửa tại chỗ bốn skill mượn dưới `.claude/skills/` (`ci-cd-and-automation`,
+  `security-and-hardening`, `shipping-and-launch`, `observability-and-instrumentation`) — chúng
+  là bản chép, `skills-lock.json` giữ hash. Cần chỉnh thì viết đè trong `hackathon-deploy`.
 
 ## Where things are
 
 - **Trước khi viết dòng mã đầu tiên, đọc Mục 0 của `docs/Đề bài/Phản biện và phân tích yêu cầu.md`.**
-  Nó chốt mọi chi tiết đề bài để trống — enum, ngưỡng, con số — thành `D1`–`D39`, và tự đặt thứ tự
+  Nó chốt mọi chi tiết đề bài để trống — enum, ngưỡng, con số — thành `D1`–`D41`, và tự đặt thứ tự
   ưu tiên khi các tài liệu nói khác nhau. Đừng quyết lại thứ nó đã quyết; trích `Dn` trong mã và
   trong kiểm thử.
+- Thứ tự làm việc ngày thi, và vì sao: `docs/chien-luoc-ngay-thi.md`.
+- **Deployment không có bước nào trong BMad.** Mọi việc thuộc cột đó đi qua
+  `skill:hackathon-deploy` — nó nói bốn skill mượn dùng phần nào, bỏ phần nào.
 - Đề bài, thể lệ và tài liệu BTC phát: `docs/Đề bài/` — nguồn yêu cầu gốc, bóc từ đây trước khi
   tự nghĩ ra yêu cầu.
 - CRM thật của HBLAB chạy trên Airtable: `docs/CRM clone từ Airtable/` — dùng khi cần một con số
@@ -43,6 +49,8 @@ và cách chúng ta làm việc — bản cài BMad Method cùng các file nối
 - Log Claude Code phải chảy về Grafana **trước** mọi việc khác, không để cuối (`D37`) — thể lệ
   ghi *"không có log bằng không có điểm và không qua được vòng 1"*. Kiểm bằng một lần chạy thật
   rồi xem log lên bảng.
+- Sinh e2e test bằng skill sẵn có `bmad-qa-generate-e2e-tests` (mã `QA` trong bảng lệnh) — đừng
+  tự viết lại quy trình sinh test, nó dễ bị bỏ sót vì tên dài.
 - Mỗi bản clone bật hook một lần: `git config core.hooksPath .githooks`. Không bật thì sau mỗi
   lần pull có đổi `.claude/skills/bmad-*` phải tự chạy `install.py` rồi `verify.py`.
 - Kiểm bản cài BABOK: `python ~/.claude/skills/babok-business-analysis/verify.py --project-root .`
