@@ -73,6 +73,21 @@ dữ liệu · **Q12** quyền ghi đè · **Q22** mốc tính log · **Q10** b�
 >
 > **[Tên người gửi]** — đội **[tên đội]**
 
+## Câu hỏi bổ sung — gửi sau bốn câu trên
+
+**5. Ai được trả lời phần Q&A ở vòng 2?**
+
+Thể lệ ghi *"mỗi đội cử 01 thành viên đại diện trình bày"* và *"mỗi đội có 10 phút trình bày sản
+phẩm và 5 phút Q&A"*. Chỗ chưa rõ: quy định một người áp cho **cả** phần trình bày lẫn phần Q&A,
+hay chỉ áp cho phần trình bày?
+
+Đội hỏi vì dự định để người làm nghiệp vụ trình bày, còn phần Q&A — vốn hỏi về lựa chọn kỹ thuật
+rút từ log — thì người viết mã trả lời. Nếu không được thì đội phải đổi người nói và tập lại, nên
+cần biết sớm.
+
+*Hướng mặc định nếu không có giải đáp:* một người duy nhất phụ trách cả trình bày lẫn Q&A, và đội
+chọn người viết mã, vì Q&A bốc ngẫu nhiên từ log nên nặng phần kỹ thuật hơn.
+
 ## Theo dõi trả lời
 
 Điền vào đây khi có phản hồi, rồi cập nhật lại chỗ tương ứng trong

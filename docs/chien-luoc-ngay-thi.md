@@ -1,161 +1,202 @@
-# Chiến lược ngày thi — 15/08/2026
+# Chiến lược — hackathon CRM
 
-Đội hai dev cộng một Sales Manager. Quỹ giờ được chấm: **9:30–12:00 và 13:00–15:00**, nộp lúc 15:00.
+Đội hai dev cộng một Sales Manager. Thi ngày **15/08/2026**, quỹ giờ được chấm 9:30–12:00 và
+13:00–15:00.
 
-Tài liệu này nói **thứ tự làm và vì sao**. Nó không chốt lại chi tiết kỹ thuật nào — những thứ đó
-nằm ở Mục 0 của [Phản biện và phân tích yêu cầu](Đề%20bài/Phản%20biện%20và%20phân%20tích%20yêu%20cầu.md)
-dưới dạng `D1`–`D41`. Chỗ nào hai bên nói khác nhau thì Mục 0 đúng.
-
----
-
-## 1. Ba vòng, ba thước đo khác nhau
-
-Sai lầm đắt nhất là tưởng cuộc thi chấm một thứ.
-
-| Vòng | Ai chấm | Chấm cái gì | Loại ai |
-|---|---|---|---|
-| **1** · 15:00–15:30 | **Hệ thống AI**, tự động | **Log Claude Code ngày 15/8** đối chiếu checklist | Giữ **top 5** |
-| **2** · 15:40–17:10 | BGK + AI | **3–5 câu hỏi bốc ngẫu nhiên từ log của chính đội** | Giữ **top 3** |
-| **3** · 17:10– | **Đội Sales**, góc end-user | Tính năng, theo checklist riêng công bố sau | Xếp giải |
-
-Ba thước đo này thưởng ba thứ khác nhau, và **chúng chống nhau ở chỗ then chốt**: vòng 1 thưởng
-khối lượng dấu vết dùng AI, vòng 2 phạt đúng phần dấu vết mà đội không hiểu (`F39`). Cùng một hành
-động cho điểm ở vòng này và trừ ở vòng sau.
-
-Suy ra thứ tự ưu tiên tuyệt đối, không thương lượng:
-
-> **Không có log ngày 15/8 thì trượt vòng 1, và sản phẩm hoàn hảo đến mấy cũng không ai nhìn tới.**
-
-Thể lệ ghi thẳng: *"không có log bằng không có điểm và không qua được vòng 1"*. Nên trong ngày thi,
-**sinh đủ năm vệt log thắng việc hoàn thiện sản phẩm** — không phải vì sản phẩm không quan trọng, mà
-vì vòng 1 loại người trước khi có ai mở sản phẩm ra xem.
+Tài liệu này nói **thứ tự làm và vì sao**. Không chốt lại chi tiết kỹ thuật nào — những thứ đó ở
+Mục 0 của [Phản biện và phân tích yêu cầu](Đề%20bài/Phản%20biện%20và%20phân%20tích%20yêu%20cầu.md)
+dưới dạng `D1`–`D41`. Hai bên nói khác nhau thì Mục 0 đúng.
 
 ---
 
-## 2. Suy ngược từ 15:00
+## 1. Ba vòng, và thứ nào là cổng thứ nào là điểm
 
-Nước đi tương lai của người chấm không phải điều bất định — dự đoán từ luật rồi tỉa nhánh.
+| Vòng | Ai chấm | Chấm cái gì | Là cổng? | Tính điểm? |
+|---|---|---|---|---|
+| **1** · 15:00–15:30 | Hệ thống AI, tự động | Log Claude Code **ngày 15/8** đối chiếu checklist 5 cột | **Có** — không log là loại | Có |
+| **2** · 15:40–17:10 | BGK + AI, top 5 | 10 phút trình bày + 5 phút Q&A **bốc ngẫu nhiên từ log** | Có — chỉ top 5 đi tiếp | Có |
+| **3** · 17:10– , top 3 | **Đội Sales**, góc end-user | Tính năng, checklist riêng công bố sau | Không | Có — nhưng **có thể bị hoãn** |
 
-```
-15:00 nộp
-  └── AI đọc log ngày 15/8, đối chiếu checklist 5 cột
-        └── mỗi cột cần một phiên làm việc có thật trong ngày
-              └── mà artifact chuẩn bị sẵn từ 13–14/8 KHÔNG sinh log ngày 15/8
-                    └── nên mỗi cột phải có một việc thật để làm lại trong ngày
-```
+Phân biệt phải giữ cho rõ, vì lẫn nó là sai lầm đắt:
 
-Hai thứ cấp cho ta đúng cái "việc thật" đó, và cả hai đều do BTC phát vào sáng 15/8:
+- **Có log** là **cổng**. Thể lệ: *"không có log bằng không có điểm và không qua được vòng 1"*.
+- **Bậc trong log** là **điểm**. Checklist chấm bốn mức cho từng cột. Một phiên chạy 45 phút chứng
+  minh được Mức 1–2, không phải Mức 4. Mức 4 của Requirement Analysis là *"đóng vai persona phản
+  biện, tự phát hiện edge case, có prompt log lý giải"* — đó là **cách làm**, không phải **số phiên**.
 
-- **Dữ liệu thật** — buộc phải sửa lớp ánh xạ, chạy lại kiểm thử, sửa cái vỡ.
-- **Một tính năng mới chưa ai biết** (`F40`) — buộc chạy đủ vòng phân tích → thiết kế → mã → kiểm
-  thử → triển khai.
-
-Tính năng phát thêm **không phải phiền toái, nó là phương tiện**. BTC nói rõ mục đích: *"để cho các
-đội trải đủ các bước"*. Nó tồn tại để bịt đúng lỗ hổng `F23` — đội chuẩn bị kỹ quá sẽ không còn gì
-để sinh log ở hai cột Requirement Analysis và System Design, cộng lại **40 điểm**.
-
-**Hệ quả:** chuẩn bị xong hết trước ngày thi không phải lợi thế. Thứ phân định là **tốc độ chạy trọn
-một vòng trên một yêu cầu chưa từng thấy** (`D41`).
+Thể lệ ghi vòng 3 *"có thể công bố kết quả sau"*. Nghĩa là **vòng 2 có thể là phán xét cuối cùng của
+người thật trước lúc trao giải**. Đội quyết định vẫn đầu tư mạnh cho vòng 3 — xem mục 3 — nhưng
+không được để vòng 2 thiếu chuẩn bị vì nó chắc chắn xảy ra.
 
 ---
 
-## 3. Cột barem chạy bằng engine nào
+## 2. Hai giai đoạn
 
-| Cột | Điểm | Engine | Sinh log bằng |
-|---|---|---|---|
-| Requirement Analysis | 20 | BMad `PRD` · `CE` · advanced-elicitation | Phân tích tính năng mới trong ngày |
-| System Design | 20 | BMad `CA` architecture · `CU` ux | Thiết kế tính năng mới trong ngày |
-| Development | 25 | BMad `BD` build · `CR` code-review | Cài đặt tính năng mới |
-| Testing | 20 | BMad **`QA` bmad-qa-generate-e2e-tests** | Sinh e2e test cho tính năng mới |
-| **Deployment** | **15** | **BMad không có** → `hackathon-deploy` + 4 skill mượn | Dựng lại bản production trên dữ liệu thật |
+Đây là quyết định cấu trúc quan trọng nhất, và nó tách hai mục tiêu vốn hay bị trộn.
 
-**Cột Deployment là chỗ duy nhất BMad để trống.** Bảng lệnh `_bmad/bmm/module-help.csv` chỉ có bốn
-phase `plan · 2-planning · ship · anytime`, không phase nào dẫn tới triển khai, không skill nào sinh
-artifact triển khai. Đã bù bằng bốn skill từ `addyosmani/agent-skills` cộng một lớp thuế dự án —
-chi tiết ở [`.claude/skills/hackathon-deploy/SKILL.md`](../.claude/skills/hackathon-deploy/SKILL.md).
+| | **Giai đoạn 1** — từ giờ tới hết 14/8 | **Giai đoạn 2** — ngày 15/8 |
+|---|---|---|
+| Làm gì | **Hoàn thiện sản phẩm** theo `§4` sáu nhóm và `§6` `T-1`…`T-10` | **Chỉ làm tính năng BTC phát thêm** |
+| Phục vụ | **Vòng 2 và vòng 3** — sản phẩm để trình bày và để Sales chấm | **Vòng 1** — chạy lại trọn luồng để sinh log |
+| Được chấm log không | **Không.** Log trước 15/8 không tính | **Có.** Chỉ log trong ngày này được tính |
 
-Lưu ý về `QA`: skill sinh e2e test **đã có sẵn trong bản cài**, tên dài nên dễ bỏ sót. Đừng tự viết
-lại.
+Tách như vậy giải quyết đúng mâu thuẫn ở `F23`: sản phẩm và log là hai đầu ra khác nhau, chấm bởi
+hai thước đo khác nhau, và **cố làm cả hai trong 4,5 tiếng ngày thi là cách chắc chắn hỏng cả hai**.
+
+Đổi lại, giai đoạn 1 chịu toàn bộ áp lực. Đây là lựa chọn có ý thức: nó đưa rủi ro về phía có thể
+kiểm soát được (hôm nay và mai) thay vì phía không kiểm soát được (một tính năng chưa ai biết).
+
+### Rủi ro riêng của cách chia này
+
+Cả năm vệt log vòng 1 giờ đến từ **một** tính năng. Hai chiều hỏng, và cả hai đều xử được nếu nói
+trước:
+
+- **Tính năng quá nhỏ** → vệt log mỏng, chỉ đạt Mức 1–2. Xử: chạy đủ năm bước **bất kể nó nhỏ cỡ
+  nào**, và đào sâu đúng chỗ Mức 4 đòi — phản biện theo persona, liệt kê edge case, ghi lý do loại
+  phương án. Việc này rẻ và không phụ thuộc kích thước tính năng.
+- **Tính năng quá to** → không kịp trọn luồng. Xử: **cắt phạm vi tính năng, không cắt bước**. Làm
+  phần lõi chạy được, ghi rõ phần đã cắt và vì sao — vòng 2 hỏi thì trả lời được.
+
+Đường dự phòng cho hai cột nặng nhất: **Requirement Analysis và System Design không bắt buộc phải
+bám vào tính năng mới.** Dữ liệu thật của BTC cũng phát sáng 15/8, nên phân tích lại phạm vi cũ trên
+lược đồ thật và dẫn xuất lại kiến trúc đều là việc thật, đều sinh log hợp lệ theo `D39`. Đừng treo
+40 điểm vào một thứ chưa ai biết.
 
 ---
 
-## 4. Lịch ngày thi
+## 3. Giai đoạn 1 — làm ngay, ưu tiên theo thứ tự này
 
-Hai dev chạy song song theo cột, Sales dùng thử liên tục. Đây là hình dạng, không phải hợp đồng —
-tính năng BTC phát có thể to hơn dự tính, xem mục 5.
+Đội đã chọn **đầu tư mạnh vào UX và thị trường JP**. Điều đó đổi thứ tự: UX không còn là việc "nếu
+còn thời gian" ở mục 5.6 tài liệu phản biện, nó lên nhóm đầu.
+
+Căn cứ: **5 trên 6 giám khảo vòng 3 thuộc thị trường JP**, và BTC **chủ động mời liên hệ trước** để
+hỏi kỳ vọng và tư vấn UI/UX. Đây là lợi thế không đội nào sao chép kịp, vì đồng đội của đội đang
+**quản lý trực tiếp** sáu người đó.
+
+| # | Việc | Vì sao ở đây |
+|---|---|---|
+| 1 | **Log Claude Code → Grafana chạy thật**, kiểm bằng một lần chạy và nhìn bảng | `D37`. Hỏng cái này là mất cả vòng 1, không cứu được. Làm trước mọi thứ |
+| 2 | **Chốt stack cho `src/`** | Chặn ba cột Dev/Testing/Deployment và bốn dòng lệnh trong `hackathon-deploy` |
+| 3 | **Gửi bộ câu hỏi cho sáu giám khảo vòng 3** | Đã soạn sẵn. Câu `B3` đóng `Q10` bằng số lấy từ chính người chấm. Gửi càng sớm càng có thời gian áp vào sản phẩm |
+| 4 | Sáu nhóm `§4` tới đúng mức `T-1`…`T-10` quan sát được | `T` là cổng nộp bài |
+| 5 | **UX theo phản hồi ở việc 3**, ưu tiên chỗ Sales nói ra | Vòng 3, và là chỗ đội quyết định dồn sức |
+| 6 | Bốn lệnh một-bước: khởi động · nạp dữ liệu · kiểm thử · dừng | `§7.3` và `§7.5` là cổng nộp bài |
+
+Danh sách này từng có việc thứ bảy — tập một vòng đầy đủ để lấy mốc đo. **Đội đã quyết bỏ**; lý do
+và cái giá ghi ở mục 8.
+
+---
+
+## 4. Giai đoạn 2 — lịch ngày thi
+
+Tải ngày thi giờ nhẹ hơn nhiều: **một tính năng, năm bước**. Nhờ vậy lịch có chỗ trống thật, không
+phải trống trên giấy.
 
 | Giờ | Dev A | Dev B | Sales |
 |---|---|---|---|
 | 9:00–9:30 | Khai mạc | | |
-| **9:30–9:45** | **Kiểm log Grafana chảy thật — cả hai, trước mọi việc khác** (`D37`) | | Đọc tính năng mới |
-| 9:45–10:30 | Nạp dữ liệu BTC, sửa lớp ánh xạ (`D32`) | **Phân tích tính năng mới** → cột RA | Dùng thử bản hiện có, ghi chỗ vô lý |
-| 10:30–11:15 | Chạy `T-1`…`T-10` trên dữ liệu thật, sửa cái vỡ | **Thiết kế tính năng mới** → cột SD | tiếp |
-| 11:15–12:00 | **Cài đặt tính năng mới** → cột Dev | Review, ghi lý do quyết định | tiếp |
+| **9:30–9:45** | **Kiểm log Grafana chảy thật — cả hai, trước mọi việc khác** | | |
+| 9:45–10:15 | Nạp dữ liệu thật, sửa lớp ánh xạ (`D32`) | **Phân tích tính năng mới** → cột RA | Đọc tính năng mới, dùng thử sản phẩm |
+| 10:15–11:00 | Chạy `T-1`…`T-10` trên dữ liệu thật | **Thiết kế, ghi phương án bị loại** → cột SD | tiếp |
+| 11:00–12:00 | **Cài đặt tính năng mới** → cột Dev | Review, ghi lý do từng quyết định | |
 | 12:00–13:00 | Nghỉ trưa | | |
-| 13:00–13:45 | **Sinh e2e test** → cột Testing | Sửa nốt tính năng mới | Dùng thử lần hai |
-| 13:45–14:30 | **Dựng lại bản production** → cột Deployment | Đối soát `§7` năm điều kiện | |
-| 14:30–14:50 | **Chạy trọn bộ trên một bản clone sạch** | | |
-| 14:50–15:00 | Nộp | | |
+| 13:00–13:40 | **Sinh e2e test** → cột Testing | Sửa nốt | |
+| 13:40–14:15 | **Dựng lại bản production** → cột Deployment | Đối soát `§7` | |
+| 14:15–14:30 | Chạy trọn bộ trên **bản clone sạch** | Ráp bài trình bày | |
+| **14:30** | **NỘP BẢN AN TOÀN — cả hai hạng mục** | | **Sales gọi vào, nhận bài** |
+| 14:30–14:50 | Đệm: cải thiện được thì làm, **nộp lại** | | |
+| 14:50–15:00 | Chốt bản cuối | | |
+| 15:00–15:30 | Diễn tập vòng 2 trong lúc chờ kết quả | | Tập nói |
 
-Ba điểm dừng bắt buộc:
+Bốn thay đổi so với bản đầu, mỗi cái sửa một lỗi đã tìm ra:
 
-- **9:45** — log chưa lên Grafana thì **dừng mọi việc khác** cho tới khi lên. Đây là điều kiện tiên
-  quyết của vòng 1, không phải hạng mục phụ.
-- **12:00** — chưa có vệt log cho RA và SD thì buổi chiều không đủ chỗ. Cắt phạm vi tính năng mới
-  xuống mức nhỏ nhất còn chạy được, đừng cắt bước.
-- **14:30** — dừng viết mã. Nửa tiếng cuối chỉ để đối soát và nộp.
+- **Nộp lúc 14:30, không phải 14:50.** Đây vừa là mốc nộp vừa là cơ chế cưỡng chế — xem mục 5.
+  Nộp rồi thì 20 phút sau là phần thêm vào cái đã an toàn, và nộp lại được nếu cải thiện kịp.
+- **Có 15 phút đệm được đặt tên** (14:30–14:50). Bản đầu slack đúng bằng **0** ở cả hai buổi —
+  một cú trượt là đổ hết.
+- **Có bài trình bày.** Thể lệ đòi **hai** hạng mục nộp: mã nguồn **và** tài liệu trình bày & demo.
+  Bản đầu quên hẳn hạng mục thứ hai.
+- **Có diễn tập vòng 2** trong 30 phút chờ kết quả vòng 1.
 
----
+### Bài trình bày là sản phẩm phụ, không phải một việc
 
-## 5. Cắt gì khi hết giờ
+Đừng để nó thành task riêng lúc 14:30. Mỗi khối trong lịch kết thúc bằng **một dòng: quyết gì, vì
+sao**. Ba thứ này bổ trợ nhau, viết một lần dùng cả ba:
 
-**Không được cắt theo nhóm tính năng.** Mười điểm nghiệm thu `T-1`…`T-10` phủ kín cả sáu nhóm — bỏ
-nhóm nào cũng rụng một `T`, mà `T` là cổng chứ không phải điểm. Cắt chỉ có thể là **hạ độ sâu trong
-từng nhóm xuống đúng mức `T` quan sát được**.
+- nội dung bài trình bày vòng 2,
+- câu trả lời cho Q&A bốc ngẫu nhiên từ log,
+- quy tắc `D40` — đầu ra AI nào giữ lại cũng phải nói được lý do trong một câu.
 
-Thứ tự bỏ, từ rẻ nhất tới đắt nhất:
+Tách chúng ra làm ba việc là làm ngược: gộp việc bổ trợ, tách việc thay thế.
 
-1. Việc "nếu còn thời gian" ở mục 5.6 tài liệu phản biện — bỏ trước, không tiếc.
-2. Độ hoàn thiện giao diện của tính năng mới — miễn nó chạy và có `T` phủ.
-3. Bậc 4 của cột Deployment (cảnh báo AIOps) — giữ bậc 1–3, vẫn được 75% của 15 điểm.
-4. Phạm vi tính năng mới — làm phần lõi, ghi rõ phần đã cắt và vì sao.
+### Phân vai vòng 2
 
-**Không bao giờ cắt:** năm vệt log, năm điều kiện `§7.3`, và lệnh nạp dữ liệu `§7.5`.
-
-Kiểu cắt tệ nhất, đã cảnh báo ở `CHECKLIST.md`: vẫn nói là "có" nhưng bên trong hỏng. Cắt thì ghi
-vào bảng, và nói ra ở phần trình bày — vòng 2 hỏi được thì trả lời được.
-
----
-
-## 6. Ba cái bẫy
-
-**Bẫy 1 — tối ưu khối lượng log.** Vòng 2 bốc **ngẫu nhiên** 3–5 câu từ log. Không chuẩn bị chọn
-lọc được, và nó chỉ cắn khi đã vào top 5, tức đúng lúc đang thắng. Quy tắc `D40`: **mọi đầu ra AI
-giữ lại phải có một người đọc và nói được lý do trong một câu; nói không được thì bỏ.** Hệ quả về
-phạm vi: bề mặt mã tối đa bằng bề mặt hai người đọc kịp, không bằng bề mặt AI sinh kịp.
-
-**Bẫy 2 — tưởng chuẩn bị nhiều là hơn.** BTC đã phản ứng đúng kiểu: thấy các đội xong sớm thì thêm
-tính năng phát tại chỗ. Thứ dễ bù trừ — khối lượng log — sẽ bị san bằng giữa các đội. Thứ **không**
-bù trừ được là công cụ có thật trong repo với lịch sử commit, và khả năng trả lời vấn đáp. Đầu tư
-vào đó.
-
-**Bẫy 3 — đặt phạm vi theo mong muốn.** Giả định phạm vi bạn định làm là vừa đủ 4,5 tiếng, rồi hỏi
-điều đó hàm ý gì về tốc độ của đội. Đội đặt phạm vi tham vọng nhất chính là đội ước lượng sai nhiều
-nhất.
+Đội chọn **Sales trình bày, dev đỡ phần Q&A**. Thể lệ chỉ nói rõ *"mỗi đội cử 01 thành viên đại diện
+trình bày"* — **chưa nói ai được trả lời Q&A**. Phải hỏi BTC trước, vì nếu không được thì phải đổi
+người nói và tập lại từ đầu. Câu này đã thêm vào
+[Câu hỏi gửi ban tổ chức](Đề%20bài/Câu%20hỏi%20gửi%20ban%20tổ%20chức.md).
 
 ---
 
-## 7. Việc phải xong trước ngày thi
+## 5. Không có ai cưỡng chế điểm dừng — nên dùng cơ chế khác
 
-| # | Việc | Vì sao trước |
-|---|---|---|
-| 1 | **Log Claude Code → Grafana chạy thật, kiểm bằng một lần chạy và nhìn bảng** | Sáng 15/8 mà hỏng thì mất cả vòng 1 |
-| 2 | **Chốt stack cho `src/`** | Ba cột Dev/Testing/Deployment không khởi động được khi chưa có |
-| 3 | Lớp ánh xạ dữ liệu tách mỏng (`D32`) | Sáng 15/8 chỉ phải sửa một lớp |
-| 4 | Bốn lệnh một-bước: khởi động · nạp dữ liệu · kiểm thử · dừng | `§7.3` và `§7.5` là cổng nộp bài |
-| 5 | **Tập một vòng đầy đủ trên một yêu cầu nhỏ tự nghĩ ra** (`D41`) | Đo xem một vòng mất bao lâu, nghẽn ở đâu — thứ thật sự phân định |
-| 6 | Gửi bộ câu hỏi cho [ban giám khảo vòng 3](Đề%20bài/Câu%20hỏi%20cho%20ban%20giám%20khảo%20vòng%203.md) | Câu `B3` đóng `Q10` bằng số lấy từ chính người chấm |
+Đồng đội Sales không ở đó cả ngày, nên không thể giao đồng hồ cho anh. Mà điểm dừng do chính người
+đang muốn code tiếp tự quyết thì **không phải điểm dừng, chỉ là lời khuyên** — người cầm quyền phạt
+phải có lợi ích độc lập trong việc thi hành, và ở đây không ai có.
 
-Việc 5 là việc dễ bỏ qua nhất và đáng giá nhất. Nó không thêm một tính năng nào cho sản phẩm — nên
-cảm giác như lãng phí. Nhưng ngày thi không thưởng sản phẩm đã xong, nó thưởng **một vòng chạy đủ
-năm bước trên thứ chưa ai thấy bao giờ**, và đó là kỹ năng phải tập chứ không phải đọc.
+Ba cơ chế thay thế, không cần người thứ ba:
+
+1. **Nộp sớm, nộp lại sau.** Nộp bản chạy được lúc **14:30** thay vì 15:00. Đã nộp rồi thì nửa
+   tiếng cuối không còn là "code thêm chút nữa", nó là phần thêm vào cái đã an toàn. Đây là cách
+   tự chặt cầu rút lui rẻ nhất.
+2. **Hẹn ngoài với người ngoài.** Hẹn Sales gọi vào lúc **14:30** để nhận bài trình bày và tập nói.
+   Cuộc hẹn với người khác cưỡng chế được, còn báo thức thì tắt là xong.
+3. **Quy tắc hai người.** Ai cũng có quyền hô dừng, và **hô là dừng, không tranh luận**. Yếu hơn
+   hai cái trên vì cả hai đều là người đang muốn code, nhưng vẫn hơn không có gì.
+
+Dùng cả 1 và 2. Chúng bổ trợ nhau và đều không cần ai có mặt cả ngày.
+
+---
+
+## 6. Cắt gì khi hết giờ
+
+**Không cắt theo nhóm tính năng.** `T-1`…`T-10` phủ kín cả sáu nhóm — bỏ nhóm nào cũng rụng một `T`,
+mà `T` là cổng chứ không phải điểm. Chỉ được **hạ độ sâu trong từng nhóm xuống đúng mức `T` quan sát
+được**.
+
+Thứ tự bỏ, rẻ trước:
+
+1. Việc "nếu còn thời gian" ở mục 5.6 tài liệu phản biện.
+2. Bậc 4 cột Deployment (cảnh báo AIOps) — giữ bậc 1–3, vẫn được 75% của 15 điểm.
+3. Độ hoàn thiện giao diện của **tính năng mới** — nhưng **không** cắt UX của sản phẩm chính, đó là
+   chỗ đội đã quyết dồn sức cho vòng 3.
+4. Phạm vi tính năng mới — làm phần lõi, ghi rõ phần đã cắt.
+
+**Không bao giờ cắt:** năm vệt log · năm điều kiện `§7.3` · lệnh nạp dữ liệu `§7.5` · **bài trình
+bày**.
+
+Kiểu cắt tệ nhất, `CHECKLIST.md` đã cảnh báo: vẫn nói là "có" nhưng bên trong hỏng. Cắt thì ghi vào
+bảng và nói ra khi trình bày.
+
+---
+
+## 7. Ba cái bẫy
+
+Mỗi bẫy đã được lập luận ở mục ghi kèm; đây là bản nhắc để đọc nhanh trong ngày thi.
+
+- **Tối ưu khối lượng log** → mục 1 và `D40`. Bề mặt mã tối đa bằng bề mặt hai người đọc kịp.
+- **Tưởng chuẩn bị nhiều là thắng** → mục 2. Thứ dễ sao chép sẽ bị san bằng; ba thứ không sao chép
+  kịp là sổ `D1`–`D41`, `hackathon-deploy` có lịch sử commit, và đồng đội đang quản lý giám khảo
+  vòng 3.
+- **Đặt phạm vi theo mong muốn** → mục 6. Đội đặt phạm vi tham vọng nhất là đội ước lượng sai nhiều
+  nhất.
+
+## 8. Một điều đội đã quyết bỏ
+
+Bản review đề xuất **tập một vòng đầy đủ trước ngày thi** để có mốc đo — biết một vòng RA → thiết kế
+→ mã → kiểm thử → triển khai mất bao lâu. **Đội quyết không làm**, dồn giờ ngày 14/8 cho việc hoàn
+thiện sản phẩm, vì sản phẩm phục vụ vòng 2 và vòng 3.
+
+Ghi lại để không ai đề xuất lại, và để rõ cái giá: **ngày thi sẽ không biết mình đang nhanh hay chậm
+so với chính mình.** Hệ quả thực dụng — bám sát ba điểm dừng ở mục 4 chặt hơn bình thường, vì không
+còn số liệu nào để hiệu chỉnh giữa chừng.

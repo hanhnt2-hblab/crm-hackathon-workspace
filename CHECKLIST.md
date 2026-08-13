@@ -1,65 +1,62 @@
 # Checklist — hackathon CRM
 
-Deadline **2026-08-15**.
+Thi **15/08/2026**, 9:30–15:00. Đội: hai dev + một Sales Manager.
 
-Vai theo BABOK `2.4`: **Sponsor** (quyết phạm vi) · **Domain SME + End User** (biết quy trình
-và thao tác thật) · **Implementation SME + Tester** (thực thi và kiểm).
+Tệp này chỉ chứa **việc phải làm trước và trong ngày thi**. Thứ tự làm và lý do nằm ở
+[`docs/chien-luoc-ngay-thi.md`](docs/chien-luoc-ngay-thi.md); chi tiết kỹ thuật đã chốt nằm ở Mục 0
+của [Phản biện và phân tích yêu cầu](docs/Đề%20bài/Phản%20biện%20và%20phân%20tích%20yêu%20cầu.md)
+dưới dạng `D1`–`D41`.
 
 ---
 
 ## A · Setup — mỗi bản clone làm một lần
 
-- [ ] Cài `uv`: https://docs.astral.sh/uv/ · Node ≥ 20.12 · Python ≥ 3.10
-- [ ] Bật git hook để tự đồng bộ bản vá sau khi pull:
-      ```
-      git config core.hooksPath .githooks
-      ```
-- [ ] Xác minh môi trường:
-      ```
-      python ~/.claude/skills/babok-business-analysis/verify.py --project-root .
-      ```
-      Đạt khi báo `Mọi phép kiểm đạt.` — 5 phép kiểm, không phép nào báo lỗi
-- [ ] Xác minh skill nạp được — gõ `/` xem có `babok-business-analysis` trong danh sách
+- [ ] Cài `uv` · Node ≥ 20.12 · Python ≥ 3.10
+- [ ] Bật git hook: `git config core.hooksPath .githooks`
+- [ ] **Đưa `tabularis` vào `PATH`** (Windows: `%LOCALAPPDATA%\tabularis\`), kiểm bằng
+      `tabularis --mcp`. Không có thì MCP cơ sở dữ liệu không khởi động được, và bộ kiểm thử
+      phải đi đường dự phòng khi khẳng định `T-4`, `T-8`, `T-9`
+- [ ] Xác minh phần nối BABOK: `python ~/.claude/skills/babok-business-analysis/verify.py --project-root .`
+      — đạt khi in `Mọi phép kiểm đạt.`
+- [ ] Xác minh skill nạp được — gõ `/` xem có `babok-business-analysis` và `hackathon-deploy`
 
-BMad và bản vá đã nằm sẵn trong repo, **không cần chạy `npx bmad-method install`**.
+Không chạy `npx bmad-method install` — BMad đã nằm sẵn trong repo.
 
-## B · Trước buổi làm việc với stakeholder
+## B · Giai đoạn 1 — trước ngày thi
 
-Cửa sổ gặp stakeholder không mở lại. Chuẩn bị trước để mỗi phút đổi lấy một quyết định.
+Hoàn thiện sản phẩm. Phần này phục vụ **vòng 2 và vòng 3**; log ở giai đoạn này không được chấm.
 
-- [ ] Đọc `~/.claude/skills/babok-business-analysis/workflow.md` — biết hỏi ai câu gì
-- [ ] Bóc tài liệu sẵn có trước (Document Analysis `10.18`). **Đọc rẻ hơn hỏi.** Bắt đầu từ
-      `docs/Đề bài/` — đề bài, rubric chấm và playbook do BTC phát — rồi mới tới CRM đối thủ,
-      hợp đồng, chính sách, màn hình hệ thống cũ
-- [ ] Chuẩn bị bảng state × transition để hỏi từng ô, thay vì hỏi mở
+- [ ] **Log Claude Code → Grafana chảy thật**, kiểm bằng một lần chạy và nhìn bảng (`D37`).
+      Hỏng cái này là mất cả vòng 1, không cứu được — **làm trước mọi thứ khác**
+- [ ] **Chốt stack cho `src/`** — chặn ba cột Dev/Testing/Deployment, và bốn dòng lệnh trong
+      `hackathon-deploy` đang để trống chờ nó
+- [ ] Gửi [bộ câu hỏi cho sáu giám khảo vòng 3](docs/Đề%20bài/Câu%20hỏi%20cho%20ban%20giám%20khảo%20vòng%203.md)
+      — câu `B3` đóng `Q10` bằng số lấy từ chính người chấm
+- [ ] Sáu nhóm `§4` tới đúng mức `T-1`…`T-10` quan sát được
+- [ ] **UX theo phản hồi của đội Sales** — 5/6 giám khảo vòng 3 thuộc thị trường JP
+- [ ] Bốn lệnh một-bước: khởi động · nạp dữ liệu · kiểm thử · dừng (`§7.3`, `§7.5`)
 
-## C · Trong buổi làm việc — thứ tự do tài liệu quy định
+Đội đã quyết **không** tập một vòng đầy đủ để lấy mốc đo — dồn giờ cho sản phẩm. Cái giá: ngày thi
+không có số liệu nào để biết mình nhanh hay chậm, nên bám ba điểm dừng chặt hơn bình thường.
 
-`10.9.2` đòi từ vựng chuẩn trước → `10.39.3.2` đòi process model trước ma trận quyền.
+## C · Giai đoạn 2 — ngày thi
 
-- [ ] **Từ vựng trước tiên** (`10.11`): `Lead` / `Contact` / `Account` / `Opportunity` / `Deal`
-      khác nhau chỗ nào — chốt trước khi vào schema
-- [ ] **Process model as-is** (`10.35`): *"hiện tại đang bán thế nào"*
-- [ ] **Process model to-be**: *"muốn thành thế nào"* — hỏi **tách** làm hai lần
-- [ ] **State model** (`10.44`): stage nào sang được stage nào, điều kiện canh là gì.
-      **Hỏi cả chiều ngược** — `10.44.3.2` nói vòng đời *"are not always linear"*: deal có tụt
-      ngược stage không, deal đã đóng có mở lại được không
-- [ ] **Business rules** (`10.9`) — **hai bước, đừng gộp**: phân loại *definitional*
-      (`10.9.3.1`, không vi phạm được, chỉ áp dụng sai được) hay *behavioural* (`10.9.3.2`);
-      rồi **chỉ behavioural** mới chọn một trong bốn mức thực thi
-- [ ] **Roles matrix** (`10.39`) — hỏi **hai người, hai câu**: *"ai **được** thấy gì"* → Sponsor ·
-      *"ai **cần** thấy gì"* → Domain SME
-- [ ] **Delegation và Inheritance** (`10.39.3.4`) — yêu cầu **dữ liệu**, không phải UI
-- [ ] **Thứ tự cắt scope** — xin Sponsor duyệt **trước**, không xin giữa lúc code
-- [ ] **Số field và số click** để tạo 1 lead — hỏi trực tiếp người bán hàng
+Chỉ làm **tính năng BTC phát thêm**, để chạy lại trọn luồng và sinh log cho vòng 1. Lịch giờ và
+phân vai ở [chiến lược](docs/chien-luoc-ngay-thi.md) mục 4.
 
-## D · Trong lúc chạy BMad — kiểm mỗi ngày
+- [ ] 9:30–9:45 kiểm log Grafana chảy thật — **trước mọi việc khác**
+- [ ] Mỗi cột barem có một phiên làm việc thật trong ngày: RA · SD · Dev · Testing · Deployment
+- [ ] Mỗi khối kết thúc bằng **một dòng: quyết gì, vì sao** — dùng chung cho bài trình bày, cho
+      vấn đáp vòng 2, và cho `D40`
+- [ ] **14:30 nộp bản an toàn**, sau đó cải thiện được thì nộp lại
+- [ ] Nộp **cả hai hạng mục**: mã nguồn **và** tài liệu trình bày & demo
+
+## D · Kiểm mỗi ngày
 
 - [ ] **Công tắc người-thật**: có người trả lời được thì hỏi họ, **đừng** chạy `party-mode`
-- [ ] **Tách luật khỏi luồng** — `10.35.4.2` và `10.9.2` cùng đòi. Sơ đồ chỉ vẽ *bước*;
-      luật nằm ở bảng riêng
-- [ ] Mỗi story có **acceptance criterion quan sát được**, viết **trước** khi code
+- [ ] Mỗi story có **tiêu chí nghiệm thu quan sát được**, viết **trước** khi code
 - [ ] Mỗi NFR có **ngưỡng số**, không phải tính từ
+- [ ] Mọi đầu ra AI giữ lại phải có người **đọc và nói được lý do trong một câu** (`D40`)
 - [ ] Cắt scope thì ghi vào bảng dưới, và kiểm cột cuối
 
 ```
@@ -70,50 +67,12 @@ NGÀY | CẮT GÌ | VÌ SAO | THAY BẰNG GÌ | ĐÃ DUYỆT TRƯỚC?
 - [ ] Không để xảy ra kiểu cắt scope tệ nhất: *vẫn nói là "có" nhưng bên trong hỏng*.
       Ví dụ kinh điển của CRM: hứa rep chỉ thấy deal của mình, để tạm ai cũng thấy hết, rồi quên
 
-## E · Bảo trì — sau mỗi lần update BMad
-
-Bật hook ở mục A thì hai lệnh này tự chạy. Không bật thì phải tự nhớ:
-
-```bash
-python ~/.claude/skills/babok-business-analysis/install.py --project-root .
-python ~/.claude/skills/babok-business-analysis/verify.py --project-root .
-```
-
-Kiểm 5 phép. Ba phép đáng chú ý:
-
-- [ ] **Phép 3 — gap profile** phải khớp baseline của đúng bản BMad đang cài. Lệch nghĩa là bản
-      cài đã đổi mà phần nối chưa đo lại
-- [ ] **Phép 4 — hai trục**: kỹ thuật được nối phải rơi đúng chỗ BMad mỏng. Đây là phép quan
-      trọng nhất và dễ sai nhất khi làm tay — bù thêm vào chỗ BMad vốn đã phủ dày chỉ tạo nhiễu,
-      mà không có gì báo
-- [ ] **Phép 5 — trích dẫn có thật trong sách.** Chỉ chạy khi trỏ vào bản BABOK của riêng mình:
-      `--source <đường-dẫn>`. Không có thì phép này báo `[BỎ QUA]`, bốn phép kia vẫn chạy
-
-Phân biệt phép 2 với phép 5: phép 2 chỉ kiểm **định dạng và phạm vi** số hiệu, phép 5 mới kiểm
-số hiệu đó **có thật** trong sách.
-
-⚠ Không phép nào bắt được **diễn giải sai ngữ nghĩa** — section có thật, dấu có đủ, nhưng
-nội dung dẫn không đúng ý mục đó. Loại này phải đối chiếu bằng mắt với nguyên văn.
-
-Muốn xem install sẽ chèn gì mà chưa ghi: `python ~/.claude/skills/babok-business-analysis/install.py --project-root . --check`
-
-## F · Việc còn treo
-
-- [ ] **Chốt stack cho `src/`** — chưa quyết. Quyết xong thì ghi lệnh build/test/run vào
-      `AGENTS.md` mục *Running and verifying* và vào `README.md`
-- [ ] Chạy `bmad-product-brief` → `bmad-prd` trên đề bài, nạp sẵn Mục 0 của `Phản biện và phân
-      tích yêu cầu.md` làm tầng chuẩn — đừng chốt lại những gì `D1`–`D39` đã chốt
-- [ ] Cân nhắc override cho `bmad-check-implementation-readiness` (`IR`) — ghép được với
-      cửa kiểm 8 ô ở bước `CA`
-- [ ] Nhóm `4-implementation` của BMad (`CS` `DS` `CR` `QA` `ER`) **chưa đo gap** — đừng kết
-      luận sớm là đủ hay thiếu
-
 ---
 
-## Ghi chú về nguồn tri thức
+## Đã chuyển đi đâu
 
-Bản ghi nguyên văn BABOK **không nằm trong repo** do ràng buộc *"Not for Distribution or
-Resale"* — xem [README](README.md) mục *Nguồn tri thức*.
-
-Ai cần chiều sâu một kỹ thuật thì tra trong **bản BABOK của chính mình**, theo số section trong
-`data/techniques.csv` của hub. Cột `tier` ở đó cho biết BMad khuyết kỹ thuật đó đến mức nào.
+| Nội dung cũ | Giờ ở đâu |
+|---|---|
+| Kịch bản workshop stakeholder (mục B, C, D cũ) | [`docs/luu-tru/checklist-workshop-stakeholder.md`](docs/luu-tru/checklist-workshop-stakeholder.md) |
+| Bảo trì hub BABOK, năm phép kiểm của `verify.py` | [`README.md`](README.md) mục *Bảo trì* |
+| Danh sách việc còn treo | [`docs/chien-luoc-ngay-thi.md`](docs/chien-luoc-ngay-thi.md) mục 3 |
