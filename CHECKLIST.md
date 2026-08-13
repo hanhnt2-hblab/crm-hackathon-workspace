@@ -18,7 +18,7 @@ và thao tác thật) · **Implementation SME + Tester** (thực thi và kiểm)
       ```
       python ~/.claude/skills/babok-business-analysis/verify.py --project-root .
       ```
-      Đạt khi báo `Moi thu khop voi ban cai` — 7 mục kiểm, không mục nào báo lỗi
+      Đạt khi báo `Mọi phép kiểm đạt.` — 5 phép kiểm, không phép nào báo lỗi
 - [ ] Xác minh skill nạp được — gõ `/` xem có `babok-business-analysis` trong danh sách
 
 BMad và bản vá đã nằm sẵn trong repo, **không cần chạy `npx bmad-method install`**.
@@ -27,10 +27,10 @@ BMad và bản vá đã nằm sẵn trong repo, **không cần chạy `npx bmad-
 
 Cửa sổ gặp stakeholder không mở lại. Chuẩn bị trước để mỗi phút đổi lấy một quyết định.
 
-- [ ] Đọc [`workflow.md`](~/.claude/skills/babok-business-analysis/workflow.md)
-      — biết hỏi ai câu gì
-- [ ] Bóc tài liệu sẵn có trước (Document Analysis `10.18`): CRM đối thủ, hợp đồng, chính sách,
-      màn hình hệ thống cũ. **Đọc rẻ hơn hỏi**
+- [ ] Đọc `~/.claude/skills/babok-business-analysis/workflow.md` — biết hỏi ai câu gì
+- [ ] Bóc tài liệu sẵn có trước (Document Analysis `10.18`). **Đọc rẻ hơn hỏi.** Bắt đầu từ
+      `docs/Đề bài/` — đề bài, rubric chấm và playbook do BTC phát — rồi mới tới CRM đối thủ,
+      hợp đồng, chính sách, màn hình hệ thống cũ
 - [ ] Chuẩn bị bảng state × transition để hỏi từng ô, thay vì hỏi mở
 
 ## C · Trong buổi làm việc — thứ tự do tài liệu quy định
@@ -79,26 +79,30 @@ python ~/.claude/skills/babok-business-analysis/install.py --project-root .
 python ~/.claude/skills/babok-business-analysis/verify.py --project-root .
 ```
 
-Kiểm 7 mục. Ba mục đáng chú ý:
+Kiểm 5 phép. Ba phép đáng chú ý:
 
-- [ ] **Mục 3** — nguồn và bản cài phải khớp từng byte. Đếm số fact không đủ: hai phiên bản
-      khác nội dung mà cùng số dòng vẫn qua được
-- [ ] **Mục 5** — mọi số hiệu section phải tồn tại thật. Cần bản `BABOK_Guide_v3_Member.txt`
-      của riêng mình: `--babok-txt <đường-dẫn>`
-- [ ] **Mục 6** — mỗi fact trích BABOK phải ghi rõ phần nào là tài liệu, phần nào là kinh
-      nghiệm. Quy ước: `[BABOK: …]` hoặc `[BABOK: …; thực hành: …]`
+- [ ] **Phép 3 — gap profile** phải khớp baseline của đúng bản BMad đang cài. Lệch nghĩa là bản
+      cài đã đổi mà phần nối chưa đo lại
+- [ ] **Phép 4 — hai trục**: kỹ thuật được nối phải rơi đúng chỗ BMad mỏng. Đây là phép quan
+      trọng nhất và dễ sai nhất khi làm tay — bù thêm vào chỗ BMad vốn đã phủ dày chỉ tạo nhiễu,
+      mà không có gì báo
+- [ ] **Phép 5 — trích dẫn có thật trong sách.** Chỉ chạy khi trỏ vào bản BABOK của riêng mình:
+      `--source <đường-dẫn>`. Không có thì phép này báo `[BỎ QUA]`, bốn phép kia vẫn chạy
 
-⚠ Không check nào bắt được **diễn giải sai ngữ nghĩa** — section có thật, dấu có đủ, nhưng
+Phân biệt phép 2 với phép 5: phép 2 chỉ kiểm **định dạng và phạm vi** số hiệu, phép 5 mới kiểm
+số hiệu đó **có thật** trong sách.
+
+⚠ Không phép nào bắt được **diễn giải sai ngữ nghĩa** — section có thật, dấu có đủ, nhưng
 nội dung dẫn không đúng ý mục đó. Loại này phải đối chiếu bằng mắt với nguyên văn.
 
-Hỏng thì hoàn nguyên: `python ~/.claude/skills/babok-business-analysis/install.py --project-root . --check`
+Muốn xem install sẽ chèn gì mà chưa ghi: `python ~/.claude/skills/babok-business-analysis/install.py --project-root . --check`
 
 ## F · Việc còn treo
 
-- [ ] Điền `docs/strategy/` — chiến lược và plan triển khai
-- [ ] Điền `docs/tooling/` — so sánh AI workflow framework, chọn stack
-- [ ] Điền `docs/roles/` — phân công cụ thể, dựa trên bảng vai trong `SKILL.md`
-- [ ] Điền `docs/architecture/` — nghiên cứu kiến trúc
+- [ ] **Chốt stack cho `src/`** — chưa quyết. Quyết xong thì ghi lệnh build/test/run vào
+      `AGENTS.md` mục *Running and verifying* và vào `README.md`
+- [ ] Chạy `bmad-product-brief` → `bmad-prd` trên đề bài, nạp sẵn Mục 0 của `Phản biện và phân
+      tích yêu cầu.md` làm tầng chuẩn — đừng chốt lại những gì `D1`–`D39` đã chốt
 - [ ] Cân nhắc override cho `bmad-check-implementation-readiness` (`IR`) — ghép được với
       cửa kiểm 8 ô ở bước `CA`
 - [ ] Nhóm `4-implementation` của BMad (`CS` `DS` `CR` `QA` `ER`) **chưa đo gap** — đừng kết
@@ -109,8 +113,7 @@ Hỏng thì hoàn nguyên: `python ~/.claude/skills/babok-business-analysis/inst
 ## Ghi chú về nguồn tri thức
 
 Bản ghi nguyên văn BABOK **không nằm trong repo** do ràng buộc *"Not for Distribution or
-Resale"*. Cột `cached` trong `assets/techniques.csv` chỉ có ý nghĩa với người có kho riêng —
-xem [README](README.md) mục *Nguồn tri thức*.
+Resale"* — xem [README](README.md) mục *Nguồn tri thức*.
 
-Ai cần chiều sâu một kỹ thuật thì tra trong **bản BABOK của chính mình**, theo số section và
-số trang có sẵn trong `techniques.csv`.
+Ai cần chiều sâu một kỹ thuật thì tra trong **bản BABOK của chính mình**, theo số section trong
+`data/techniques.csv` của hub. Cột `tier` ở đó cho biết BMad khuyết kỹ thuật đó đến mức nào.

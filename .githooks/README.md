@@ -10,6 +10,6 @@ Không bật thì phải tự nhớ chạy hai script sau mỗi lần update BMa
 
 | Hook | Khi nào chạy | Làm gì |
 |---|---|---|
-| `post-merge` | sau `git pull` / `git merge` | Nếu `.claude/skills/bmad-*` đổi thì chạy `apply-methods.py` rồi `check-install.py` |
+| `post-merge` | sau `git pull` / `git merge` | Nếu `.claude/skills/bmad-*` đổi thì chạy `install.py` rồi `verify.py` của hub |
 
 Hook cố ý **không** chặn (`exit 0` khi lỗi) — nó cảnh báo chứ không làm hỏng merge.

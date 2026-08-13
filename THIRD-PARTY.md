@@ -34,8 +34,10 @@ tức BMad tự gộp lúc resolve — file gốc giữ nguyên 71 method, khôn
 - `_bmad/custom/bmad-review.toml`
 - `_bmad/custom/bmad-project-context.toml`
 - `_bmad/custom/bmad-deep-recon.toml`
+- `_bmad/custom/bmad-ux.toml`
+- `_bmad/custom/bmad-create-epics-and-stories.toml`
 
-Bảy file này dùng đúng cơ chế `_bmad/custom/<skill>.toml` mà BMad thiết kế cho việc
+Chín file này dùng đúng cơ chế `_bmad/custom/<skill>.toml` mà BMad thiết kế cho việc
 tuỳ biến, không ghi đè file nào của BMad.
 
 ---
@@ -44,7 +46,7 @@ tuỳ biến, không ghi đè file nào của BMad.
 
 Nguồn: https://github.com/hanhnt2-hblab/babok-bmad-skill
 
-Bảy file override liệt kê ở trên **sinh ra từ repo đó**, không phải do repo này viết.
+Chín file override liệt kê ở trên **sinh ra từ repo đó**, không phải do repo này viết.
 Chúng thuộc MIT của repo nguồn, bản quyền tác giả repo nguồn — không thuộc bản quyền
 HBLAB nêu trong LICENSE.
 
