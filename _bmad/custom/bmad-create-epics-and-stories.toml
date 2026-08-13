@@ -1,0 +1,40 @@
+# Override team cho bmad-create-epics-and-stories — bù đúng MỘT thứ:
+# khung để hình thành thứ tự ưu tiên.
+#
+# Sparse: chỉ field thay đổi.
+#
+# Vì sao chỉ một thứ. Bốn kỹ thuật ứng viên của bước này đã được điều tra:
+#   `10.48` User Stories  — ĐỦ. epics-template.md dùng đúng khuôn
+#     "As a {{user_type}} … So that {{value_benefit}}", tức có stakeholder cụ
+#     thể và có giá trị. Áp thêm khuôn của BABOK là chống lại thiết kế sẵn có.
+#   `10.19` Estimation    — ĐỦ (13/247 file).
+#   `10.22` Functional Decomposition — đã nối ở bmad-prd, không lặp.
+#   `10.33` Prioritization — VẮNG. Ba chỗ nhắc "prioriti" trong skill này đều
+#     là cùng một câu mẫu "User brings their … priorities": BMad GIAO việc ưu
+#     tiên cho người dùng và không cung cấp khung nào. Đó là uỷ thác, không
+#     phải phủ sóng. Đây là chỗ duy nhất đáng bù.
+#
+# Bề mặt chỉ có bốn key phổ quát, không có external_sources, nên directive dưới
+# đây nạp háo mọi lần chạy. Giữ đúng MỘT mục vì lý do đó.
+#
+# PHÂN ĐỊNH NGUỒN trong comment, không trong directive.
+
+[workflow]
+
+persistent_facts = [
+  "skill:babok-business-analysis",
+
+  # BABOK `10.33`: Prioritization là khung giúp stakeholder ra quyết định và
+  #   hiểu tầm quan trọng tương đối.  `5.3`: Prioritize Requirements nêu các
+  #   căn cứ — benefit, penalty, cost, risk, dependencies, time sensitivity,
+  #   stability, regulatory compliance.
+  # thực hành: BMad không có khung nào, nó bảo người dùng tự mang thứ tự ưu
+  #   tiên tới. Việc bắt nêu TÊN căn cứ trước khi xếp, và coi "vì khách hàng
+  #   muốn" là chưa phải căn cứ, là chính sách của repo này.
+  "Khi xếp thứ tự epic hoặc story, đừng nhận thứ tự ưu tiên như một dữ kiện có sẵn — hỏi nó hình thành từ căn cứ nào. Nêu tên căn cứ TRƯỚC khi xếp, chọn trong: lợi ích mang lại, thiệt hại nếu không làm, chi phí, rủi ro, phụ thuộc kỹ thuật, tính cấp thời, độ ổn định của yêu cầu, và ràng buộc pháp lý hay chính sách. Một hạng mục xếp cao mà không gắn được vào căn cứ nào là hạng mục chưa được ưu tiên, chỉ là được nhắc tới nhiều. Phụ thuộc kỹ thuật là căn cứ ép buộc chứ không phải lựa chọn — tách riêng nó khỏi các căn cứ về giá trị, nếu không thứ tự sẽ bị kỹ thuật quyết định thay vì bị giá trị quyết định.",
+]
+
+doc_standards = [
+  "Rà lại danh sách epic và story: thứ tự ưu tiên có gắn được vào căn cứ nào không, hay chỉ là thứ tự xuất hiện? Nêu rõ những mục không gắn được.",
+  "Rà lại: phụ thuộc kỹ thuật đã được tách khỏi căn cứ giá trị chưa? Trộn hai loại làm thứ tự trông như quyết định về giá trị trong khi thực ra là ràng buộc kỹ thuật.",
+]
