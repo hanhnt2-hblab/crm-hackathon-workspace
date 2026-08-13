@@ -1,0 +1,31 @@
+# Đầu dòng: kho luôn lưu LF, và mọi máy checkout ra LF.
+#
+# Chốt ở đây thay vì phụ thuộc core.autocrlf của từng máy, vì hai lý do:
+#   - .githooks/post-merge là script sh. CRLF làm hỏng dòng shebang trên nhiều shell,
+#     và hook đang được bật qua core.hooksPath nên hỏng thì im lặng, không báo.
+#   - Đội thi offline ở ba đầu cầu (Việt Nam, Đà Nẵng, Nhật) trên nhiều hệ điều hành.
+#     Đầu dòng lệch nhau làm diff nhiễu toàn tệp, che mất thay đổi thật.
+* text=auto eol=lf
+
+# Bản cài BMad và bốn skill mượn từ addyosmani/agent-skills đều là bản sinh ra,
+# không phải mã của đội — xem THIRD-PARTY.md. Gấp lại trong diff trên GitHub và
+# bỏ khỏi thống kê ngôn ngữ, để phần đội thật sự viết nhìn ra được.
+# 291 trên 298 tệp đang track thuộc nhóm này.
+.claude/skills/bmad-*/**                        linguist-vendored
+.claude/skills/ci-cd-and-automation/**          linguist-vendored
+.claude/skills/security-and-hardening/**        linguist-vendored
+.claude/skills/shipping-and-launch/**           linguist-vendored
+.claude/skills/observability-and-instrumentation/** linguist-vendored
+_bmad/**                                        linguist-vendored
+
+# Nhị phân: không chuyển đầu dòng, không diff theo dòng.
+# Repo hiện chưa track tệp nhị phân nào; đây là lưới an toàn cho ảnh chụp màn hình
+# và tài liệu mà phần demo có thể thêm vào.
+*.png  binary
+*.jpg  binary
+*.jpeg binary
+*.gif  binary
+*.pdf  binary
+*.xlsx binary
+*.docx binary
+*.pptx binary
