@@ -22,6 +22,7 @@ import { entries as scanEntries } from "./scan";
 import { entries as suggestionEntries } from "./suggestion";
 import { entries as uiEntries } from "./ui";
 import { entries as readSharedEntries } from "./read-shared";
+import { entries as writeSharedEntries } from "./write-shared";
 
 const GOP: readonly RegistryEntry[] = [
   ...accountEntries,
@@ -29,6 +30,7 @@ const GOP: readonly RegistryEntry[] = [
   ...suggestionEntries,
   ...uiEntries,
   ...readSharedEntries,
+  ...writeSharedEntries,
 ];
 
 /// Chống trùng tên, kiểm LÚC NẠP MODULE.

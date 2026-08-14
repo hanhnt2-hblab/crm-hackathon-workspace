@@ -16,7 +16,12 @@
 
 import { z } from "zod";
 import { defineCap, type RegistryEntry } from "../types";
-import { readArticle, readAccountType, listEnums } from "@/core/article";
+import {
+  readArticleLatest,
+  listArticleFingerprints,
+  readAccountType,
+  listEnums,
+} from "@/core/article";
 
 /// `AD-2` hạng đọc-chung: `zone: 'tu_do'`, `risk: 'low'`,
 /// `allowedActors: ['human','system']`. Ba trường này giống nhau ở cả ba mục,
@@ -41,11 +46,31 @@ const DOC_CHUNG = {
   snapshot: null,
 } as const;
 
+/// ⚠ THAM SỐ LÀ `{accountId, scope}`, KHÔNG phải `{id}`.
+///
+/// Bản đầu khai `z.object({ id: z.uuid() })` — một Bản lưu theo khoá chính. Đo
+/// được: không tầng ① nào gọi như thế. `src/scan/loop.ts` gọi
+/// `{accountId, scope:"latest"}`, `src/ingest` gọi `{accountId, scope:"all"}`.
+/// Zod bác cả hai, mỗi Công ty ăn một `FT10`, ba lần liên tiếp chạm
+/// `max_consecutive_denials`, và vòng quét chết TRƯỚC khi tới mô hình.
+///
+/// Triệu chứng không giống lỗi hợp đồng chút nào: nhật ký `FR-39` in *"quét 0/0
+/// Công ty"*, đọc như thể không có Công ty nào để quét. Đây là lý do lược đồ
+/// Zod ở tầng ④ phải được viết TỪ lời gọi thật, không từ hình dung về lõi.
 export const readArticleCap = defineCap({
   ...DOC_CHUNG,
   name: "readArticle",
-  params: z.object({ id: z.uuid() }),
-  fn: async (_actor, p) => readArticle(p.id),
+  params: z.object({
+    accountId: z.uuid(),
+    /// `.default("latest")` chứ không bắt buộc: `mcp-server.ts` phơi lược đồ
+    /// này cho mô hình, và một trường enum bắt buộc mà mô hình không đoán được
+    /// ý nghĩa là một lượt gọi hỏng không cần thiết.
+    scope: z.enum(["latest", "all"]).default("latest"),
+  }),
+  fn: async (_actor, p) =>
+    p.scope === "all"
+      ? listArticleFingerprints(p.accountId)
+      : readArticleLatest(p.accountId),
 });
 
 export const readAccountTypeCap = defineCap({
