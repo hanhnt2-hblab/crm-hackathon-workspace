@@ -1,0 +1,564 @@
+// Lược đồ vật lý — `AD-CR-11` của spine tầng ⑤.
+//
+// Luật hình dạng chung, áp cho MỌI bảng:
+//   · `deleted_at` timestamptz NULL — `AD-14`, và extension của `AD-CR-6` lọc nó
+//   · mốc thời gian là timestamptz UTC, tên cột kết thúc `_at`
+//   · tiền là Decimal(14,2) cộng `currency` char(3)
+//   · tên bảng/cột snake_case, ánh xạ camelCase phía TS bằng @map
+//   · GIÁ TRỊ enum giữ tiếng Việt không dấu theo Mục 0; chỉ TÊN là tiếng Anh
+//
+// Bốn CHECK và chỉ mục unique MỘT PHẦN không diễn đạt được ở đây —
+// chúng nằm trong migration viết tay. Xem cuối tệp.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  // Prisma 7 KHÔNG cho khai `url` ở đây — nó ở `prisma.config.ts`. Khai sẽ ném P1012.
+}
+
+// ─────────────────────────── Enum (ontology §8) ───────────────────────────
+// Bảy giá trị Stage KHÔNG cấu hình được, kể cả từ màn hình Quản trị.
+
+enum Stage {
+  tiep_can
+  du_dieu_kien
+  soan_de_xuat
+  thuong_luong
+  thang
+  thua
+  tam_dung
+}
+
+enum AccountType {
+  traditional
+  it_solution
+  it_product
+  tech_startup
+  ito
+}
+
+enum SignalType {
+  funding
+  leadership
+  expansion
+  hiring
+  new_business
+  other
+}
+
+enum Confidence {
+  chac
+  co_the
+  doan
+}
+
+enum Relevance {
+  high
+  medium
+  low
+}
+
+enum DropReason {
+  thong_tin_sai
+  khong_lien_quan
+  da_cu
+  hieu_sai_ngu_canh
+  khac
+}
+
+/// Lý do hệ thống đóng Gợi ý — TÁCH HẲN khỏi `DropReason` (`FR-51`, `D26`).
+/// Gợi ý đóng theo đường này KHÔNG vào mẫu số của hai chỉ số: không ai quyết gì cả.
+enum SystemCloseReason {
+  co_goi_y_moi_hon
+  cong_ty_da_xoa
+}
+
+enum SuggestionStatus {
+  cho
+  duyet
+  sua_roi_duyet
+  bo
+  dong_he_thong
+}
+
+/// Tám ô đích, bằng ĐÚNG tên cột trên `account` (`AD-CR-11`, bảng `0.2.3`).
+/// `market` KHÔNG nằm trong đây — nó là đầu vào lịch ngày làm việc của `BR-D7`.
+enum TargetField {
+  website
+  country
+  specialty_area
+  revenue_range
+  industry
+  deal_value_tier
+  founded_year
+  account_type
+}
+
+enum Market {
+  JP
+  Global
+  KR
+}
+
+/// `AD-5` — ba nhánh actor. `seed` không phải vai người.
+enum Role {
+  sales
+  admin
+}
+
+enum SetBy {
+  nguoi
+  he_thong
+}
+
+enum ActivityType {
+  gap
+  goi
+  gui_thu
+  khac
+}
+
+// ─────────────────────── Hồ sơ chính thức (ontology §2) ───────────────────────
+
+model User {
+  id          String    @id @default(uuid()) @db.Uuid
+  email       String
+  displayName String    @map("display_name")
+  role        Role
+  /// `AD-UI-17`: gieo là upsert theo khoá tự nhiên, không xoá-rồi-chèn
+  sourceRef   String?   @unique @map("source_ref")
+  createdAt   DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt   DateTime  @updatedAt @map("updated_at") @db.Timestamptz(6)
+  deletedAt   DateTime? @map("deleted_at") @db.Timestamptz(6)
+
+  ownedAccounts Account[]      @relation("AccountOwner")
+  auditRecords  AuditRecord[]
+
+  @@map("user")
+}
+
+model Account {
+  id             String       @id @default(uuid()) @db.Uuid
+  name           String
+  industry       String?
+  accountType    AccountType? @map("account_type")
+  /// `market` ≠ `country`. Đây quyết định lịch ngày làm việc của `BR-D7`.
+  market         Market
+  country        String?
+  website        String?
+  specialtyArea  String?      @map("specialty_area")
+  revenueRange   String?      @map("revenue_range")
+  dealValueTier  String?      @map("deal_value_tier")
+  foundedYear    Int?         @map("founded_year")
+  /// Nhãn Đang theo dõi — điều kiện của chạm ghi ① (`AD-3`)
+  watching       Boolean      @default(false)
+  watchReason    String?      @map("watch_reason")
+  /// Định tuyến việc, KHÔNG phải phân quyền — ai cũng thấy mọi Công ty
+  ownerId        String?      @map("owner_id") @db.Uuid
+  sourceRef      String?      @unique @map("source_ref")
+  createdAt      DateTime     @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt      DateTime     @updatedAt @map("updated_at") @db.Timestamptz(6)
+  deletedAt      DateTime?    @map("deleted_at") @db.Timestamptz(6)
+
+  owner         User?          @relation("AccountOwner", fields: [ownerId], references: [id])
+  contacts      Contact[]
+  opportunities Opportunity[]
+  snapshots     Snapshot[]
+  articles      Article[]
+  signals       Signal[]
+  suggestions   Suggestion[]
+  activities    Activity[]
+  timeline      Timeline?
+  notifications Notification[]
+  auditRecords  AuditRecord[]
+  scanEntries   ScanLogEntry[]
+  lock          AccountLock?
+
+  @@index([watching])
+  @@map("account")
+}
+
+model Contact {
+  id        String    @id @default(uuid()) @db.Uuid
+  accountId String    @map("account_id") @db.Uuid
+  name      String
+  title     String?
+  email     String?
+  sourceRef String?   @unique @map("source_ref")
+  createdAt DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt DateTime  @updatedAt @map("updated_at") @db.Timestamptz(6)
+  deletedAt DateTime? @map("deleted_at") @db.Timestamptz(6)
+
+  account Account @relation(fields: [accountId], references: [id])
+
+  @@index([accountId])
+  @@map("contact")
+}
+
+model Opportunity {
+  id              String    @id @default(uuid()) @db.Uuid
+  accountId       String    @map("account_id") @db.Uuid
+  name            String
+  amount          Decimal?  @db.Decimal(14, 2)
+  currency        String?   @db.Char(3)
+  expectedCloseMonth String? @map("expected_close_month")
+  stage           Stage
+  /// Chỉ có nghĩa khi `stage` ∈ {tam_dung, thang, thua} — CHECK ① và ② canh hai chiều
+  latestOpenStage Stage?    @map("latest_open_stage")
+  /// `D27`: enum dạng MẢNG cộng một ô ghi chú tự do, không phải câu tự do
+  lossReasons     String[]  @map("loss_reasons")
+  lossNote        String?   @map("loss_note")
+  /// Hai ô dấu hiệu — bỏ trống vẫn kéo được, chỉ mang cờ cảnh báo (`T-1`)
+  needSignal      Boolean?  @map("need_signal")
+  budgetSignal    Boolean?  @map("budget_signal")
+  sourceRef       String?   @unique @map("source_ref")
+  createdAt       DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt       DateTime  @updatedAt @map("updated_at") @db.Timestamptz(6)
+  deletedAt       DateTime? @map("deleted_at") @db.Timestamptz(6)
+
+  account       Account        @relation(fields: [accountId], references: [id])
+  nextAction    NextAction?
+  activities    Activity[]
+  notifications Notification[]
+
+  @@index([accountId])
+  @@index([stage])
+  @@map("opportunity")
+}
+
+model NextAction {
+  id              String    @id @default(uuid()) @db.Uuid
+  /// TỐI ĐA MỘT trên mỗi Cơ hội — có hai là chưa ai quyết
+  opportunityId   String    @unique @map("opportunity_id") @db.Uuid
+  content         String
+  dueDate         DateTime  @map("due_date") @db.Date
+  /// Thuộc tính NGUỒN GỐC, không phải siêu dữ liệu: nó quyết định máy có được ghi đè không
+  setBy           SetBy     @map("next_action_set_by")
+  /// `D17`: máy đặt thì áp trước, hoàn tác sau — một cú bấm trong 7 ngày
+  undoDeadlineAt  DateTime? @map("undo_deadline_at") @db.Timestamptz(6)
+  sourceSignalId  String?   @map("source_signal_id") @db.Uuid
+  createdAt       DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt       DateTime  @updatedAt @map("updated_at") @db.Timestamptz(6)
+  deletedAt       DateTime? @map("deleted_at") @db.Timestamptz(6)
+
+  opportunity  Opportunity @relation(fields: [opportunityId], references: [id])
+  sourceSignal Signal?     @relation(fields: [sourceSignalId], references: [id])
+
+  @@map("next_action")
+}
+
+model Activity {
+  id            String       @id @default(uuid()) @db.Uuid
+  accountId     String       @map("account_id") @db.Uuid
+  opportunityId String?      @map("opportunity_id") @db.Uuid
+  occurredAt    DateTime     @map("occurred_at") @db.Timestamptz(6)
+  type          ActivityType
+  description   String?
+  sourceRef     String?      @unique @map("source_ref")
+  createdAt     DateTime     @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt     DateTime     @updatedAt @map("updated_at") @db.Timestamptz(6)
+  deletedAt     DateTime?    @map("deleted_at") @db.Timestamptz(6)
+
+  account     Account      @relation(fields: [accountId], references: [id])
+  opportunity Opportunity? @relation(fields: [opportunityId], references: [id])
+
+  @@index([accountId])
+  @@map("activity")
+}
+
+model Timeline {
+  id        String    @id @default(uuid()) @db.Uuid
+  /// ĐÚNG MỘT trên mỗi Công ty
+  accountId String    @unique @map("account_id") @db.Uuid
+  createdAt DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  deletedAt DateTime? @map("deleted_at") @db.Timestamptz(6)
+
+  account Account         @relation(fields: [accountId], references: [id])
+  entries TimelineEntry[]
+
+  @@map("timeline")
+}
+
+model TimelineEntry {
+  id         String    @id @default(uuid()) @db.Uuid
+  timelineId String    @map("timeline_id") @db.Uuid
+  content    String
+  occurredAt DateTime  @map("occurred_at") @db.Timestamptz(6)
+  /// Quyết định máy có được SỬA không — không được (`NFR-19`, `D46`)
+  addedBy    SetBy     @map("added_by")
+  sourceSignalId String? @map("source_signal_id") @db.Uuid
+  createdAt  DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  deletedAt  DateTime? @map("deleted_at") @db.Timestamptz(6)
+
+  timeline     Timeline @relation(fields: [timelineId], references: [id])
+  sourceSignal Signal?  @relation(fields: [sourceSignalId], references: [id])
+
+  @@index([timelineId])
+  @@map("timeline_entry")
+}
+
+// ──────────────────────── Tầng AI-native (ontology §2) ────────────────────────
+
+model Snapshot {
+  id          String    @id @default(uuid()) @db.Uuid
+  accountId   String    @map("account_id") @db.Uuid
+  /// `§3`: bản chụp có phiên bản trước/sau — đổi phiên bản là thao tác của NGƯỜI
+  version     String
+  capturedAt  DateTime  @map("captured_at") @db.Timestamptz(6)
+  createdAt   DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  deletedAt   DateTime? @map("deleted_at") @db.Timestamptz(6)
+
+  account  Account   @relation(fields: [accountId], references: [id])
+  articles Article[]
+
+  @@index([accountId])
+  @@map("snapshot")
+}
+
+model Article {
+  id           String    @id @default(uuid()) @db.Uuid
+  accountId    String    @map("account_id") @db.Uuid
+  snapshotId   String    @map("snapshot_id") @db.Uuid
+  /// HAI DẠNG: thô để đối chiếu, chuẩn hoá để neo câu trích (`AD-18`)
+  rawText      String    @map("raw_text")
+  normalizedText String  @map("normalized_text")
+  /// `AD-18`: đổi hàm chuẩn hoá là tăng phiên bản, tính lại offset của Phát hiện cũ
+  normalizerVersion Int  @default(1) @map("normalizer_version")
+  publishedUrl String?   @map("published_url")
+  readAt       DateTime  @map("read_at") @db.Timestamptz(6)
+  /// `readable = false` là trạng thái HỢP LỆ — hệ thống KHÔNG đoán
+  readable     Boolean   @default(true)
+  unreadableReason String? @map("unreadable_reason")
+  contentHash  String    @map("content_hash")
+  createdAt    DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  deletedAt    DateTime? @map("deleted_at") @db.Timestamptz(6)
+
+  account  Account  @relation(fields: [accountId], references: [id])
+  snapshot Snapshot @relation(fields: [snapshotId], references: [id])
+  signals  Signal[]
+
+  @@index([accountId])
+  @@index([contentHash])
+  @@map("article")
+}
+
+model Signal {
+  id            String     @id @default(uuid()) @db.Uuid
+  accountId     String     @map("account_id") @db.Uuid
+  /// Neo nguồn BẮT BUỘC — không có Bản lưu thì Phát hiện không tồn tại (`AD-8`)
+  articleId     String     @map("article_id") @db.Uuid
+  claim         String
+  signalType    SignalType @map("signal_type")
+  /// CHECK ③: chỉ tồn tại khi `signal_type = other` (`D2`)
+  signalSubtype String?    @map("signal_subtype")
+  /// Giữ NGUYÊN ngôn ngữ gốc; `claim` thì tiếng Việt
+  quote         String
+  /// Offset trên bản CHUẨN HOÁ (`AD-18`), lưu sẵn, không tính lại lúc hiển thị
+  quoteStart    Int        @map("quote_start")
+  quoteEnd      Int        @map("quote_end")
+  confidence    Confidence
+  relevance     Relevance
+  /// `FR-42`: phản hồi của người — nguồn của `error-detection rate`
+  markedUnhelpfulAt DateTime? @map("marked_unhelpful_at") @db.Timestamptz(6)
+  createdAt     DateTime   @default(now()) @map("created_at") @db.Timestamptz(6)
+  /// Phát hiện KHÔNG xoá được, kể cả bởi người — nó là bằng chứng (`AD-14`)
+  deletedAt     DateTime?  @map("deleted_at") @db.Timestamptz(6)
+
+  account        Account         @relation(fields: [accountId], references: [id])
+  article        Article         @relation(fields: [articleId], references: [id])
+  suggestions    Suggestion[]
+  nextActions    NextAction[]
+  timelineEntries TimelineEntry[]
+
+  @@index([accountId])
+  @@index([articleId])
+  @@map("signal")
+}
+
+model Suggestion {
+  id            String            @id @default(uuid()) @db.Uuid
+  accountId     String            @map("account_id") @db.Uuid
+  /// Proposal trace được về Claim — khoá ngoại THẬT (`AD-22`)
+  signalId      String            @map("signal_id") @db.Uuid
+  /// NULL cho loại "thêm tin mới" — nó không nhắm vào ô nào (`FR-18`)
+  targetField   TargetField?      @map("target_field")
+  /// Đọc SỐNG lúc mở, không phải ảnh chụp lúc sinh
+  currentValue  String?           @map("current_value")
+  proposedValue String?           @map("proposed_value")
+  timelineText  String?           @map("timeline_text")
+  status        SuggestionStatus  @default(cho)
+  dropReason    DropReason?       @map("drop_reason")
+  systemCloseReason SystemCloseReason? @map("system_close_reason")
+  /// `BR-B6`: ngưỡng duyệt mù — quyết dưới 3 giây là dấu hiệu người ngừng kiểm chứng
+  decisionSeconds Int?            @map("decision_seconds")
+  decidedAt     DateTime?         @map("decided_at") @db.Timestamptz(6)
+  decidedBy     String?           @map("decided_by") @db.Uuid
+  createdAt     DateTime          @default(now()) @map("created_at") @db.Timestamptz(6)
+  deletedAt     DateTime?         @map("deleted_at") @db.Timestamptz(6)
+
+  account Account @relation(fields: [accountId], references: [id])
+  signal  Signal  @relation(fields: [signalId], references: [id])
+
+  @@index([accountId, status])
+  @@index([signalId])
+  @@map("suggestion")
+}
+
+model Notification {
+  id            String    @id @default(uuid()) @db.Uuid
+  accountId     String    @map("account_id") @db.Uuid
+  opportunityId String?   @map("opportunity_id") @db.Uuid
+  kind          String
+  payload       Json?
+  seenAt        DateTime? @map("seen_at") @db.Timestamptz(6)
+  createdAt     DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  deletedAt     DateTime? @map("deleted_at") @db.Timestamptz(6)
+
+  account     Account      @relation(fields: [accountId], references: [id])
+  opportunity Opportunity? @relation(fields: [opportunityId], references: [id])
+
+  @@index([accountId, seenAt])
+  @@map("notification")
+}
+
+// ───────────────────────── Bảng hạ tầng — BẢY cái ─────────────────────────
+
+/// `AD-15`: mọi tham số nghiệp vụ ở đây, đọc MỖI LẦN DÙNG, sửa được lúc chạy (`D38`)
+model Setting {
+  key       String    @id
+  value     String
+  updatedAt DateTime  @updatedAt @map("updated_at") @db.Timestamptz(6)
+  deletedAt DateTime? @map("deleted_at") @db.Timestamptz(6)
+
+  @@map("settings")
+}
+
+/// `AD-12`: khoá là HÀNG có lease, không phải biến bộ nhớ. Hết hạn = coi như không có khoá.
+model AccountLock {
+  accountId String    @id @map("account_id") @db.Uuid
+  processId String    @map("process_id")
+  expiresAt DateTime  @map("expires_at") @db.Timestamptz(6)
+  createdAt DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  deletedAt DateTime? @map("deleted_at") @db.Timestamptz(6)
+
+  account Account @relation(fields: [accountId], references: [id])
+
+  @@index([expiresAt])
+  @@map("account_lock")
+}
+
+/// `AD-16` tầng đội: khoá bằng hash của ĐÚNG ba tham số `AD-7` cộng phiên bản lời nhắc.
+/// KHÔNG chứa ngày/giờ/số ngẫu nhiên — chèn một cái là tỉ lệ trúng bằng 0 vĩnh viễn.
+model InferenceCache {
+  hash      String    @id
+  response  Json
+  createdAt DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  expiresAt DateTime  @map("expires_at") @db.Timestamptz(6)
+  deletedAt DateTime? @map("deleted_at") @db.Timestamptz(6)
+
+  @@index([expiresAt])
+  @@map("inference_cache")
+}
+
+model ScanLog {
+  id             String    @id @default(uuid()) @db.Uuid
+  startedAt      DateTime  @default(now()) @map("started_at") @db.Timestamptz(6)
+  finishedAt     DateTime? @map("finished_at") @db.Timestamptz(6)
+  /// Ba cột Cổng đọc, CÙNG MỘT HÀNG để `collectGateContext` lấy bằng một lượt đọc
+  modelCallsUsed Int       @default(0) @map("model_calls_used")
+  budgetUsd      Decimal   @map("budget_usd") @db.Decimal(14, 4)
+  costUsedUsd    Decimal   @default(0) @map("cost_used_usd") @db.Decimal(14, 4)
+  /// Mã một trong năm điều kiện dừng của `AD-11`
+  stopReason     String?   @map("stop_reason")
+  /// `AD-11` điều kiện dừng 3: lưu con trỏ, vòng sau resume từ Công ty còn dở
+  resumeCursor   String?   @map("resume_cursor") @db.Uuid
+  deletedAt      DateTime? @map("deleted_at") @db.Timestamptz(6)
+
+  entries ScanLogEntry[]
+
+  @@map("scan_log")
+}
+
+/// Một dòng mỗi Công ty mỗi vòng — nguồn của `estimated_cost_per_account` (`AD-UI-14`)
+model ScanLogEntry {
+  id          String    @id @default(uuid()) @db.Uuid
+  scanLogId   String    @map("scan_log_id") @db.Uuid
+  accountId   String    @map("account_id") @db.Uuid
+  costUsd     Decimal   @default(0) @map("cost_usd") @db.Decimal(14, 4)
+  signalCount Int       @default(0) @map("signal_count")
+  /// `FT1`–`FT10` — phân loại thất bại của spine, KHÁC `F1`–`F40` của Mục 0
+  failureCode String?   @map("failure_code")
+  createdAt   DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  deletedAt   DateTime? @map("deleted_at") @db.Timestamptz(6)
+
+  scanLog ScanLog @relation(fields: [scanLogId], references: [id])
+  account Account @relation(fields: [accountId], references: [id])
+
+  @@index([scanLogId])
+  @@map("scan_log_entry")
+}
+
+/// `AD-4` ba bất biến: không lời gọi nào không để lại vết, kể cả lời gọi THỬ RỒI HỎNG;
+/// dòng đó mang giá trị cũ/mới khi có ghi thật; không bao giờ khai thao tác chưa xảy ra.
+/// Cơ chế: ghi HAI PHA trên một hàng (`AD-CR-8`).
+model AuditRecord {
+  id           String    @id @default(uuid()) @db.Uuid
+  /// nullable: nhiều lời gọi không gắn Công ty nào (`listEnums`, `readSetting`, `writeScanLog`)
+  accountId    String?   @map("account_id") @db.Uuid
+  actorKind    String    @map("actor_kind")
+  actorUserId  String?   @map("actor_user_id") @db.Uuid
+  actorRole    Role?     @map("actor_role")
+  capability   String
+  zone         String
+  risk         String
+  decision     String
+  denyReason   String?   @map("deny_reason")
+  /// `AD-21`: phân biệt "người tự bấm" với "hệ quả của cái người bấm"
+  causedBy     String?   @map("caused_by")
+  /// Pha 2 điền: `ok` · `business_rule_error` · `no_op` · `crashed`
+  outcome      String?
+  valueBefore  Json?     @map("value_before")
+  valueAfter   Json?     @map("value_after")
+  createdAt    DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  completedAt  DateTime? @map("completed_at") @db.Timestamptz(6)
+  deletedAt    DateTime? @map("deleted_at") @db.Timestamptz(6)
+
+  account Account? @relation(fields: [accountId], references: [id])
+  actor   User?    @relation(fields: [actorUserId], references: [id])
+
+  @@index([accountId])
+  @@index([createdAt])
+  @@map("audit_record")
+}
+
+// ─────────────────── Phải viết TAY trong migration ───────────────────
+//
+// Prisma không diễn đạt được bốn thứ dưới đây. Sau `prisma migrate dev --create-only`,
+// mở tệp migration và dán vào — rồi mới `migrate deploy`.
+//
+//   -- Chỉ mục unique MỘT PHẦN của AD-22. Thiếu vế `deleted_at` thì một Gợi ý
+//   -- đã xoá mềm khoá vĩnh viễn ô đó. `target_field = NULL` không tham gia
+//   -- (Postgres coi NULL là phân biệt) nên nhiều Gợi ý "thêm tin mới" cùng tồn tại.
+//   CREATE UNIQUE INDEX suggestion_one_pending_per_slot
+//     ON suggestion (account_id, target_field)
+//     WHERE status = 'cho' AND deleted_at IS NULL;
+//
+//   -- Email là định danh đăng nhập, unique trong phạm vi chưa xoá
+//   CREATE UNIQUE INDEX user_email_active ON "user" (email) WHERE deleted_at IS NULL;
+//
+//   -- ① bất biến HAI CHIỀU của latest_open_stage (AD-CR-1)
+//   ALTER TABLE opportunity ADD CONSTRAINT opp_latest_open_stage_iff
+//     CHECK ((stage IN ('tam_dung','thang','thua')) = (latest_open_stage IS NOT NULL));
+//   -- ② nó luôn là một giai đoạn ĐANG CHẠY
+//   ALTER TABLE opportunity ADD CONSTRAINT opp_latest_open_stage_running
+//     CHECK (latest_open_stage IS NULL
+//            OR latest_open_stage IN ('tiep_can','du_dieu_kien','soan_de_xuat','thuong_luong'));
+//   -- ③ signal_subtype chỉ tồn tại khi signal_type = other (D2)
+//   ALTER TABLE signal ADD CONSTRAINT signal_subtype_only_other
+//     CHECK ((signal_type = 'other') OR signal_subtype IS NULL);
+//   -- ④ giá trị tiền không âm (BR-D9)
+//   ALTER TABLE opportunity ADD CONSTRAINT opp_amount_non_negative
+//     CHECK (amount IS NULL OR amount >= 0);

@@ -1,131 +1,192 @@
 ---
 name: Why Now
-description: CRM cho Sales B2B ngành ITO — giấy và mực, cộng một dải đảo nền đánh dấu chỗ máy đã quyết
+description: CRM cho Sales B2B ngành ITO — dựng trên lớp token Fluent 2 của Microsoft, cộng một vai trò màu riêng cho thứ máy đã quyết
 status: ready
 created: 2026-08-14
 updated: 2026-08-14
 colors:
-  paper: '#FFFFFF'
-  paper-tint: '#FAFAF8'
-  app: '#F4F3F1'
-  desk: '#DDDBD6'
-  ink: '#111417'
-  ink-strong: '#1B1F23'
-  ink-2: '#5C636A'
-  ink-3: '#7B828A'
-  ink-quiet: '#8B9097'
-  rule: '#E2E0DC'
-  rule-dotted: '#E8E6E1'
-  rule-frame: '#C6C3BD'
-  band: '#16232E'
-  band-2: '#1D2C38'
-  band-edge: '#0C1620'
-  band-ink: '#F2F5F7'
-  band-ink-2: '#A9BBC8'
-  band-quote-rail: '#4C6B84'
-  band-od: '#F0A79C'
-  rail: '#C9942A'
-  link: '#1B4E7A'
-  overdue: '#B03024'
-  warn: '#C4351F'
-  warn-bg: '#FCF0EE'
-  warn-row: '#FDF8F7'
-  suggestion: '#8A4A05'
-  suggestion-bg: '#FBEEDA'
-  suggestion-border: '#E0BA84'
-  chac: '#176B45'
-  chac-bg: '#E5F1EA'
-  chac-band: '#7FD3A5'
-  chac-band-bg: '#1E3A33'
-  cothe: '#8C5A0C'
-  cothe-bg: '#FAEFDA'
-  cothe-band: '#E9BC63'
-  cothe-band-bg: '#3A2E17'
-  doan: '#5A626B'
-  doan-bg: '#ECEEF0'
-  doan-band: '#A9B6C0'
-  doan-band-bg: '#26333D'
-  legend-bg: '#EDEBE7'
+  paper: '#ffffff'
+  paper-tint: '#fafafa'
+  app: '#f5f5f5'
+  app-2: '#f0f0f0'
+  app-3: '#ebebeb'
+  ink: '#242424'
+  ink-2: '#424242'
+  ink-3: '#616161'
+  ink-4: '#707070'
+  ink-disabled: '#bdbdbd'
+  rule: '#e0e0e0'
+  rule-strong: '#d1d1d1'
+  rule-accessible: '#616161'
+  brand: '#0f6cbd'
+  brand-hover: '#115ea3'
+  brand-pressed: '#0c3b5e'
+  brand-selected: '#0f548c'
+  machine-bg: '#ebf3fc'
+  machine-bg-hover: '#cfe4fa'
+  machine-border: '#0f6cbd'
+  machine-border-soft: '#b4d6fa'
+  chac-bg: '#f1faf1'
+  chac-border: '#9fd89f'
+  chac-ink: '#0e700e'
+  cothe-bg: '#fff9f5'
+  cothe-border: '#fdcfb4'
+  cothe-ink: '#bc4b09'
+  doan-bg: '#fafafa'
+  doan-border: '#d1d1d1'
+  doan-ink: '#616161'
+  warn-bg: '#fdf3f4'
+  warn-border: '#eeacb2'
+  warn-ink: '#b10e1c'
+  warn-strong: '#c50f1f'
+  overdue: '#b10e1c'
+  suggestion-bg: '#fff9f5'
+  suggestion-border: '#fdcfb4'
+  suggestion-ink: '#bc4b09'
+  ghost-ink: '#707070'
 typography:
-  sans:
-    fontFamily: '"Segoe UI", system-ui, -apple-system, "Helvetica Neue", Arial, sans-serif'
-  serif:
-    fontFamily: '"Noto Serif", Georgia, "Times New Roman", serif'
+  base:
+    fontFamily: '"Segoe UI", "Segoe UI Web (West European)", -apple-system, BlinkMacSystemFont, Roboto, "Helvetica Neue", sans-serif'
+  numeric:
+    fontFamily: 'Bahnschrift, {typography.base.fontFamily}'
+  size-100:
+    fontSize: '10px'
+    lineHeight: '14px'
+  size-200:
+    fontSize: '12px'
+    lineHeight: '16px'
+  size-300:
+    fontSize: '14px'
+    lineHeight: '20px'
+  size-400:
+    fontSize: '16px'
+    lineHeight: '22px'
+  size-500:
+    fontSize: '20px'
+    lineHeight: '28px'
+  size-600:
+    fontSize: '24px'
+    lineHeight: '32px'
   next-step-machine:
-    fontFamily: '{typography.serif.fontFamily}'
-    fontSize: '19px'
+    fontSize: '16px'
+    lineHeight: '22px'
     fontWeight: 600
-    letterSpacing: '-.005em'
   next-step-human:
-    fontFamily: '{typography.serif.fontFamily}'
-    fontSize: '17px'
+    fontSize: '16px'
+    lineHeight: '22px'
     fontWeight: 400
   masthead:
-    fontFamily: '{typography.serif.fontFamily}'
-    fontSize: '26px'
-    fontWeight: 700
-    letterSpacing: '-.02em'
-  data:
-    fontFamily: '{typography.sans.fontFamily}'
-    fontSize: '13px'
-  quote:
-    fontSize: '12.5px'
+    fontSize: '20px'
+    lineHeight: '28px'
+    fontWeight: 600
   label-caps:
-    fontSize: '11px'
-    fontWeight: 800
-    letterSpacing: '.07em'
-  kicker:
-    fontSize: '11px'
-    fontWeight: 800
-    letterSpacing: '.16em'
-  confidence:
-    fontSize: '10.5px'
-    fontWeight: 800
+    fontSize: '10px'
+    lineHeight: '14px'
+    fontWeight: 600
+    letterSpacing: '.04em'
+  weight-regular: 400
+  weight-medium: 500
+  weight-semibold: 600
+  weight-bold: 700
 rounded:
-  DEFAULT: '0'
-  chrome: '3px'
-  dot: '50%'
+  none: '0'
+  small: '2px'
+  DEFAULT: '4px'
+  large: '6px'
+  xlarge: '8px'
+  circular: '10000px'
 spacing:
-  row: '11px 24px 12px'
-  row-machine-left: '20px'
-  masthead: '14px 24px 12px'
-  box: '12px 14px'
-  quote: '8px 12px'
-  gap-row: '16px'
+  xxs: '2px'
+  xs: '4px'
+  s-nudge: '6px'
+  s: '8px'
+  m-nudge: '10px'
+  m: '12px'
+  l: '16px'
+  xl: '20px'
+  xxl: '24px'
+  xxxl: '32px'
+  row: '10px 16px 11px'
+  row-machine-left: '12px'
   col-when: '104px'
   col-side: '168px'
   col-rail: '400px'
   app-width: '1440px'
   app-height: '928px'
+  stroke-thin: '1px'
+  stroke-thick: '2px'
+  stroke-thicker: '3px'
+  stroke-thickest: '4px'
+shadow:
+  '2': '0 0 2px rgba(0,0,0,.12), 0 1px 2px rgba(0,0,0,.14)'
+  '4': '0 0 2px rgba(0,0,0,.12), 0 2px 4px rgba(0,0,0,.14)'
+  '8': '0 0 2px rgba(0,0,0,.12), 0 4px 8px rgba(0,0,0,.14)'
+  '16': '0 0 2px rgba(0,0,0,.12), 0 8px 16px rgba(0,0,0,.14)'
+  '28': '0 0 8px rgba(0,0,0,.12), 0 14px 28px rgba(0,0,0,.14)'
+  '64': '0 0 8px rgba(0,0,0,.12), 0 32px 64px rgba(0,0,0,.14)'
 components:
   work-item-machine:
-    background: '{colors.band}'
-    color: '{colors.band-ink}'
-    borderLeft: '4px solid {colors.rail}'
+    background: '{colors.machine-bg}'
+    borderLeft: '{spacing.stroke-thicker} solid {colors.machine-border}'
+    borderRadius: '{rounded.DEFAULT}'
     paddingLeft: '{spacing.row-machine-left}'
+    color: '{colors.ink}'
     glyph: '⚙'
   work-item-human:
     background: '{colors.paper}'
-    color: '{colors.ink}'
-    borderBottom: '1px solid {colors.rule}'
+    borderBottom: '{spacing.stroke-thin} solid {colors.rule}'
+    borderRadius: '{rounded.none}'
     padding: '{spacing.row}'
+    color: '{colors.ink}'
     glyph: '✎'
+  status-badge:
+    borderRadius: '{rounded.DEFAULT}'
+    borderWidth: '{spacing.stroke-thin}'
+    padding: '1px 6px'
+    fontSize: '{typography.size-100.fontSize}'
+    fontWeight: '{typography.weight-semibold}'
   confidence-badge:
-    fontSize: '{typography.confidence.fontSize}'
-    glyphs: '● Chắc · ◐ Có thể · ○ Đoán'
+    chac: '● Chắc — {colors.chac-bg} / {colors.chac-border} / {colors.chac-ink}'
+    cothe: '◐ Có thể — {colors.cothe-bg} / {colors.cothe-border} / {colors.cothe-ink}'
+    doan: '○ Đoán — {colors.doan-bg} / {colors.doan-border} / {colors.doan-ink}'
+  suggestion-ghost:
+    color: '{colors.ghost-ink}'
+    background: 'transparent'
+    borderRadius: '{rounded.small}'
   suggestion-pin:
-    color: '{colors.suggestion}'
     background: '{colors.suggestion-bg}'
+    border: '{spacing.stroke-thin} solid {colors.suggestion-border}'
+    color: '{colors.suggestion-ink}'
+    borderRadius: '{rounded.DEFAULT}'
     glyph: '◆'
   warning-flag:
-    color: '{colors.warn}'
     background: '{colors.warn-bg}'
-    rowBackground: '{colors.warn-row}'
+    border: '{spacing.stroke-thin} solid {colors.warn-border}'
+    color: '{colors.warn-ink}'
+    borderRadius: '{rounded.DEFAULT}'
     glyph: '▲'
+  card:
+    background: '{colors.paper}'
+    border: '{spacing.stroke-thin} solid {colors.rule}'
+    borderRadius: '{rounded.large}'
+    padding: '{spacing.m} {spacing.l}'
+    boxShadow: 'none'
+  dialog:
+    background: '{colors.paper}'
+    borderRadius: '{rounded.xlarge}'
+    boxShadow: '{shadow.16}'
+  button:
+    borderRadius: '{rounded.DEFAULT}'
+    height: '32px'
+    padding: '0 {spacing.m}'
+    fontSize: '{typography.size-300.fontSize}'
+  input:
+    borderRadius: '{rounded.DEFAULT}'
+    height: '32px'
+    border: '{spacing.stroke-thin} solid {colors.rule-strong}'
   focus-ring:
-    outline: '2px solid {colors.link}'
+    outline: '{spacing.stroke-thick} solid {colors.brand}'
     outlineOffset: '1px'
-    onMachine: '2px solid {colors.rail}'
 ---
 
 # DESIGN.md — Why Now
@@ -133,148 +194,242 @@ components:
 Sườn này sở hữu **sản phẩm trông thế nào**. Sườn chị em [`EXPERIENCE.md`](EXPERIENCE.md) sở hữu
 **nó chạy thế nào**. Hai sườn **thắng mọi mock khi có mâu thuẫn**.
 
-**Nguồn:** rút từ lớp token của design system do Claude Design sinh, nhập về 14/08/2026 — xem
-[`prototype/`](prototype/). Lớp token đó lại rút từ hướng thị giác C đã chốt ở
-[`.working/direction-ban-tin.html`](.working/direction-ban-tin.html).
+**Nguồn:** hệ này **không tự phát minh lớp token**. Mọi giá trị bo góc, bóng, cỡ chữ, khoảng cách,
+xám trung tính và màu ngữ nghĩa đều lấy nguyên từ **Microsoft Fluent 2**, đọc trực tiếp từ 552 CSS
+variable đang render trên `fluent2.microsoft.design` và đối chiếu với mã nguồn gói
+`@fluentui/tokens`. Xem [`../../research/technical-ngon-ngu-thiet-ke-ui-airtable-fluent-hub-2026-08-14/research.md`](../../research/technical-ngon-ngu-thiet-ke-ui-airtable-fluent-hub-2026-08-14/research.md).
+
+**Stack đã chốt: React cộng Fluent UI v9.** Dùng thư viện thật, không dựng lại bằng CSS thuần.
+
+```
+@fluentui/react-components  9.74.6   peer react >=16.14 <20 · 62 dependencies
+@fluentui/react-icons       2.0.337
+```
+
+> ⚠ **Đừng cài `@fluentui/tokens` riêng** — gói độc lập đó vẫn là `1.0.0-alpha.24`. Lấy `tokens` từ
+> `@fluentui/react-components`, nó re-export sẵn.
+>
+> ⚠ **62 dependencies.** Chạy `npm install` **trước ngày thi**, đừng để nó ăn vào quỹ 4,5 tiếng.
+
+**Điểm quan trọng nhất của mục này: hệ không cần theme tuỳ biến.** Mọi màu trong bảng dưới đây đều
+là token chuẩn của `webLightTheme` — kể cả màu của dòng máy, vốn chỉ là `colorBrandBackground2` cộng
+`colorBrandStroke1`. Nên bọc ứng dụng trong `<FluentProvider theme={webLightTheme}>` là xong; không
+cần `createLightTheme`, không cần `BrandVariants` riêng.
+
+Ba component của thư viện gánh đúng ba chỗ nặng nhất: **`DataGrid`** cho danh sách việc và
+Opportunity · **`Tag`** cho nhãn Stage và nhãn nhiều giá trị · **`Badge`** cho Mức chắc chắn và cờ.
+
+Bảng đối chiếu tên, dùng thẳng trong `makeStyles`:
+
+> **Mức chứng cứ của cột bên phải.** Mọi tên trong cột đó đã được xác minh ở dạng **CSS custom
+> property** — đọc trực tiếp `--colorNeutralForeground1`, `--borderRadiusMedium`, … trong 552 biến
+> đang render trên trang Fluent chính chủ. Tên **khoá JS** trong object `tokens` khớp với chúng theo
+> quy ước của Fluent, nhưng nghiên cứu **không mở được** định nghĩa JS để đo trực tiếp (các gói npm
+> chỉ re-export). Việc đầu tiên khi dựng: `console.log(Object.keys(tokens).length)` và đối chiếu vài
+> tên — một dòng, hết nghi ngờ.
+
+| Token ở đây | Tên Fluent |
+|---|---|
+| `{colors.ink}` … `{colors.ink-4}` | `colorNeutralForeground1…4` |
+| `{colors.paper}` `{colors.paper-tint}` `{colors.app}` | `colorNeutralBackground1 / 2 / 3` |
+| `{colors.rule}` `{colors.rule-strong}` `{colors.rule-accessible}` | `colorNeutralStroke2 / 1 / Accessible` |
+| `{colors.brand}` | `colorBrandBackground` |
+| `{colors.machine-bg}` `{colors.machine-border}` | `colorBrandBackground2` · `colorBrandStroke1` |
+| `{colors.chac-*}` | `colorStatusSuccessBackground1 / Border1 / Foreground1` |
+| `{colors.cothe-*}` `{colors.suggestion-*}` | `colorStatusWarningBackground1 / Border1 / Foreground1` |
+| `{colors.warn-*}` `{colors.overdue}` | `colorStatusDangerBackground1 / Border1 / Foreground1` |
+| `{rounded.*}` | `borderRadiusNone…Circular` |
+| `{spacing.xxs}`…`{spacing.xxxl}` | `spacingHorizontal/VerticalXXS…XXXL` |
+| `{shadow.*}` | `shadow2 / 4 / 8 / 16 / 28 / 64` |
 
 ## Brand & Style
 
-**Một tờ bản tin buổi sáng, không phải một bảng điều khiển.** Giấy trắng, mực đen, kẻ tóc mảnh,
-măng-sét chia mục. Không màu thương hiệu tươi, không gradient, không bo góc, không bóng trên thẻ.
+**Một ứng dụng làm việc, không phải một trang giới thiệu.** Nền xám rất nhạt, thẻ trắng, kẻ tóc
+mảnh, bo góc 4px, màu dồn vào những vật thể nhỏ mang thông tin.
 
-Sản phẩm này có **đúng một ý tưởng thị giác**, và mọi thứ khác phục vụ nó:
+Sản phẩm này có **đúng một ý tưởng thị giác**, và nó không đổi khi lớp token đổi:
 
-> Thứ máy đã quyết xong phải trông khác hẳn thứ đang chờ người quyết.
+> Thứ máy đã quyết xong phải trông khác thứ đang chờ người quyết.
 
-Cơ chế là **đảo nền**. Dòng do hệ thống đặt chạy trên dải nền tối tràn hết chiều ngang, ray vàng
-đặc 4px bên trái, ký hiệu ⚙ dẫn đầu. Dòng do người gõ nằm trên giấy trắng, kẻ tóc mảnh, ký hiệu ✎.
-Chọn cơ chế này thay vì hai làn cột hay thẻ nổi vì nó **đọc được từ hai mét** — người đứng sau lưng
-vẫn thấy ranh giới.
+**Cơ chế đã đổi, ý tưởng thì không.** Trước đây là một dải nền tối tràn hết chiều ngang. Giờ là
+**nền xanh rất nhạt `{colors.machine-bg}` cộng ray trái `{colors.machine-border}` 3px cộng ký hiệu ⚙** —
+tức là chính mẫu badge ba thành phần của Fluent, áp lên cả một dòng.
 
-Dải máy là **một dải, không phải một thẻ**. Đừng thêm bóng, đừng bo góc, đừng thu nó vào trong lề.
+Lý do đổi: nghiên cứu đo trên ba hệ mà người dùng nêu tên cho thấy **không hệ nào nhuộm cả khối để
+đánh dấu nội dung máy**. Microsoft có token màu AI thật nhưng dùng để *gọi* AI; Airtable phân biệt ở
+**tầng dữ liệu** — máy không bao giờ ghi đè ô người đã sửa. Dải nền tối là thứ ồn hơn mọi thứ đang có
+trên thị trường, và đó là điều người dùng thử phản ứng.
+
+**Không dùng icon sparkle ✨.** Đây là quyết định có bằng chứng, không phải sở thích: khảo sát cho
+thấy 17% người dùng hiểu sparkle là "lưu / đánh dấu", vì 73% gắn hình ngôi sao với bookmark. Ký hiệu
+⚙ giữ nguyên và **mang nghĩa cố định**.
 
 ## Colors
 
-Bảng màu là **giấy và mực cộng một dải đảo nền**.
+Bảng màu là **xám trung tính của Fluent, cộng bốn vai trò màu**.
 
 | Vai trò | Token | Dùng ở đâu · **không** dùng ở đâu |
 |---|---|---|
-| Giấy | `{colors.paper}` `{colors.paper-tint}` | Nền dòng việc và thẻ · giấy nhạt cho măng-sét mục và ô Stage |
-| Nền ứng dụng | `{colors.app}` | Khoảng giữa các khối. **Không** dùng làm nền thẻ |
-| Mực | `{colors.ink}` → `{colors.ink-3}` | Bốn bậc. `{colors.ink-quiet}` chỉ cho dòng Stage **đã đóng** |
-| Dải máy | `{colors.band}` | **Chỉ** ở nơi máy đã quyết. Dùng nó cho một khối trang trí là phá luôn ngôn ngữ của sản phẩm |
-| Ray | `{colors.rail}` | Thứ gần nhất với một màu thương hiệu mà hệ này có. Chỉ xuất hiện cạnh dải máy và ở viền tiêu điểm **trên** dải |
-| Nhấn | `{colors.link}` | Liên kết. Màu nhấn **duy nhất** |
-| Quá hạn | `{colors.overdue}` · `{colors.band-od}` | Hai biến thể: trên giấy và trên dải |
-| Cảnh báo | `{colors.warn}` trên `{colors.warn-bg}` | Dòng mang cờ đổi nền sang `{colors.warn-row}` — đủ để thấy, không đủ để hét |
-| Suggestion | `{colors.suggestion}` trên `{colors.suggestion-bg}` | Pin ◆, hộp Queue, nút Queue |
+| Giấy | `{colors.paper}` `{colors.paper-tint}` | Nền thẻ và nền dòng việc |
+| Nền ứng dụng | `{colors.app}` `{colors.app-2}` | Khoảng giữa các khối. **Không** làm nền thẻ |
+| Mực | `{colors.ink}` → `{colors.ink-4}` | Bốn bậc. `{colors.ink-disabled}` chỉ cho thứ đã đóng |
+| Kẻ | `{colors.rule}` `{colors.rule-strong}` | Kẻ tóc và viền ô nhập. `{colors.rule-accessible}` khi viền phải tự đạt 3:1 |
+| **Máy** | `{colors.machine-bg}` `{colors.machine-border}` | **Chỉ** ở nơi máy đã quyết. Dùng cho một khối trang trí là phá luôn ngôn ngữ sản phẩm |
+| Thương hiệu | `{colors.brand}` | Nút chính, liên kết, viền tiêu điểm. Màu nhấn **duy nhất** |
+| Trạng thái | ba bộ `chac` · `cothe` · `warn` | Nhãn Mức chắc chắn, cờ, quá hạn |
 
-**Mức chắc chắn có hai biến thể màu**, trên giấy và trên dải tối, vì cùng một màu không đạt tương
-phản trên cả hai nền. **Đây là chỗ rủi ro tương phản cao nhất của hệ**: chữ phụ trên nền tối phải
-đạt ≥ 4.5:1.
+**Mọi nhãn màu dùng mẫu ba thành phần** — đây là quy tắc quan trọng nhất của mục này, và là thứ giải
+ràng buộc tương phản mà không phải bỏ màu:
 
-Không gradient. Không nền màu lớn ngoài dải máy. Không màu tím-xanh.
+```
+nền gần trắng   +   viền màu   +   chữ đậm cùng họ
+#f1faf1             #9fd89f        #0e700e
+```
+
+Nền đẩy **gần trắng** để chữ luôn đọc được; **viền** mới là thứ làm việc nhận diện màu. Không bao giờ
+chọn một nền màu vừa rồi đi tìm chữ đọc được trên nó.
+
+**Nền tối đã biến mất khỏi hệ.** Nghĩa là không còn cần hai biến thể màu cho Mức chắc chắn — trước
+đây phải có bộ trên giấy và bộ trên dải. Giờ chỉ một bộ. Đây là chỗ hệ **đơn giản đi** khi đổi hướng.
+
+Không gradient. Không màu tím "AI" — Microsoft cũng không dùng tím thuần, tím chỉ là điểm dừng thứ
+ba trong dải xanh dương → cyan → tím của họ.
 
 ## Typography
 
-Hai họ chữ, **vai tách bạch** — đây là ràng buộc cứng, không phải sở thích.
+**Một họ chữ, không hai.** Serif đã bị bỏ.
 
-- **Serif** `{typography.serif.fontFamily}` — măng-sét, **câu Next step**, câu trạng thái rỗng.
-  Serif làm câu việc đọc như một đầu đề tin.
-- **Sans** `{typography.sans.fontFamily}` — mọi dữ liệu, nhãn, số, nút.
+`{typography.base.fontFamily}` — chuỗi này lấy nguyên `fontFamilyBase` của Fluent. Segoe UI đứng đầu
+vì nó **có đủ 90/90 glyph** khối `U+1EA0–U+1EF9`, đã kiểm bằng cách đọc bảng `cmap` của chính file
+font. Số dùng `{typography.numeric.fontFamily}` và luôn `tabular-nums`.
 
-**Câu do máy đặt to hơn một bậc**: 19px / 600 / −.005em, so với câu người gõ 17px / 400. Đây là
-**tín hiệu thứ tư** của ranh giới máy/người, sau nền, ray và ký hiệu. Bốn tín hiệu chồng lên nhau
-là có chủ đích: bỏ một cái thì ba cái còn lại vẫn giữ được ranh giới.
+> **Ràng buộc tiếng Việt, đã kiểm bằng phép đo chứ không phải bằng niềm tin.** Georgia và Times New
+> Roman **không có** glyph Việt dựng sẵn — đó là lý do bản trước phải nạp Noto Serif. Segoe UI thì có,
+> nhưng **chỉ tồn tại trên Windows**. Trên máy khác chuỗi dự phòng phải tự nó an toàn. Nếu cần kết
+> quả giống nhau trên mọi máy thì nạp webfont, và ứng viên đã kiểm có subset `vietnamese` là **Inter,
+> Be Vietnam Pro, IBM Plex Sans, Public Sans, Noto Sans, Roboto**. **Lato thì không** — nó chỉ có
+> `latin` + `latin-ext`, và `latin-ext` không đủ cho chữ chồng dấu.
 
-Bậc chữ dữ liệu đặc: 13px tên Account và tiền · 12.5px trích, dòng thống kê, nút · 12px dòng
-Opportunity · 11.5px byline và cờ · 11px nhãn viết hoa · 10.5px nhãn Mức chắc chắn. Số luôn
-`tabular-nums`.
+Thang cỡ chữ là thang Fluent nguyên xi, mỗi cỡ đi kèm một line-height cố định:
 
-> **Một sự thay thế đã áp dụng, khác hướng C.** Georgia và Times New Roman **không có glyph Việt
-> dựng sẵn** — dấu bị tách rời khỏi chữ. Vì serif mang đúng phần chữ quan trọng nhất trong một giao
-> diện tiếng Việt, hệ nạp **Noto Serif** làm họ serif đầu tiên và giữ Georgia làm lớp dự phòng.
-> Đây là chỗ **duy nhất** lệch khỏi `direction-ban-tin.html`, và nó lệch vì bản gốc **hỏng** ở
-> tiếng Việt, không vì thẩm mỹ.
->
-> Hệ quả: `tokens/fonts.css` có một `@import` **gọi mạng**. Muốn chạy offline thì thay bằng
-> `@font-face` trỏ tệp thật.
+```
+10/14 · 12/16 · 14/20 · 16/22 · 20/28 · 24/32
+```
+
+Bậc thân bài là **14px/20px**. Câu Next step lên **16px/22px**.
+
+**Câu do máy đặt nặng hơn một bậc cân nặng** (600 so với 400), cùng cỡ chữ với câu người gõ. Đây là
+tín hiệu thứ ba của ranh giới máy/người, sau nền và ray. Ba tín hiệu chồng nhau là có chủ đích: bỏ
+một cái thì hai cái còn lại vẫn giữ được ranh giới.
+
+Cân nặng: 400 thường · 500 nhấn nhẹ · 600 câu máy và nhãn · 700 hiếm khi cần.
 
 ## Layout & Spacing
 
-Dòng việc là lưới ba cột **`{spacing.col-when}` / 1fr / `{spacing.col-side}`**, gap
-`{spacing.gap-row}`, đệm `{spacing.row}`.
+Thang khoảng cách là thang Fluent: `2 · 4 · 6 · 8 · 10 · 12 · 16 · 20 · 24 · 32`.
 
-Dòng dải máy đệm trái `{spacing.row-machine-left}` vì ray 4px chiếm phần còn lại — tổng vẫn đúng
-24px, nên **câu việc của máy và của người thẳng hàng tuyệt đối**. Đây là chi tiết dễ làm hỏng nhất
-khi dựng lại: lệch 4px là hai dòng không còn thẳng, và ranh giới đọc thành cẩu thả thay vì có chủ ý.
+**Hai bậc lẻ 6px và 10px là cố ý** — Fluent gọi chúng là `SNudge` và `MNudge`. **Không snap về lưới
+4/8px.** Đây là quy tắc giữ nguyên từ bản trước, và giờ nó có xuất xứ chứ không còn là sở thích:
+hệ thiết kế dày nào cũng cần bậc lẻ.
 
-Rail phải của màn Today rộng `{spacing.col-rail}` cố định. Khổ thiết kế
-`{spacing.app-width}` × `{spacing.app-height}`.
+Dòng việc là lưới ba cột **`{spacing.col-when}` / 1fr / `{spacing.col-side}`**, gap `{spacing.l}`,
+đệm `{spacing.row}`.
 
-**Thang khoảng cách lẻ có chủ đích** — 1 · 2 · 3 · 5 · 6 · 7 · 8 · 9 · 10 · 11 · 12 · 13 · 14 · 15 ·
-16 · 18 · 20 · 24 · 28. **Không snap về lưới 4/8px.** 7px và 9px là giá trị thật của hướng thị
-giác, và làm tròn chúng làm mất mật độ — mà mật độ là một ngưỡng kiểm được: **≥ 9 dòng việc thấy
-được không cuộn ở 1440×900** (`UX-5`).
+Dòng máy đệm trái `{spacing.row-machine-left}` vì ray 3px chiếm phần còn lại — tổng vẫn đúng 16px,
+nên **câu việc của máy và của người thẳng hàng tuyệt đối**. Đây là chi tiết dễ làm hỏng nhất khi dựng
+lại: lệch vài px là ranh giới đọc thành cẩu thả thay vì có chủ ý.
+
+Rail phải của màn Today rộng `{spacing.col-rail}`. Khổ thiết kế `{spacing.app-width}` ×
+`{spacing.app-height}`.
+
+**Mật độ là một ngưỡng kiểm được, không phải một cảm giác:** ≥ **9 dòng việc** thấy được không cuộn
+ở 1440×900 (`UX-5`). Đệm dòng `{spacing.row}` được chọn để đạt ngưỡng đó. Ba hệ được khảo sát đều
+dày — Airtable làm việc ở chữ 13px với nhịp dọc 32px — nên ngưỡng này không mâu thuẫn với hướng hiện
+đại.
 
 ## Elevation & Depth
 
-**Độ sâu duy nhất của sản phẩm là đảo nền.** Không có tầng z thứ hai.
+**Bóng nay có, nhưng rất ít và rất nhạt.** Thang là thang Fluent, sáu bậc, mỗi bậc **hai lớp**: một
+lớp ambient không lệch và một lớp key lệch xuống bằng nửa bán kính mờ. Alpha `.12` và `.14`.
 
-- Không bóng trên thẻ. Bóng duy nhất là bóng khung ứng dụng khi trình bày sản phẩm trên nền ngoài
-- Không blur, không transparency — trừ lớp phủ của Snapshot viewer
-- Không ảnh, không texture, không pattern. Nền là giấy phẳng
+| Dùng ở đâu | Bậc |
+|---|---|
+| Thẻ, dòng việc, mọi bề mặt tĩnh | **không bóng** — chỉ viền `{colors.rule}` |
+| Menu thả xuống, tooltip, popover | `{shadow.4}` |
+| Hộp thoại, Snapshot viewer | `{shadow.16}` |
+
+**Ranh giới viền / bóng:** viền cho thứ **nằm trong dòng chảy trang**; bóng cho thứ **nổi lên trên
+nó**. Một cái thẻ trong danh sách không nổi lên trên gì cả — nó không có bóng. Quy tắc này lấy từ
+Airtable, hệ thậm chí không token hoá bóng.
+
+Không blur, không transparency trừ lớp phủ hộp thoại. Không ảnh, không texture, không pattern.
 
 ## Shapes
 
-**`{rounded.DEFAULT}` ở mọi nơi.** Ngoại lệ duy nhất là chrome trình duyệt trong ảnh dựng
-(`{rounded.chrome}`), không thuộc sản phẩm.
+**`{rounded.DEFAULT}` — 4px — ở mọi nơi**, trừ ba ngoại lệ:
 
-Viền bốn bậc: 1px kẻ tóc · 1px dotted cho dòng thống kê · 2px mực dưới măng-sét · 4px ray dải máy
-và 3px ray khối trích.
+| | Bán kính |
+|---|---|
+| Nút, ô nhập, nhãn, dòng máy, ô chọn | `{rounded.DEFAULT}` 4px |
+| Thẻ và khối lớn | `{rounded.large}` 6px |
+| Hộp thoại | `{rounded.xlarge}` 8px |
+| Chấm tròn, avatar | `{rounded.circular}` |
+| Dòng người trên nền giấy liền mạch | `{rounded.none}` — chúng là hàng của một bảng, không phải thẻ rời |
 
-**Thẻ trông thế nào:** nền giấy, viền 1px kẻ tóc, không bo, không bóng, đệm `{spacing.box}`. Hộp có
-nghĩa trạng thái thì đổi **cả nền và viền** sang cùng họ màu.
+**8px là trần, không phải sàn.** Đây là chỗ dễ làm hỏng nhất khi nghe phản hồi "bo cong hơn": cả
+Fluent (tối đa 8px) lẫn Airtable (mặc định 3px) đều không đi xa hơn. Bo 12px hay 16px sẽ đưa sản phẩm
+ra ngoài vùng hai hệ này hoạt động.
+
+Nét viền bốn bậc: `{spacing.stroke-thin}` kẻ tóc · `{spacing.stroke-thick}` viền tiêu điểm ·
+`{spacing.stroke-thicker}` ray dòng máy · `{spacing.stroke-thickest}` hiếm dùng.
 
 ## Components
 
-Đặc tả hành vi thuộc `EXPERIENCE.md`; dưới đây chỉ nói **trông thế nào**. Bản dựng đầy đủ 25
-component nằm ở [`prototype/_ds/…/_ds_bundle.js`](prototype/).
+Đặc tả hành vi thuộc `EXPERIENCE.md`; dưới đây chỉ nói **trông thế nào**.
 
 | Component | Thị giác |
 |---|---|
-| `work-item-machine` | Dải nền `{colors.band}` tràn ngang · ray trái `{colors.rail}` 4px · ⚙ dẫn đầu · câu 19px serif |
-| `work-item-human` | Giấy · kẻ tóc dưới · ✎ dẫn đầu · câu 17px serif |
-| `confidence-badge` | ● Chắc · ◐ Có thể · ○ Đoán. **Ký hiệu và màu, không bao giờ màu đơn độc.** Hai bộ màu: trên giấy và trên dải |
-| `quote-block` | Trên dải: nền `{colors.band-2}`, ray trái 3px `{colors.band-quote-rail}`, chữ 12.5px, `lang` riêng theo ngôn ngữ nguồn |
-| `suggestion-pin` | ◆ `{colors.suggestion}` trên `{colors.suggestion-bg}`, 10px, kèm số đang chờ |
-| `warning-flag` | ▲ `{colors.warn}` trên `{colors.warn-bg}`; dòng chứa nó đổi nền sang `{colors.warn-row}` |
-| `undo-button` | ↩ cộng thời gian còn lại. Sắp hết hạn thì đổi mực sang `#3A0E08` |
-| `stage-pill` | Nền giấy nhạt, viền kẻ, không bo. Stage **đã đóng** dùng mực `{colors.ink-quiet}` |
-| `ai-off-banner` | Dải cảnh báo trên khung ứng dụng, ⚙ dẫn đầu — hiện với **Sales**, không chỉ Quản trị |
-| `focus-ring` | `{components.focus-ring.outline}`, offset 1px. Trên dải máy đổi sang ray vàng |
+| `work-item-machine` | Nền `{colors.machine-bg}` · ray trái `{colors.machine-border}` 3px · bo 4px · ⚙ dẫn đầu · câu 16px/600 |
+| `work-item-human` | Giấy · kẻ tóc dưới `{colors.rule}` · không bo · ✎ dẫn đầu · câu 16px/400 |
+| `confidence-badge` | ● Chắc · ◐ Có thể · ○ Đoán. Mẫu ba thành phần, **một** bộ màu duy nhất. **Ký hiệu và màu, không bao giờ màu đơn độc** |
+| `suggestion-ghost` | Đề nghị chưa nhận hiện **tại chỗ** người sẽ gõ, mực `{colors.ghost-ink}`, nền trong suốt. Nhận / bỏ ngay tại đó |
+| `suggestion-pin` | ◆ trên nền `{colors.suggestion-bg}` viền `{colors.suggestion-border}`, kèm số đang chờ |
+| `warning-flag` | ▲ mẫu ba thành phần họ `warn`. Dòng chứa nó **không** đổi nền — cờ đã đủ nói |
+| `undo-button` | ↩ cộng thời gian còn lại. Sắp hết hạn thì đổi sang họ `warn` |
+| `stage-pill` | Nhãn 4px, nền `{colors.paper-tint}`, viền `{colors.rule}`. Stage **đã đóng** dùng mực `{colors.ink-disabled}` |
+| `ai-off-banner` | Dải cảnh báo họ `warn` trên khung ứng dụng, ⚙ dẫn đầu — hiện với **Sales**, không chỉ Quản trị |
+| `card` | Nền giấy, viền 1px, bo 6px, **không bóng** |
+| `dialog` | Bo 8px, `{shadow.16}` |
+| `focus-ring` | `{spacing.stroke-thick}` `{colors.brand}`, offset 1px. Không đổi theo nền nữa — nền tối đã biến mất |
 
-**Mười ký hiệu, mỗi cái một nghĩa cố định** — đây là một hệ đóng: ⚙ máy · ✎ người · ● Chắc ·
-◐ Có thể · ○ Đoán · ▲ cờ · ◆ có Suggestion chờ · ↩ Hoàn tác · ▮ đoạn được đánh dấu · → hiện tại
-sang đề nghị.
+**Mười ký hiệu, mỗi cái một nghĩa cố định** — hệ đóng, không thêm: ⚙ máy · ✎ người · ● Chắc ·
+◐ Có thể · ○ Đoán · ▲ cờ · ◆ có Suggestion chờ · ↩ Hoàn tác · ▮ đoạn được đánh dấu · → hiện tại sang
+đề nghị.
 
 ## Do's and Don'ts
 
 **Làm**
 
-- Dùng dải máy **chỉ** ở nơi máy đã quyết
-- Giữ bốn tín hiệu của ranh giới máy/người: nền · ray · ký hiệu · cỡ chữ
+- Lấy giá trị từ bảng token Fluent ở đầu tệp, **đừng chế số mới**
+- Dùng nền máy `{colors.machine-bg}` **chỉ** ở nơi máy đã quyết
+- Giữ ba tín hiệu của ranh giới máy/người: nền · ray · cân nặng chữ
+- Mọi nhãn màu dùng **mẫu ba thành phần**: nền gần trắng + viền + chữ đậm
 - Ghép ký hiệu với màu ở **mọi** chỗ truyền thông tin bằng màu
-- Giữ giá trị khoảng cách lẻ nguyên xi
+- Giữ hai bậc khoảng cách lẻ 6px và 10px nguyên xi
 - Cho Stage đã đóng mực nhạt hơn — chúng là lịch sử, không phải việc
 
 **Không làm**
 
-- **Không** thêm bo góc, bóng thẻ, gradient, hay tầng z thứ hai
+- **Không** bo quá `{rounded.xlarge}` 8px. Trần, không phải sàn
+- **Không** đổ bóng lên thứ nằm trong dòng chảy trang. Thẻ trong danh sách không có bóng
+- **Không** dùng icon sparkle ✨ — 17% người dùng đọc nó thành "lưu"
+- **Không** dùng gradient, và **không** dùng tím làm màu AI
+- **Không** in phần trăm độ tin cậy. Ba mức bằng chữ là quyết định có bằng chứng: cả Google PAIR lẫn
+  Microsoft HAX đều chống chỉ báo bằng số
 - **Không** dùng emoji. Ký hiệu là unicode hình học và chúng **mang nghĩa**
 - **Không** dùng màu đơn độc để truyền thông tin
-- **Không** đặt `outline: none` ở bất kỳ đâu — đây là một dòng trong sàn khả năng tiếp cận
-- **Không** thu dải máy vào trong lề. Nó tràn ngang, và đó là lý do nó đọc được từ hai mét
-- **Không** thêm ký hiệu mới mà không gán nghĩa
+- **Không** đặt `outline: none` ở bất kỳ đâu — một dòng trong sàn khả năng tiếp cận
+- **Không** chép luật ghép nền-chữ của Airtable. Nó là luật nhị phân theo tên màu, **không tính
+  tương phản**, và tự nó sinh vi phạm
 - **Không** snap thang khoảng cách về lưới 8px
-- **Không** vẽ logo. Chỗ nào cần mark thì đặt chữ "Why Now" bằng serif 26px / 700 / −.02em
+- **Không** vẽ logo. Chỗ nào cần mark thì đặt chữ "Why Now" 20px/600

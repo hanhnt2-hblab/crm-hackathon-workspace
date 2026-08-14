@@ -63,6 +63,16 @@ external_sources = [
   # BABOK `5.1`: Trace Requirements.
   # thực hành: nâng mức bắt buộc theo miền chịu quản lý là chính sách của repo này.
   "Khi miền thuộc diện chịu quản lý — tài chính, y tế, khu vực công — bổ sung yêu cầu lưu vết kiểm toán, giữ hồ sơ, và truy vết từ quyết định kiến trúc về yêu cầu đã sinh ra nó.",
+  # BABOK `10.11`: tổ chức từ vựng nghiệp vụ để truyền đạt tri thức của một
+  #   miền một cách nhất quán và đầy đủ.
+  # thực hành: concept model CỐ Ý độc lập với thiết kế dữ liệu — tách nó khỏi
+  #   `10.15` là điều kiện để nó không trôi theo lược đồ.
+  "Khi sản phẩm có một tệp từ vựng dùng chung — ontology, domain model, glossary — tra Concept Modelling. Định nghĩa khái niệm bằng một câu, đặt tên quan hệ thành câu đọc được, và giữ phần này ĐỘC LẬP với thuộc tính và lược đồ lưu trữ. Trộn từ vựng với mô hình dữ liệu làm từ vựng trôi theo lược đồ.",
+
+  # BABOK `10.23`: định nghĩa các thuật ngữ then chốt của miền.
+  # thực hành: bảng nhiều cột là bổ sung của repo này — một khái niệm thường
+  #   mang tên khác nhau ở lời nói, ở mã, và ở tài liệu nguồn.
+  "Khi dự án có nhiều nguồn tài liệu gọi cùng một thứ bằng những tên khác nhau, tra Glossary và dựng bảng ánh xạ: tên đội dùng, tên trong mã, tên tài liệu nguồn dùng. Nêu riêng những cặp từ dễ gộp nhầm kèm cái giá nếu gộp.",
 ]
 
 doc_standards = [

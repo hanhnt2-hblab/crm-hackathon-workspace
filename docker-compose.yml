@@ -1,0 +1,71 @@
+# Chỉ Postgres nằm trong compose. Ứng dụng chạy TRÊN HOST — xem mục
+# "Ba lệnh một-bước" của ARCHITECTURE-SPINE: tiến trình con Claude Code cần
+# credential subscription ở `~/.claude`, mà mount nó vào ảnh là đúng kiểu dùng
+# mà tài liệu Agent SDK cảnh báo.
+#
+# ⚠ LỆNH NÀY KHÔNG KHỞI ĐỘNG SẢN PHẨM. Nó dựng Postgres, hết.
+# `§7.3` đòi *"Sản phẩm chạy ở cấu hình production… Khởi động bằng một lệnh"* —
+# lệnh đó là `npm start` (sau `npm ci && npm run build`), chạy trên host.
+# Đừng ánh xạ `§7.3` vào dòng này; đã có lần CHECKLIST.md làm thế.
+
+services:
+  db:
+    image: postgres:16-alpine
+    container_name: why-now-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: whynow
+      POSTGRES_PASSWORD: whynow
+      POSTGRES_DB: whynow
+      # Cố định để `npm test` không phụ thuộc locale máy chấm
+      LANG: C.UTF-8
+      POSTGRES_INITDB_ARGS: "--encoding=UTF8 --locale=C"
+    ports:
+      # 5432 hay bị chiếm — máy này có opms-db-1 (postgres:12.4) giữ sẵn.
+      # Dùng cổng riêng để không bao giờ đụng ai.
+      - "5442:5432"
+    volumes:
+      # VOLUME CÓ TÊN, không phải bind mount: bind mount trên Windows làm
+      # Postgres hỏng vì quyền. `down` rồi `up` giữ nguyên dữ liệu —
+      # đó là phương tiện chứng minh của `NFR-5`.
+      # ⚠ `down -v` XOÁ SẠCH. Lệnh chứng minh không bao giờ mang cờ đó.
+      - why-now-pgdata:/var/lib/postgresql/data
+    healthcheck:
+      # BẮT BUỘC. `docker compose up -d` trả về khi container KHỞI ĐỘNG,
+      # không phải khi Postgres SẴN SÀNG. Thiếu healthcheck thì
+      # `npm run seed` chạy ngay sau đó hỏng trên máy nguội.
+      test: ["CMD-SHELL", "pg_isready -U whynow -d whynow"]
+      interval: 2s
+      timeout: 3s
+      retries: 30
+      start_period: 5s
+
+  # Bộ dựng dữ liệu kiểm thử: cùng ảnh, cùng healthcheck, KHÁC database.
+  # `npm test` chạy hai lần liên tiếp phải vẫn xanh, nên nó không được
+  # đụng vào dữ liệu demo — xem `AD-UI-19`.
+  db_test:
+    image: postgres:16-alpine
+    container_name: why-now-db-test
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: whynow
+      POSTGRES_PASSWORD: whynow
+      POSTGRES_DB: whynow_test
+      LANG: C.UTF-8
+      POSTGRES_INITDB_ARGS: "--encoding=UTF8 --locale=C"
+    ports:
+      - "5443:5432"
+    tmpfs:
+      # Dữ liệu kiểm thử KHÔNG cần bền: nằm trong RAM thì `migrate reset`
+      # nhanh hơn và không để lại gì sau khi tắt máy.
+      - /var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U whynow -d whynow_test"]
+      interval: 2s
+      timeout: 3s
+      retries: 30
+      start_period: 5s
+
+volumes:
+  why-now-pgdata:
+    name: why-now-pgdata

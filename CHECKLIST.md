@@ -38,7 +38,10 @@ Hoàn thiện sản phẩm. Phần này phục vụ **vòng 2 và vòng 3**; log
       — câu `B3` đóng `Q10` bằng số lấy từ chính người chấm
 - [ ] Sáu nhóm `§4` tới đúng mức `T-1`…`T-10` quan sát được
 - [ ] **UX theo phản hồi của đội Sales** — 5/6 giám khảo vòng 3 thuộc thị trường JP
-- [ ] Bốn lệnh một-bước: khởi động · nạp dữ liệu · kiểm thử · dừng (`§7.3`, `§7.5`)
+- [ ] **`§7.3` khởi động sản phẩm — `npm start`** (sau `npm ci && npm run build`). `docker compose up -d` **chỉ dựng Postgres**, không khởi động sản phẩm; ánh xạ nó vào `§7.3` là để trống một cổng nộp bài
+- [ ] **`§7.5` nạp dữ liệu — `npm run seed`** (idempotent; `prisma generate && migrate deploy && node prisma/seed.ts`)
+- [ ] **`§7.4` kiểm thử — `npm test`** (`vitest run`, phải thoát mã 0). Chạy **hai lần liên tiếp** vẫn xanh
+- [ ] `docker compose down` rồi `up` — dữ liệu còn nguyên. **Phương tiện chứng minh** `NFR-5`, không phải mục nộp bài
 
 Đội đã quyết **không** tập một vòng đầy đủ để lấy mốc đo — dồn giờ cho sản phẩm. Cái giá: ngày thi
 không có số liệu nào để biết mình nhanh hay chậm, nên bám ba điểm dừng chặt hơn bình thường.

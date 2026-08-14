@@ -76,11 +76,11 @@ hỏi kỳ vọng và tư vấn UI/UX. Đây là lợi thế không đội nào 
 | # | Việc | Vì sao ở đây |
 |---|---|---|
 | 1 | **Log Claude Code → Grafana chạy thật**, kiểm bằng một lần chạy và nhìn bảng | `D37`. Hỏng cái này là mất cả vòng 1, không cứu được. Làm trước mọi thứ |
-| 2 | **Chốt stack cho `src/`** | Chặn ba cột Dev/Testing/Deployment và bốn dòng lệnh trong `hackathon-deploy` |
+| 2 | **Chốt stack cho `src/`** | Chặn ba cột Dev/Testing/Deployment và **ba** dòng lệnh trong `hackathon-deploy` |
 | 3 | **Gửi bộ câu hỏi cho sáu giám khảo vòng 3** | Đã soạn sẵn. Câu `B3` đóng `Q10` bằng số lấy từ chính người chấm. Gửi càng sớm càng có thời gian áp vào sản phẩm |
 | 4 | Sáu nhóm `§4` tới đúng mức `T-1`…`T-10` quan sát được | `T` là cổng nộp bài |
 | 5 | **UX theo phản hồi ở việc 3**, ưu tiên chỗ Sales nói ra | Vòng 3, và là chỗ đội quyết định dồn sức |
-| 6 | Bốn lệnh một-bước: khởi động · nạp dữ liệu · kiểm thử · dừng | `§7.3` và `§7.5` là cổng nộp bài |
+| 6 | **Ba** lệnh một-bước: khởi động · nạp dữ liệu · kiểm thử | `§7.3`–`§7.5` là cổng nộp bài. Lệnh dừng là phương tiện chứng minh dữ liệu còn nguyên, không phải mục nộp |
 
 Danh sách này từng có việc thứ bảy — tập một vòng đầy đủ để lấy mốc đo. **Đội đã quyết bỏ**; lý do
 và cái giá ghi ở mục 8.

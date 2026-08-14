@@ -16,10 +16,18 @@ producer: Claude Design
 
 | # | Tệp | Vì sao cần |
 |---|---|---|
-| 1 | `.working/direction-ban-tin.html` | Hướng thị giác **đã chốt**. Bảng màu và cơ chế đảo nền lấy từ đây |
+| 1 | `DESIGN.md` | **Lớp token, đã chốt.** Toàn bộ giá trị lấy từ Microsoft Fluent 2 — bảng đối chiếu tên Fluent nằm ngay đầu tệp |
 | 2 | `EXPERIENCE.md` | **Quan trọng nhất cho luồng.** 19 nhánh ngoại lệ · mẫu trạng thái bốn cột · bảy ngưỡng trải nghiệm |
 | 3 | `../../prds/prd-crm-hackathon-2026-08-14/prd.md` | Bảng chuyển tiếp `§5.1` · ma trận vai `§6` · 17 luật nghiệp vụ `§7` — ba thứ này **là đặc tả tương tác** |
-| 4 | `.working/direction-so-cai.html` và `direction-phieu-noi.html` | Hai phương án đã loại. Đính kèm để công cụ biết **đã thử gì và vì sao bỏ** |
+| 4 | `../../research/technical-ngon-ngu-thiet-ke-ui-airtable-fluent-hub-2026-08-14/research.md` | **Vì sao** lớp token là Fluent chứ không phải thứ tự chế. Đọc mục Tóm tắt và §8 là đủ |
+| 5 | `prototype/wn-data.js` | **Bộ dữ liệu demo, dùng lại được nguyên.** 15 Account, 8 Opportunity đang mở, và nó **cố tình mang sẵn mười ca ngoại lệ** mà `EXPERIENCE.md` đòi. Tệp này không chứa một mã màu hay tên font nào nên **không dính lớp token cũ** |
+
+> ⚠ **Một lỗi đã biết trong `wn-data.js`:** `DISMISS_REASONS` trong đó có năm giá trị do công cụ tự
+> suy ra, **khác** năm lý do bỏ đã chốt ở `0.1.7` của Mục 0 (`thong_tin_sai` · `khong_lien_quan` ·
+> `da_cu` · `hieu_sai_ngu_canh` · `khac`). Dùng danh sách của `0.1.7`, đừng dùng của tệp.
+
+**Ba tệp `.working/direction-*.html` và toàn bộ `prototype/*.html` nay đã lỗi thời** — chúng dựng
+theo lớp token của bản trước, và bản trước đã bị thay. Đừng đính kèm, đừng lấy màu từ đó.
 
 **Không mang lên:** bất kỳ nội dung nguyên văn nào của BABOK® Guide — bản gốc ghi *"Not for
 Distribution or Resale"*. Mọi bảng phương pháp trong prompt này là **diễn giải của đội**, không
@@ -57,40 +65,90 @@ Người chấm cuối cùng là **sáu người Sales thật**, năm trong số
 tư cách người dùng hằng ngày và đã dùng CRM chuyên nghiệp nhiều năm. Họ sẽ so sản phẩm này với
 Excel — nên **một màn hình quá thoáng sẽ thua**.
 
-## Hướng thị giác đã chốt — "Bản tin"
+## Lớp token đã chốt — Microsoft Fluent 2
 
-Tham chiếu: `direction-ban-tin.html`. Tính cách: **bản tin buổi sáng** — cân giữa chữ và số, chia
-mục có măng-sét, mật độ vừa (khoảng 9 dòng việc thấy được không cuộn).
+**Đội không tự phát minh lớp token.** Mọi giá trị bo góc, bóng, cỡ chữ, khoảng cách, xám trung tính
+và màu ngữ nghĩa lấy **nguyên từ Microsoft Fluent 2**, đọc trực tiếp từ 552 CSS variable đang render
+trên trang chính chủ và đối chiếu với mã nguồn `@fluentui/tokens`. Đừng đề xuất bảng màu khác; hãy
+dùng đúng bảng này.
 
-**Cơ chế phân biệt máy-quyết với người-quyết là ĐẢO NỀN.** Giữ nguyên cơ chế này, đừng thay:
-
-- Dòng **do hệ thống đặt**: chạy trên **dải nền tối tràn ngang**, ray vàng đặc 4px bên trái, ký
-  hiệu bánh răng dẫn đầu
-- Dòng **do người gõ**: giấy trắng, kẻ tóc mảnh, ký hiệu bút dẫn đầu
-
-Lý do chọn cơ chế này thay vì hai làn cột hay thẻ nổi: **đọc được từ hai mét** — người đứng sau
-lưng vẫn thấy ranh giới, không phải liếc dọc theo cột hay nhận ra vật nổi.
-
-### Bảng màu đã có, giữ nguyên vai trò
+**Lấy token và mẫu, không lấy thư viện.** Sản phẩm không phụ thuộc `@fluentui/react-components` —
+dựng lại bằng CSS thuần. Mỗi token dưới đây có tên Fluent tương ứng, xem bảng đối chiếu ở đầu
+`DESIGN.md`.
 
 ```
-Giấy            #FFFFFF    nền ứng dụng   #F4F3F1
-Mực chính       #111417    mực phụ        #5C636A    kẻ mảnh  #E2E0DC
-DẢI MÁY nền     #16232E    chữ trên dải   #F2F5F7    chữ phụ  #A9BBC8
-Ray trái dải    #C9942A    (4px đặc)
-Nhấn liên kết   #1B4E7A
-Quá hạn         #B03024
-Cảnh báo        #C4351F    nền #FCF0EE
-Suggestion      #8A4A05    nền #FBEEDA
+Giấy          #ffffff   nhạt #fafafa    Nền ứng dụng #f5f5f5  #f0f0f0
+Mực           #242424 → #424242 → #616161 → #707070   tắt #bdbdbd
+Kẻ            #e0e0e0   đậm #d1d1d1     khi viền phải tự đạt 3:1  #616161
+Thương hiệu   #0f6cbd   hover #115ea3   pressed #0c3b5e
 
-Mức chắc chắn — mỗi mức có HAI biến thể, trên giấy và trên dải tối:
-  Chắc    trên giấy #176B45 / nền #E5F1EA   ·  trên dải #7FD3A5 / nền #1E3A33
-  Có thể  trên giấy #8C5A0C / nền #FAEFDA   ·  trên dải #E9BC63 / nền #3A2E17
-  Đoán    trên giấy #5A626B / nền #ECEEF0   ·  trên dải #A9B6C0 / nền #26333D
+MÁY ĐÃ QUYẾT  nền #ebf3fc   ray trái #0f6cbd 3px   (bo 4px, ký hiệu bánh răng)
+
+Mức chắc chắn — CHỈ MỘT bộ màu, không còn hai biến thể:
+  Chắc     nền #f1faf1   viền #9fd89f   chữ #0e700e
+  Có thể   nền #fff9f5   viền #fdcfb4   chữ #bc4b09
+  Đoán     nền #fafafa   viền #d1d1d1   chữ #616161
+Cờ / quá hạn nền #fdf3f4   viền #eeacb2   chữ #b10e1c
+Suggestion   dùng chung bộ "Có thể"
+Đề nghị chưa nhận (ghost)  mực #707070, nền trong suốt
 ```
 
-Chữ: sans hệ thống cho dữ liệu, serif cho măng-sét mục. Được đề xuất bộ chữ khác, nhưng phải
-giữ **hai họ chữ có vai trò tách bạch**.
+**Mọi nhãn màu dùng MẪU BA THÀNH PHẦN: nền gần trắng + viền màu + chữ đậm cùng họ.** Đây là quy tắc
+quan trọng nhất — nền đẩy gần trắng để chữ luôn đọc được, **viền** mới làm việc nhận diện màu. Không
+bao giờ chọn một nền màu vừa rồi đi tìm chữ đọc được trên nó.
+
+**Bo góc: 4px mặc định · 6px thẻ · 8px hộp thoại. 8px là TRẦN, không phải sàn.** Đừng bo 12px hay
+16px — cả Fluent (tối đa 8px) lẫn Airtable (mặc định 3px) đều không đi xa hơn, và đi xa hơn là ra
+ngoài vùng hai hệ đó hoạt động.
+
+**Bóng: rất ít, rất nhạt.** Thẻ và dòng việc **không có bóng**, chỉ viền 1px. Bóng chỉ dành cho thứ
+nổi lên trên dòng chảy trang: menu `0 0 2px rgba(0,0,0,.12), 0 2px 4px rgba(0,0,0,.14)`; hộp thoại
+`0 0 2px rgba(0,0,0,.12), 0 8px 16px rgba(0,0,0,.14)`.
+
+**Khoảng cách: 2 · 4 · 6 · 8 · 10 · 12 · 16 · 20 · 24 · 32.** Hai bậc lẻ **6px và 10px là cố ý** —
+Fluent gọi chúng là "Nudge". Đừng snap về lưới 4/8px.
+
+### Cơ chế phân biệt máy-quyết với người-quyết
+
+**Ba tín hiệu chồng nhau. Giữ cả ba, đừng thay bằng cơ chế khác:**
+
+- Dòng **do hệ thống đặt**: nền `#ebf3fc`, ray trái `#0f6cbd` 3px, ký hiệu **bánh răng** dẫn đầu,
+  câu 16px cân nặng **600**
+- Dòng **do người gõ**: nền trắng, kẻ tóc dưới `#e0e0e0`, ký hiệu **bút** dẫn đầu, câu 16px cân
+  nặng **400**
+
+Ba tín hiệu là có chủ đích: bỏ một cái thì hai cái còn lại vẫn giữ được ranh giới.
+
+> **Bản trước dùng một dải nền tối tràn ngang cho dòng máy. Đã bỏ.** Nghiên cứu ba hệ mà người dùng
+> nêu tên cho thấy **không hệ nào nhuộm cả khối** để đánh dấu nội dung máy: Microsoft có token màu AI
+> thật nhưng dùng để *gọi* AI, còn Airtable phân biệt ở **tầng dữ liệu** — máy không bao giờ ghi đè ô
+> người đã sửa. Dải nền tối ồn hơn mọi thứ đang có trên thị trường, và đó chính là điều người dùng
+> thử phản ứng.
+
+**Không dùng icon sparkle.** Quyết định có bằng chứng: khảo sát cho thấy 17% người dùng hiểu icon
+sparkle là "lưu / đánh dấu", vì 73% gắn hình ngôi sao với bookmark.
+
+**Không dùng gradient, và không dùng tím làm màu AI.** Microsoft cũng không phát hành token gradient
+nào — họ chỉ phát hành điểm dừng màu; và tím ở họ chỉ là điểm dừng thứ ba trong dải xanh dương →
+cyan → tím.
+
+### Chữ
+
+**Một họ chữ, không hai.** Serif đã bỏ.
+
+```
+"Segoe UI", "Segoe UI Web (West European)", -apple-system, BlinkMacSystemFont,
+Roboto, "Helvetica Neue", sans-serif
+```
+
+Thang cỡ/dòng của Fluent: `10/14 · 12/16 · 14/20 · 16/22 · 20/28 · 24/32`. Thân bài **14px/20px**,
+câu Next step **16px/22px**. Cân nặng 400 · 500 · 600. Số luôn `tabular-nums`.
+
+> **Ràng buộc tiếng Việt — đã kiểm bằng phép đo, không phải bằng niềm tin.** Segoe UI có đủ 90/90
+> glyph khối `U+1EA0–U+1EF9`, kiểm bằng cách đọc bảng `cmap` của chính file font. Nếu đề xuất webfont
+> để đồng nhất trên mọi máy, chỉ được chọn trong danh sách đã kiểm có subset `vietnamese`: **Inter,
+> Be Vietnam Pro, IBM Plex Sans, Public Sans, Noto Sans, Roboto**. **Lato thì KHÔNG** — nó chỉ có
+> `latin` + `latin-ext`, và `latin-ext` không đủ cho chữ chồng dấu (ế ộ ữ ẳ ợ ẵ).
 
 ## Ràng buộc cứng
 
@@ -266,7 +324,23 @@ tuyển kỹ sư quy mô lớn — giữ nguyên ngôn ngữ gốc của tin, c�
 
 ## Việc của người sản xuất
 
-Hướng thị giác **đã chốt**, đừng đề xuất lại. Việc cần làm:
+**Stack đã chốt: React cộng Fluent UI v9.** Dựng bằng thư viện thật, đừng dựng lại bằng CSS thuần.
+
+```
+@fluentui/react-components  9.74.6    @fluentui/react-icons  2.0.337
+```
+
+- Bọc ứng dụng trong `<FluentProvider theme={webLightTheme}>`. **Không cần theme tuỳ biến** — mọi
+  màu trong `DESIGN.md` đều là token chuẩn của `webLightTheme`, kể cả màu dòng máy (nó chỉ là
+  `colorBrandBackground2` cộng `colorBrandStroke1`)
+- Ba component gánh ba chỗ nặng nhất, dùng của thư viện chứ đừng tự viết: **`DataGrid`** cho danh
+  sách việc và Opportunity · **`Tag`** cho nhãn Stage · **`Badge`** cho Mức chắc chắn và cờ
+- Style bằng `makeStyles` cộng `tokens.<tên>`, không viết hex trực tiếp
+- **Đừng cài `@fluentui/tokens` riêng** — gói đó vẫn là `1.0.0-alpha.24`; `tokens` đã có sẵn trong
+  `react-components`
+
+`DESIGN.md` đính kèm là **hợp đồng**, không phải gợi ý. Đừng đề xuất bảng màu khác, đừng chế thang bo
+góc khác, đừng thêm gradient. Việc cần làm:
 
 1. **Một nguyên mẫu bấm được**, không phải năm ảnh tĩnh. Khung `S0` bao bốn bề mặt `S1` `S2` `S3`
    `S8`, nối với nhau bằng đúng các lối vào đã ghi ở mục *Màn hình cần thiết kế*
@@ -280,7 +354,9 @@ Hướng thị giác **đã chốt**, đừng đề xuất lại. Việc cần l
 3. **Trạng thái, không chỉ bố cục.** Mỗi bề mặt cần bốn trạng thái: rỗng · đang tải · lỗi một phần ·
    AI tắt. Khung `S0` cần thêm trạng thái **mất kết nối**: dải *"chưa lưu được, thử lại"*, và
    **giữ nguyên thứ người vừa gõ**
-4. Sinh `DESIGN.md` theo sườn spec của Google Labs — frontmatter token cộng thân bài
+4. **Dùng đúng token trong `DESIGN.md`**, không sinh lớp token mới. Nếu buộc phải lệch khỏi nó ở chỗ
+   nào thì **nói thẳng lệch chỗ nào và vì sao** — một danh sách ngắn các chỗ lệch có giá trị hơn một
+   bản đẹp mà không ai biết nó đã đổi gì
 5. Nói rõ **mỗi màn hình minh hoạ mục nào** của hai sườn, để người đọc sau biết đối chiếu ở đâu
 
 ## Điều **không** cần làm

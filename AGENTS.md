@@ -1,12 +1,13 @@
 <!-- bmad:context -->
-<!-- Xác minh 2026-08-14 trên 91636f3 cộng phần chưa commit. Do bmad-project-context quản lý; sửa bên trong khối sẽ bị ghi đè khi refresh. Muốn giữ gì thì để ngoài cặp marker. -->
+<!-- Xác minh 2026-08-14 trên a5e30ea cộng phần chưa commit. Do bmad-project-context quản lý; sửa bên trong khối sẽ bị ghi đè khi refresh. Muốn giữ gì thì để ngoài cặp marker. -->
 
 ## crm-hackathon-workspace
 
 Repo của hackathon CRM, thi ngày 2026-08-15. Chứa cách đội làm việc — bản cài BMad Method, các
 file nối tri thức BABOK, và skill bù chỗ BMad thiếu — cùng mã sản phẩm CRM sẽ nằm ở `src/` khi
-stack được chốt; hiện `src/` chưa tồn tại. Ba bước đầu của luồng đã chạy xong, artifact ở
-`_bmad-output/planning-artifacts/`; bước kế là kiến trúc. Đề bài và phân tích ở `docs/Đề bài/`.
+stack được chốt. Bốn bước đầu của luồng đã chạy xong, artifact ở
+`_bmad-output/planning-artifacts/`; `src/` mới có `ontology/`, chưa có mã chạy được. Đề bài và
+phân tích ở `docs/Đề bài/`.
 
 ## Policy
 
@@ -40,13 +41,18 @@ stack được chốt; hiện `src/` chưa tồn tại. Ba bước đầu của 
   trong kiểm thử. Cả thư mục `docs/Đề bài/` là nguồn yêu cầu gốc — bóc từ đây trước khi tự nghĩ.
 - Skill nào chạy ở bước nào, và nó nuôi cột chấm điểm nào: `README.md` mục *Luồng phát triển*.
   Bảng lệnh thô ở `_bmad/bmm/module-help.csv`.
-- Ba bước đã chạy, artifact dùng làm đầu vào cho bước sau: brief ở
+- Kiến trúc đã chốt, và nó là thứ phải đọc trước khi viết dòng mã đầu tiên trong `src/`:
+  `…/architecture/architecture-crm-hackathon-2026-08-14/ARCHITECTURE-SPINE.md` — 22 bất biến
+  `AD-1`…`AD-22`, bảng Stack có phiên bản ghim, sổ đăng ký Capability đóng. Ma trận quyết định có
+  trọng số nằm cạnh; `src/ontology/crm.ontology.md` là từ vựng chung. Sườn là nơi duy nhất ghi
+  đúng chiều phụ thuộc giữa các tầng.
+- Bốn bước đã chạy, artifact dùng làm đầu vào cho bước sau: brief ở
   `_bmad-output/planning-artifacts/briefs/brief-crm-hackathon-2026-08-14/`, PRD ở `…/prds/…/prd.md`
   (51 FR, mỗi FR mang nhãn ưu tiên suy từ `T-1`…`T-10`), UX ở `…/ux-designs/…/` gồm `DESIGN.md` và
   `EXPERIENCE.md`.
 - Nguyên mẫu do Claude Design sinh ở `…/ux-designs/…/prototype/`. Mở `WhyNowPrototype.dc.html`
-  bằng trình duyệt cho màn hình trắng — nó thiếu React; dùng `WhyNowPrototype.local.html`, và đọc
-  `prototype/README.md` trước khi dựng lại thứ gì từ nó.
+  bằng trình duyệt cho màn hình trắng — nó thiếu React. Nguyên mẫu dựng theo lớp token **cũ**, nay
+  chỉ còn giá trị tham khảo về luồng; lớp token hiện tại là Fluent 2, xem `DESIGN.md`.
 - Thứ tự làm việc ngày thi, và vì sao: `docs/chien-luoc-ngay-thi.md`.
 - Deployment không có bước nào trong BMad. Mọi việc thuộc cột đó đi qua `skill:hackathon-deploy` —
   nó nói bốn skill mượn dùng phần nào, bỏ phần nào.
@@ -56,15 +62,22 @@ stack được chốt; hiện `src/` chưa tồn tại. Ba bước đầu của 
 - CRM thật của HBLAB chạy trên Airtable: `docs/CRM clone từ Airtable/` — dùng khi cần một con số đã
   có người trả giá, thay vì tự suy ra.
 - Bản ghi quyết định chung của nửa thực thi sẽ nằm ở
-  `_bmad-output/implementation-artifacts/.memlog.md`. Ba override của đội khai nó, nhưng chưa bước
-  nào chạy để tạo — thư mục hiện chưa tồn tại. Ghi vào đó ngay khi chốt một quyết định, không dồn
-  tới cuối.
+  `_bmad-output/implementation-artifacts/.memlog.md`. Ghi vào đó ngay khi chốt một quyết định,
+  không dồn tới cuối.
 - Việc phải làm trước và trong ngày thi: `CHECKLIST.md`.
 
 ## Running and verifying
 
-- TODO — chưa chốt stack cho `src/`. Chưa có lệnh build, test hay run nào chạy được mã sản phẩm.
-  Stack là đầu ra của bước kiến trúc; chốt xong thì bổ sung lệnh thật vào đây và vào `README.md`.
+- TODO — stack đã chốt ở sườn kiến trúc nhưng `package.json` chưa tồn tại, nên chưa lệnh nào chạy
+  được. Khi dựng, hai chỗ sườn đã cảnh báo và dễ làm sai: bản production chạy `npm ci` →
+  `npm run build` → `npm start`, **không `npm run dev`** (đề bài cấm dev server); và script test là
+  `vitest run`, **không `vitest`** — bản thiếu `run` chạy chế độ theo dõi, không bao giờ trả mã
+  thoát, giám khảo gõ `npm test` sẽ thấy treo.
+- Lớp AI xác thực bằng **đăng nhập subscription**, không phải `ANTHROPIC_API_KEY` — mặc định đặt
+  biến đó là đi ngược quyết định đã chốt. Đường lui sang API key có sẵn, nhưng là đổi quyết định
+  chứ không phải vá.
+- Ghim model cho lớp AI đặt ở **ba** biến, không phải một; bảng ở `AD-15` của sườn. Đặt mỗi
+  `options.model` thì subagent và các lệnh gọi nền vẫn thoát ra model khác.
 - Sửa tài liệu nhiều dòng thì viết script ra scratchpad rồi chạy, đừng dùng heredoc của Bash —
   nội dung tiếng Việt lẫn backtick và ký tự xuống dòng làm hỏng nó, đã hỏng hai lần.
 - Log Claude Code phải chảy về Grafana trước mọi việc khác, không để cuối (`D37`) — thể lệ ghi

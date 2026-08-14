@@ -7,15 +7,19 @@ updated: 2026-08-14
 
 # EXPERIENCE.md — Why Now
 
-Sườn này sở hữu **sản phẩm chạy thế nào**. Sườn chị em `DESIGN.md` sở hữu **nó trông thế nào**, và
-đang chờ kết quả từ Claude Design (xem `design-handoff.md`).
+Sườn này sở hữu **sản phẩm chạy thế nào**. Sườn chị em `DESIGN.md` sở hữu **nó trông thế nào**.
 
-> **Trạng thái:** `DESIGN.md` đã có (14/08), rút từ lớp token của design system do Claude Design
-> sinh — xem [`prototype/`](prototype/). Chỗ nào tệp này gọi tên **vai trò** — *dải máy*, *ray*,
-> *giấy*, *mực phụ* — thì token tương ứng nằm ở `tokens/semantic.css`, nơi đúng những tên đó thành
-> `--surface-machine`, `--machine-rail`, `--surface-paper`, `--text-muted`.
+> **Trạng thái:** `DESIGN.md` đã viết lại (14/08) trên lớp token **Microsoft Fluent 2**, sau khi
+> người dùng thử phản hồi rằng bản trước trông cũ. Chỗ nào tệp này gọi tên **vai trò** — *dòng máy*,
+> *ray*, *giấy*, *mực phụ* — thì giá trị tương ứng nằm ở bảng token đầu `DESIGN.md`, kèm tên Fluent
+> để map thẳng.
 >
-> **Hai sườn thắng mọi mock khi có mâu thuẫn** — kể cả nguyên mẫu của Claude Design.
+> **Cơ chế phân biệt máy/người đã đổi hình dạng, không đổi ý tưởng.** Dải nền tối tràn ngang đã bỏ;
+> thay bằng nền xanh rất nhạt cộng ray trái cộng cân nặng chữ. Mọi câu trong tệp này nói *dòng máy*
+> vẫn đúng — chỉ hình dạng của nó khác.
+>
+> **Hai sườn thắng mọi mock khi có mâu thuẫn.** Nguyên mẫu ở [`prototype/`](prototype/) dựng theo
+> lớp token **cũ** và nay chỉ còn giá trị tham khảo về luồng, không còn về thị giác.
 
 ## Nền
 
@@ -83,8 +87,8 @@ lại bằng máy mỗi lần thêm FR — bốn FR từng rơi ra khỏi bảng
 
 | Thành phần | Hành vi | Nguồn |
 |---|---|---|
-| **Ô Next step** | Hai nguồn, phân biệt được không cần đọc: *do máy đặt* nằm trên dải máy kèm câu trích và nút Hoàn tác; *do người gõ* nằm trên giấy. Máy **không bao giờ** ghi đè ô người gõ, kể cả khi đã quá hạn | `FR-30` `FR-34` |
-| **Nhãn Mức chắc chắn** | Ba mức, mỗi mức **một ký hiệu cộng một màu**, không bao giờ chỉ màu. Có hai biến thể màu: trên giấy và trên dải máy | `FR-16` `D24` |
+| **Ô Next step** | Hai nguồn, phân biệt được không cần đọc: *do máy đặt* nằm trên dòng máy kèm câu trích và nút Hoàn tác; *do người gõ* nằm trên giấy. Máy **không bao giờ** ghi đè ô người gõ, kể cả khi đã quá hạn — đây cũng đúng là cách Airtable giải bài toán này, ở tầng dữ liệu chứ không phải tầng thị giác | `FR-30` `FR-34` |
+| **Nhãn Mức chắc chắn** | Ba mức, mỗi mức **một ký hiệu cộng một màu**, không bao giờ chỉ màu. **Một** bộ màu duy nhất — nền tối đã bỏ nên không còn cần biến thể thứ hai. Ba mức là chữ, **không bao giờ là phần trăm**: cả Google PAIR lẫn Microsoft HAX đều chống chỉ báo độ tin cậy bằng số | `FR-16` `D24` |
 | **Thẻ Suggestion** | Hiện đủ **bốn thứ tại chỗ**: *hiện tại → đề nghị* · câu trích · Mức chắc chắn · một dòng hệ quả nếu tin này sai. Không bấm sang màn khác | `FR-19` |
 | **Ba nút quyết** | Duyệt · Sửa-rồi-duyệt · Bỏ. **Số thao tác để Bỏ ≤ số thao tác để Duyệt** — kiểm được, không phải nguyện vọng. Bỏ kèm chọn một lý do trong năm | `FR-20` |
 | **Nút Hoàn tác** | **Một cú bấm**, đưa về đúng giá trị trước khi máy chạm. Hiện rõ **còn bao lâu**. Người sửa tay ô đó thì nút **biến mất ngay**, kể cả khi cửa sổ chưa hết | `FR-32` |
@@ -143,7 +147,7 @@ tối thiểu, không phải mức mong muốn.
 | Không dùng **màu đơn độc** để truyền thông tin | Mọi Mức chắc chắn, mọi cờ cảnh báo, mọi ranh giới máy/người đều có **ký hiệu hoặc chữ** đi kèm |
 | Bàn phím tới được mọi hành động bắt buộc | Ba nút quyết ở `S2`, Hoàn tác, đổi Stage — tất cả tới được không cần chuột |
 | Tiêu điểm nhìn thấy được | Viền tiêu điểm không bị `outline: none` ở bất kỳ đâu |
-| Tương phản chữ trên **dải máy tối** | Đây là chỗ rủi ro cao nhất của hướng C — chữ phụ trên nền tối phải đạt ≥ 4.5:1 |
+| Tương phản chữ trên **mọi nền màu nhạt** | Nhãn dùng mẫu ba thành phần: nền gần trắng + viền màu + chữ đậm. Chữ phụ phải đạt ≥ 4.5:1. Rủi ro đã giảm hẳn so với bản trước — nền tối đã biến mất khỏi hệ |
 | Ngôn ngữ của trang khai đúng | `lang="vi"`, và đoạn trích giữ ngôn ngữ gốc phải khai `lang` riêng |
 
 ## NFR trải nghiệm
@@ -176,7 +180,7 @@ Linh là BD phụ trách thị trường JP, đã đăng nhập từ phiên trư
 **Luồng chính**
 
 1. Mở ứng dụng → `S1` Today là màn hình mặc định
-2. Dòng đầu nằm trên **dải máy**: *"Sakura Logistics · đề xuất dedicated team"*, hạn **hôm nay**
+2. Dòng đầu nằm trên **dòng máy**: *"Sakura Logistics · đề xuất dedicated team"*, hạn **hôm nay**
 3. Ngay dưới câu việc là **câu trích nguyên văn** và nhãn **Chắc**
 4. Linh bấm câu trích → `S10` mở **đúng đoạn**, có đánh dấu
 5. **Đỉnh:** cô đọc hai giây, tin, đóng lại và gọi khách. **Cô không phải quyết định gì** — việc đã
