@@ -21,7 +21,7 @@ import type { BoundCapability, CapName, RegistryEntry } from "./types";
 import { decide } from "@/autonomy/gate";
 import { collectGateContext } from "./gate-context";
 import { GateDenied } from "./errors";
-import { entries } from "./caps/account";
+import { ALL_ENTRIES as entries } from "./caps";
 
 export type Registry = {
   /// `AD-CP-1` — trả CLOSURE đã gắn `actor`, không trả `entry.fn` trần.
