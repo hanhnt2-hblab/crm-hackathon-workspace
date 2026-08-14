@@ -8,7 +8,10 @@ import type { Actor } from "@/core/actor";
 /// `AD-CR-7`: lõi TỰ mở giao dịch, nên không nhận `tx` từ ngoài.
 import { tx } from "@/core/db";
 import type { CoreContext } from "@/core/context";
-import { INITIAL_STAGE } from "./stage";
+import {
+  INITIAL_STAGE, changeStage, resumeOrReopen, asRunningStage, type Stage,
+} from "./stage";
+import { appendEntryWithin } from "@/core/timeline";
 import { isHuman } from "@/core/actor";
 import { BusinessRuleError } from "@/core/errors";
 
@@ -120,4 +123,92 @@ export function setLossReasons(_actor: Actor, _id: string, _v: {
   reasons: readonly string[]; note: string | null;
 }, _ctx: CoreContext): Promise<void> {
   throw new Error(CHUA);
+}
+
+/// `C5-4` · `AD-CR-1` · `AD-CR-7` — đổi Giai đoạn, sáu bước trong MỘT giao dịch.
+///
+/// Máy trạng thái thuần nằm ở `./stage.ts` và là nơi DUY NHẤT đọc bảng §5.1.
+/// Hàm này chỉ nối nó vào tầng lưu trữ: nạp trạng thái, hỏi hàm thuần, ghi.
+///
+/// Thứ tự theo `AD-CR-7`, và thứ tự là quyết định:
+///   ① ghi chính
+///   ② trường dẫn xuất `latest_open_stage` trong CÙNG câu `UPDATE` — tách ra
+///      thành hai câu là có một khoảnh khắc hàng vi phạm `CHECK ①`
+///   ⑤ mục Dòng thời gian — SAU ghi chính, để không kể một chuyện bị cuộn lại
+///   ⑥ hoàn tất ghi vết — cuối, vì nó là bên duy nhất thấy đủ giá trị cũ và mới
+///
+/// Bước ③ (hệ quả dây chuyền) và ④ (cờ `BR-B`) chưa áp dụng ở đây: cờ `BR-B`
+/// tính lúc đọc, không có cột nào để ghi.
+export async function changeOpportunityStage(
+  actor: Actor,
+  id: string,
+  to: Stage,
+  ctx: CoreContext,
+): Promise<void> {
+  await tx(async (t) => {
+    const before = await t.opportunity.findUnique({
+      where: { id },
+      select: { stage: true, latestOpenStage: true, name: true },
+    });
+    if (!before) throw new Error("Cơ hội không tồn tại.");
+
+    // Hàm THUẦN quyết định. Nó ném `NFR-14` cho máy và `STATE_*` cho chuyển
+    // tiếp ngoài bảng — cả hai cuộn giao dịch lại, đúng ý.
+    const next = changeStage(
+      actor,
+      { stage: before.stage, latestOpenStage: asRunningStage(before.latestOpenStage) },
+      to,
+    );
+
+    // ① và ② trong CÙNG một câu.
+    await t.opportunity.update({
+      where: { id },
+      data: { stage: next.stage, latestOpenStage: next.latestOpenStage },
+    });
+
+    // ⑤ — §5.1 đòi MỌI dòng ghi một mục Dòng thời gian.
+    await appendEntryWithin(t, actor, {
+      accountId: (await t.opportunity.findUniqueOrThrow({
+        where: { id },
+        select: { accountId: true },
+      })).accountId,
+      content: `Giai đoạn: ${before.stage} → ${next.stage}`,
+      occurredAt: new Date(),
+    });
+
+    // ⑥
+    await ctx.audit.complete(t, ctx.auditId, "ok", { before, after: next });
+  });
+}
+
+/// `C5-4` — quay lại từ `tam_dung`, hoặc Quản trị mở lại Cơ hội đã đóng.
+/// Đích KHÔNG do người gọi chọn (`AD-CR-1` dòng 5 và 7).
+export async function resumeOrReopenOpportunity(
+  actor: Actor,
+  id: string,
+  ctx: CoreContext,
+): Promise<void> {
+  await tx(async (t) => {
+    const before = await t.opportunity.findUnique({
+      where: { id },
+      select: { stage: true, latestOpenStage: true, accountId: true },
+    });
+    if (!before) throw new Error("Cơ hội không tồn tại.");
+
+    const next = resumeOrReopen(actor, {
+      stage: before.stage,
+      latestOpenStage: asRunningStage(before.latestOpenStage),
+    });
+
+    await t.opportunity.update({
+      where: { id },
+      data: { stage: next.stage, latestOpenStage: next.latestOpenStage },
+    });
+    await appendEntryWithin(t, actor, {
+      accountId: before.accountId,
+      content: `Mở lại: ${before.stage} → ${next.stage}`,
+      occurredAt: new Date(),
+    });
+    await ctx.audit.complete(t, ctx.auditId, "ok", { before, after: next });
+  });
 }

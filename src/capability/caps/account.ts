@@ -8,7 +8,10 @@ import { z } from "zod";
 import { defineCap, type RegistryEntry } from "../types";
 import { createCompany } from "@/core/company";
 import { createContact } from "@/core/contact";
-import { createOpportunity } from "@/core/opportunity";
+import {
+  createOpportunity, changeOpportunityStage, resumeOrReopenOpportunity,
+} from "@/core/opportunity";
+import { appendTimelineEntry } from "@/core/timeline";
 
 /// ⚠ MỌI mục ở đây là `allowedActors: ["human", "seed"]` — KHÔNG có `"system"`.
 ///
@@ -109,10 +112,100 @@ export const createOpportunityCap = defineCap({
   writesTables: ["opportunity"],
 });
 
+export const changeStageCap = defineCap({
+  name: "changeOpportunityStage",
+  /// ⚠ CHỈ `human`. Không `seed`, không `system`. `NFR-14` là ranh giới tuyệt
+  /// đối, và bộ gieo dựng Cơ hội ở `tiep_can` bằng đường TẠO — nó không cần
+  /// đường chuyển tiếp, nên cho nó vào đây là mở một cửa không ai dùng.
+  allowedActors: ["human"],
+  allowedRoles: [],
+  touches: ["NFR-14"],
+  selfLimiting: false,
+  zone: "ho_so_chinh_thuc",
+  risk: "high",
+  requiresSignalSource: false,
+  cascades: ["timeline_entry"],
+  kind: "write",
+  params: z.object({
+    id: z.uuid(),
+    to: z.enum([
+      "tiep_can", "du_dieu_kien", "soan_de_xuat", "thuong_luong",
+      "thang", "thua", "tam_dung",
+    ]),
+  }),
+  dirtyFlags: ["BR-B1", "BR-B2", "BR-B3", "BR-B4"],
+  exposeToMcp: false,
+  fn: async (actor, p, ctx) => changeOpportunityStage(actor, p.id, p.to, ctx),
+  snapshot: null,
+  writesTables: ["opportunity", "timeline_entry"],
+});
+
+export const resumeOpportunityCap = defineCap({
+  name: "resumeOrReopenOpportunity",
+  allowedActors: ["human"],
+  /// ⚠ RỖNG, không phải `["admin"]`. `D43` giới hạn việc mở lại Cơ hội ĐÃ ĐÓNG
+  /// cho Quản trị, nhưng cùng capability này cũng phục vụ đường `tam_dung` →
+  /// đang chạy mà Sales làm được (§6). Khai `["admin"]` ở đây là chặn oan Sales
+  /// trên nửa đường hợp lệ. Phân biệt hai đường cần trạng thái hiện tại của Cơ
+  /// hội, mà Cổng cố ý KHÔNG đọc dữ liệu (`AD-GT-1`).
+  /// ⚠ Hệ quả: `D43` hiện CHƯA được cưỡng chế ở đâu. Đã ghi `deferred-work.md`.
+  allowedRoles: [],
+  touches: ["NFR-14"],
+  selfLimiting: false,
+  zone: "ho_so_chinh_thuc",
+  risk: "high",
+  requiresSignalSource: false,
+  cascades: ["timeline_entry"],
+  kind: "write",
+  params: z.object({ id: z.uuid() }),
+  dirtyFlags: ["BR-B1", "BR-B4"],
+  exposeToMcp: false,
+  fn: async (actor, p, ctx) => resumeOrReopenOpportunity(actor, p.id, ctx),
+  snapshot: null,
+  writesTables: ["opportunity", "timeline_entry"],
+});
+
+export const appendTimelineEntryCap = defineCap({
+  name: "appendTimelineEntry",
+  /// ⚠ MỤC DUY NHẤT cho `system` chạm được. `§4/nhóm 5` cho máy ghi Hoạt động
+  /// vào Dòng thời gian ở mức TỰ DO, và `NFR-19` chỉ cấm máy SỬA mục người tạo
+  /// — thêm mục mới là việc khác. `added_by` suy từ `actor` ở lõi, nên máy
+  /// không giả được nhãn của người.
+  allowedActors: ["human", "system", "seed"],
+  allowedRoles: [],
+  touches: [],
+  selfLimiting: false,
+  zone: "tu_do",
+  risk: "low",
+  requiresSignalSource: false,
+  cascades: [],
+  kind: "write",
+  params: z.object({
+    accountId: z.uuid(),
+    content: z.string().min(1),
+    /// `z.iso.datetime()`, KHÔNG `z.date()` — Zod 4 ném lúc DỰNG server.
+    occurredAt: z.iso.datetime(),
+    sourceSignalId: z.uuid().nullable().optional(),
+  }),
+  dirtyFlags: [],
+  exposeToMcp: true,
+  fn: async (actor, p, ctx) =>
+    appendTimelineEntry(
+      actor,
+      { ...p, occurredAt: new Date(p.occurredAt) },
+      ctx,
+    ),
+  snapshot: null,
+  writesTables: ["timeline_entry"],
+});
+
 /// Xuất DUY NHẤT một hằng số `entries` (`AD-CP-1`). Sổ đăng ký nạp từ đây, và
 /// không có đường nào khác thêm mục — nên `defineCap` thật sự là cửa bắt buộc.
 export const entries: readonly RegistryEntry[] = [
   createCompanyCap,
   createContactCap,
   createOpportunityCap,
+  changeStageCap,
+  resumeOpportunityCap,
+  appendTimelineEntryCap,
 ] as unknown as readonly RegistryEntry[];

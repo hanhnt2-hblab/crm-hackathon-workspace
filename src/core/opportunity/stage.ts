@@ -47,9 +47,10 @@ export type RunningStage = (typeof RUNNING_STAGES)[number];
 /// khác (§5.1 dòng đầu, `FR-3`). Hằng số chứ không phải chữ rời rạc, để đường
 /// tạo Cơ hội không có chỗ đoán.
 ///
-/// ⚠ Hằng số này CHƯA có người gọi — `createOpportunity` chưa tồn tại. `D44`
-/// hiện chưa được cưỡng chế ở đâu; lược đồ cũng không có `@default`. Việc đó
-/// thuộc đường tạo Cơ hội, không thuộc tệp này.
+/// `createOpportunity` dùng nó và KHÔNG nhận tham số giai đoạn, nên `D44` được
+/// cưỡng chế bằng chữ ký chứ không bằng lời dặn. Lược đồ không có `@default`:
+/// một `@default` sẽ cho phép `INSERT` bỏ qua cột và vẫn hợp lệ, tức mở lại
+/// đúng cửa mà chữ ký vừa đóng.
 export const INITIAL_STAGE: RunningStage = "tiep_can";
 
 /// Vị từ THU HẸP KIỂU (`s is RunningStage`), không phải trả `boolean` suông.
@@ -98,6 +99,22 @@ export function canTransition(from: Stage, to: Stage): boolean {
 /// lại — `canTransition` bác đúng đường đó.
 export function canResume(from: Stage): boolean {
   return from === "tam_dung" || isClosed(from);
+}
+
+/// Thu hẹp ở BIÊN ĐỌC. Prisma sinh kiểu cột `latest_open_stage` là cả bảy giá
+/// trị `Stage`, còn `CHECK opp_latest_open_stage_running` chỉ cho bốn — tức kiểu
+/// của Prisma LỎNG HƠN cột thật. Ép kiểu ở chỗ đọc là giấu đi khoảng lệch đó;
+/// hàm này KIỂM rồi mới thu hẹp, nên một hàng hỏng nổ thành mã đọc được thay vì
+/// đi tiếp và hỏng ở một chỗ xa hơn.
+export function asRunningStage(s: Stage | null): RunningStage | null {
+  if (s === null) return null;
+  if (!isRunning(s)) {
+    throw new BusinessRuleError(
+      "STATE_CLOSED_NO_LATEST_OPEN",
+      `Giai đoạn mở gần nhất là \`${s}\`, phải là một giai đoạn đang chạy.`,
+    );
+  }
+  return s;
 }
 
 export type StageChange = {

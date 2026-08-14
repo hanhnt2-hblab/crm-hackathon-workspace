@@ -30,3 +30,17 @@
       hay bất kỳ gói bare nào vẫn nhập giá trị vào `src/autonomy` không cảnh báo.
     · `lossReasons: readonly string[]` trong khi `D27` nói enum dạng mảng; CSDL là `TEXT[]`, nên
       khai union đóng ở lõi là lớp canh duy nhất có thể có.
+
+- source_spec: `src/capability/caps/account.ts`
+  summary: `D43` — *mở lại Cơ hội đã đóng chỉ vai Quản trị* hiện CHƯA được cưỡng chế ở đâu.
+  evidence: |
+    `resumeOrReopenOpportunity` phục vụ HAI đường qua cùng một capability: `tam_dung` → đang chạy
+    (Sales làm được, §6) và `thang`/`thua` → đang chạy (chỉ Quản trị, `D43`/`A5`). Khai
+    `allowedRoles: ["admin"]` chặn oan Sales trên đường thứ nhất; khai rỗng thì `D43` hở.
+    Phân biệt hai đường cần TRẠNG THÁI HIỆN TẠI của Cơ hội, mà Cổng cố ý không đọc dữ liệu
+    (`AD-GT-1` — sáu trường, toàn là sự kiện, không có tra cứu bản ghi).
+    `AD-CR-10` lại cấm lõi tự canh vai. Nên chỗ đúng là **tách làm hai capability**:
+    `resumeFromPause` (`allowedRoles: []`) và `reopenClosedOpportunity`
+    (`allowedRoles: ["admin"]`), mỗi cái tự kiểm trạng thái đầu vào ở lõi bằng `canResume` cộng
+    `isClosed`. Rủi ro nghiệm thu: PRD §5.2 ghi **không** — không điểm `T` nào kiểm việc mở lại
+    Cơ hội đã đóng.

@@ -38,6 +38,7 @@ const CORE_FUNCTIONS_ALLOWED = new Set([
   "createOpportunity", "updateOpportunity", "setQualificationSignals", "setLossReasons",
   "createActivity",
   "appendTimelineEntry", "readTimeline",
+  "changeOpportunityStage", "resumeOrReopenOpportunity",
   "createSignal", "markSignalUnhelpful",
   "createSuggestion", "decideSuggestion",
   "setNextAction", "fillNextActionIfUnchanged", "undoSystemNextAction",
@@ -63,13 +64,30 @@ describe("T-10b · NFR-17 — không mục nào xoá dữ liệu do người t�
     expect(viPham).toEqual([]);
   });
 
-  it("không mục nào khai ghi vào bảng `signal` hay `timeline_entry`", () => {
-    // Hai bảng này là BẰNG CHỨNG. `signal` không xoá được kể cả bởi người, và
-    // `timeline_entry` do người tạo thì máy chỉ được THÊM cạnh, không sửa.
+  it("không mục nào khai ghi vào `audit_record`", () => {
+    // ⚠ Bản đầu của phép kiểm này cấm mọi mục ghi `timeline_entry` — SAI.
+    // `§4/nhóm 5` cho máy THÊM mục Dòng thời gian ở mức tự do; `NFR-19` chỉ cấm
+    // máy SỬA mục người tạo. Cấm cả hai là chặn oan đúng thứ nhóm 5 đòi phải có.
+    //
+    // Bảng thật sự không capability nào được chạm là `audit_record`: ghi vết là
+    // BẰNG CHỨNG, và một capability ghi được vào đó thì nó nguỵ tạo được bằng
+    // chứng cho chính mình. Lõi ghi nó, qua `AuditSink`, không qua sổ đăng ký.
     const viPham = ALL_ENTRIES.filter((e) =>
-      (e.writesTables ?? []).some((t) => t === "signal" || t === "timeline_entry"),
+      (e.writesTables ?? []).some((t) => t === "audit_record"),
     ).map((e) => e.name);
     expect(viPham).toEqual([]);
+  });
+
+  it("mục nào ghi `timeline_entry` thì chỉ được THÊM, không sửa", () => {
+    // Vế cưỡng chế nằm ở phép kiểm nhập `updateTimelineEntry` bên dưới. Ở đây
+    // chỉ khẳng định danh sách các mục chạm bảng đó là danh sách ĐÃ BIẾT — một
+    // mục mới chạm nó phải được đọc bằng mắt trước khi qua.
+    const chamTimeline = ALL_ENTRIES.filter((e) =>
+      (e.writesTables ?? []).includes("timeline_entry"),
+    ).map((e) => e.name).sort();
+    expect(chamTimeline).toEqual([
+      "appendTimelineEntry", "changeOpportunityStage", "resumeOrReopenOpportunity",
+    ]);
   });
 
   it("tên mục không chứa động từ xoá", () => {
@@ -143,13 +161,24 @@ describe("T-10b — tác nhân MÁY không cầm được mục nào của vùng
     }
   });
 
-  it("`loadCapability` với tác nhân máy bị TỪ CHỐI trên mọi mục", async () => {
-    for (const e of ALL_ENTRIES) {
+  it("máy bị TỪ CHỐI trên mọi mục KHÔNG khai `system`", async () => {
+    const camMay = ALL_ENTRIES.filter((e) => !e.allowedActors.includes("system"));
+    expect(camMay.length).toBeGreaterThan(0);
+    for (const e of camMay) {
       await expect(registry.loadCapability(e.name, machine)).rejects.toMatchObject({
         name: "GateDenied",
         reason: "actor_not_allowed",
       });
     }
+  });
+
+  it("mục DUY NHẤT máy cầm được là thêm mục Dòng thời gian (§4/nhóm 5)", async () => {
+    const chomay = ALL_ENTRIES.filter((e) => e.allowedActors.includes("system"));
+    expect(chomay.map((e) => e.name)).toEqual(["appendTimelineEntry"]);
+    // Và nó phải cầm được thật — `F38`: chặn oan là hỏng cả nhóm 5.
+    await expect(
+      registry.loadCapability("appendTimelineEntry", machine),
+    ).resolves.toBeTypeOf("function");
   });
 
   it("tên không có trong sổ trả `unknown_capability`, không phải lỗi khác", async () => {
@@ -159,10 +188,13 @@ describe("T-10b — tác nhân MÁY không cầm được mục nào của vùng
   });
 
   it("bốn danh sách của `AD-CP-1` khớp nội dung sổ", () => {
-    expect(registry.CAP_MACHINE_ALLOWED_GHI).toEqual([]);
+    expect(registry.CAP_MACHINE_ALLOWED_GHI).toEqual(["appendTimelineEntry"]);
+    // Chưa có capability ĐỌC nào — tầng ② chưa tới. Khẳng định rỗng ở đây là
+    // một mốc: khi nó đỏ, nghĩa là đường đọc của máy vừa mở, và phải đọc lại.
     expect(registry.CAP_MACHINE_ALLOWED_DOC).toEqual([]);
+    const chiNguoi = ALL_ENTRIES.filter((e) => !e.allowedActors.includes("system"));
     expect([...registry.CAP_HUMAN_ONLY].sort()).toEqual(
-      ALL_ENTRIES.map((e) => e.name).sort(),
+      chiNguoi.map((e) => e.name).sort(),
     );
   });
 
