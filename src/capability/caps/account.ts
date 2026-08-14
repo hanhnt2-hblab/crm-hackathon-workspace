@@ -6,7 +6,7 @@
 
 import { z } from "zod";
 import { defineCap, type RegistryEntry } from "../types";
-import { createCompany } from "@/core/company";
+import { createCompany, setWatching } from "@/core/company";
 import { createContact } from "@/core/contact";
 import {
   createOpportunity, changeOpportunityStage, resumeFromPause, reopenClosedOpportunity,
@@ -20,6 +20,37 @@ import { appendTimelineEntry } from "@/core/timeline";
 /// `"seed"` có mặt vì bộ gieo đi qua chính đường này (`AD-20`), và bước ② của
 /// `AD-4` đã canh nó bằng hai vế.
 const ACTORS = ["human", "seed"] as const;
+
+/// `FR-47` · `T-8` — bật/tắt Đang theo dõi.
+///
+/// ⚠ Đây là ĐIỀU KIỆN KÍCH HOẠT của cả nhóm 2, và trước 14/8 không có đường
+/// nào để bật nó: bộ gieo để `false`, không capability nào ghi, không bề mặt
+/// nào có nút. Bật AI xong vòng quét vẫn in *"quét 0 Công ty"* mỗi phút — một
+/// hệ thống chết mà nhật ký báo khoẻ.
+///
+/// `allowedActors` KHÔNG có `system`: theo dõi Công ty nào là quyết định kinh
+/// doanh của người. Máy tự bật là máy tự chọn việc cho mình làm, và trần ngân
+/// sách của `AD-11` khi đó canh một tập do chính bên bị canh mở rộng.
+export const setWatchingCap = defineCap({
+  name: "setWatching",
+  allowedActors: ["human", "seed"],
+  allowedRoles: [],
+  touches: [],
+  selfLimiting: false,
+  /// `tu_do`, không `ho_so_chinh_thuc`: `watching` là cờ vận hành, không phải
+  /// một ô hồ sơ mà Gợi ý ghi vào.
+  zone: "tu_do",
+  risk: "low",
+  requiresSignalSource: false,
+  cascades: [],
+  kind: "write",
+  dirtyFlags: [],
+  exposeToMcp: false,
+  snapshot: null,
+  writesTables: ["account"],
+  params: z.object({ accountId: z.uuid(), watching: z.boolean() }),
+  fn: async (actor, p, ctx) => setWatching(actor, p, ctx),
+});
 
 export const createCompanyCap = defineCap({
   name: "createCompany",
@@ -230,6 +261,7 @@ export const appendTimelineEntryCap = defineCap({
 /// Xuất DUY NHẤT một hằng số `entries` (`AD-CP-1`). Sổ đăng ký nạp từ đây, và
 /// không có đường nào khác thêm mục — nên `defineCap` thật sự là cửa bắt buộc.
 export const entries: readonly RegistryEntry[] = [
+  setWatchingCap,
   createCompanyCap,
   createContactCap,
   createOpportunityCap,

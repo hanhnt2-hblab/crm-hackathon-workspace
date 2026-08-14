@@ -19,6 +19,7 @@ import { GateDenied } from "@/capability/errors";
 import { Block } from "../_block";
 import { appRegistry } from "../_registry";
 import { currentSession } from "../_session";
+import { AiSwitch } from "./_ai-switch";
 
 type MetricPair = { numerator: number; denominator: number; ratio: number | null };
 
@@ -35,6 +36,11 @@ export default function AdminPage() {
       <div className="row">
         <h1 className="page-title">Bảng quản trị</h1>
       </div>
+      <Block title="Công tắc AI">
+        <Suspense fallback={<p className="muted">Đang đọc trạng thái…</p>}>
+          <AiSwitchBlock />
+        </Suspense>
+      </Block>
       <Block title="Số đo">
         <Suspense fallback={<p className="muted">Đang tính số đo…</p>}>
           <MetricsBlock />
@@ -42,6 +48,18 @@ export default function AdminPage() {
       </Block>
     </>
   );
+}
+
+/// `T-1` · `T-9` — công tắc phải nằm ở bề mặt, không chỉ ở CSDL.
+///
+/// ⚠ Đọc trạng thái qua `readAiEnabled` chứ không nhận từ `layout.tsx`: hai
+/// cây render là hai lượt đọc, và truyền xuống qua props là dựng một đường dẫn
+/// trạng thái thứ hai có thể trôi khỏi cái đầu.
+async function AiSwitchBlock() {
+  const session = await currentSession();
+  const read = await appRegistry.loadCapability("readAiEnabled", session.actor);
+  const { aiEnabled } = (await read({})) as { aiEnabled: boolean };
+  return <AiSwitch aiEnabled={aiEnabled} />;
 }
 
 async function MetricsBlock() {

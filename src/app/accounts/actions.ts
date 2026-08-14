@@ -39,3 +39,30 @@ export const createCompanyAction = action(async (form): Promise<ActionState> => 
 
   return { ok: true, message: `Đã tạo Công ty ${name}.` };
 });
+
+/// `FR-47` · `T-8` (*"Bật Đang theo dõi cho ba công ty"*) — cờ quyết định Công
+/// ty nào lọt vào vòng quét.
+///
+/// ⚠ Trước 14/8 KHÔNG có đường nào bật nó. Bộ gieo để `false`, không capability
+/// nào ghi, không bề mặt nào có nút — nên bật AI xong nhật ký vẫn in *"quét 0
+/// Công ty"* mỗi phút. Một hệ thống chết mà nhật ký báo khoẻ là hình dạng lỗi
+/// tệ nhất để phát hiện giữa buổi chấm.
+export const toggleWatchingAction = action(async (form): Promise<ActionState> => {
+  const session = await currentSession();
+  const set = await appRegistry.loadCapability("setWatching", session.actor);
+
+  // Trạng thái ĐÍCH đi từ biểu mẫu, không tính bằng cách đọc-rồi-đảo ở đây.
+  // Đọc-rồi-đảo mở một cửa sổ đua: hai lần bấm sát nhau cùng đọc `false` và
+  // cùng ghi `true`, nên cú bấm thứ hai im lặng không làm gì.
+  const watching = text(form, "watching") === "true";
+  await set({ accountId: text(form, "id"), watching });
+
+  revalidatePath("/accounts");
+  revalidatePath("/");
+  return {
+    ok: true,
+    message: watching
+      ? "Đã bật Đang theo dõi — Công ty này vào vòng quét kế tiếp."
+      : "Đã tắt Đang theo dõi.",
+  };
+});

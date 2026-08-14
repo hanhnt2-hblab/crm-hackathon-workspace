@@ -58,6 +58,14 @@ const CORE_FUNCTIONS_ALLOWED = new Set([
   // `AD-11` điều kiện dừng 4 — van ngân sách. Hai chiều, hai hàm, hai quyền:
   // máy tắt được, máy KHÔNG bật lại được (xem phép kiểm riêng bên dưới).
   "disableAi", "enableAi",
+  // `FR-47` · `T-8` — cờ Đang theo dõi, tức ĐIỀU KIỆN KÍCH HOẠT của cả nhóm 2.
+  //
+  // Ghi vào bảng `account` nhưng KHÔNG chạm ô hồ sơ nào: `watching` không nằm
+  // trong tám giá trị của `enum TargetField`, nên đường Gợi ý không với tới nó.
+  // Và `setWatchingCap` không cho `system` — máy tự bật theo dõi là máy tự chọn
+  // việc cho mình, khi đó trần ngân sách của `AD-11` canh một tập do chính bên
+  // bị canh mở rộng.
+  "setWatching",
   // hạ tầng vòng quét
   "openScanLog", "closeScanLog", "addScanUsage", "recordScanEntry",
   "acquireAccountLock", "releaseAccountLock",

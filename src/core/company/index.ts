@@ -399,3 +399,47 @@ export async function searchCompanies(
     opportunityCount: r._count.opportunities,
   }));
 }
+
+/// `FR-47` · `T-8` (*"Bật Đang theo dõi cho ba công ty"*) — cờ quyết định Công
+/// ty nào lọt vào vòng quét.
+///
+/// ⚠ Đây là điều kiện KÍCH HOẠT của cả nhóm 2, và trước 14/8 nó không có đường
+/// nào để bật. Bộ gieo để `watching = false`, không capability nào ghi nó, và
+/// không bề mặt nào có nút — nên bật AI xong vòng quét vẫn in *"quét 0 Công
+/// ty"* mỗi phút, đúng triệu chứng của một hệ thống chết mà nhật ký báo khoẻ.
+///
+/// Không đi qua `updateCompany`: tám ô của `AD-CR-11` là ô HỒ SƠ mà Gợi ý ghi
+/// vào, còn `watching` là cờ vận hành. Gộp vào đó là mở cho đường Gợi ý tự bật
+/// theo dõi cho chính nó.
+export async function setWatching(
+  _actor: Actor,
+  input: { accountId: string; watching: boolean },
+  ctx: CoreContext,
+): Promise<{ changed: boolean }> {
+  return tx(async (t) => {
+    const truoc = await t.account.findUnique({
+      where: { id: input.accountId },
+      select: { watching: true, deletedAt: true },
+    });
+    if (!truoc || truoc.deletedAt !== null) {
+      throw new BusinessRuleError("BR-D3", "Công ty không tồn tại.");
+    }
+    if (truoc.watching === input.watching) {
+      await ctx.audit.complete(t, ctx.auditId, "no_op", {
+        before: { watching: truoc.watching },
+        after: { watching: truoc.watching },
+      });
+      return { changed: false };
+    }
+
+    await t.account.update({
+      where: { id: input.accountId },
+      data: { watching: input.watching },
+    });
+    await ctx.audit.complete(t, ctx.auditId, "ok", {
+      before: { watching: truoc.watching },
+      after: { watching: input.watching },
+    });
+    return { changed: true };
+  });
+}

@@ -14,6 +14,7 @@ import Link from "next/link";
 import { Block } from "../_block";
 import { appRegistry } from "../_registry";
 import { currentSession } from "../_session";
+import { WatchToggle } from "./_watch-toggle";
 import { ACCOUNT_TYPE_LABEL, MARKET_LABEL, formatDateTime } from "../_vocab";
 import type { AccountListResult } from "../_types";
 import { CompanyForm } from "./_company-form";
@@ -121,6 +122,7 @@ async function AccountListBlock({ filters }: { filters: Filters }) {
                 <td>
                   <Link href={`/accounts/${r.id}`}>{r.name}</Link>
                   {r.watching ? <span className="tag tag-ok">Đang theo dõi</span> : null}
+                  <WatchToggle id={r.id} watching={r.watching} />
                 </td>
                 <td>{MARKET_LABEL[r.market] ?? r.market}</td>
                 <td>{r.industry ?? <span className="muted">chưa có</span>}</td>
