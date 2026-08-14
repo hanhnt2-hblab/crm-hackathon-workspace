@@ -93,8 +93,51 @@ async function wipeSeedData(): Promise<void> {
   }
 }
 
+/// `TR-2` — hai tài khoản, một cho mỗi vai của `§6`.
+///
+/// ⚠ KHÔNG có capability `createUser`, nên gieo thẳng qua Prisma. `AD-1` cho
+/// `prisma/**` nhập `@prisma/client`, và tạo tài khoản không phải thao tác
+/// nghiệp vụ — nó là tiền đề để có tác nhân nghiệp vụ.
+///
+/// Không có mật khẩu: `S11` đổi VAI đang dùng chứ không xác thực (xem
+/// `src/app/login/page.tsx`). Hai vai là bắt buộc chứ không phải tiện nghi —
+/// `D43` và `§6` chỉ khác nhau ở vai, nên một tài khoản là không thử được.
+const USERS = [
+  { sourceRef: "seed:user:sales", email: "sales@whynow.demo",
+    displayName: "Trần Minh Sales", role: "sales" as const },
+  { sourceRef: "seed:user:admin", email: "admin@whynow.demo",
+    displayName: "Lê Quản Trị", role: "admin" as const },
+];
+
+async function seedUsers(): Promise<number> {
+  const { PrismaClient } = await import("@prisma/client");
+  const { PrismaPg } = await import("@prisma/adapter-pg");
+  const url = process.env.DATABASE_URL;
+  if (!url) throw new Error("Thiếu `DATABASE_URL`.");
+  const c = new PrismaClient({ adapter: new PrismaPg({ connectionString: url }) });
+  try {
+    for (const u of USERS) {
+      // `upsert` theo `sourceRef`, KHÔNG theo `email`: `AD-UI-17` chốt khoá tự
+      // nhiên của bộ gieo là `source_ref`, và nó là cột `@unique` duy nhất trên
+      // `user`. `email` không unique — hai tài khoản trùng email là hợp lệ với
+      // lược đồ, nên `where: { email }` không biên dịch được.
+      //
+      // Luỹ đẳng thật, và KHÔNG đụng tài khoản do bộ e2e hay người khác tạo.
+      await c.user.upsert({
+        where: { sourceRef: u.sourceRef },
+        create: u,
+        update: { email: u.email, displayName: u.displayName, role: u.role, deletedAt: null },
+      });
+    }
+    return USERS.length;
+  } finally {
+    await c.$disconnect();
+  }
+}
+
 async function main(): Promise<void> {
   await wipeSeedData();
+  const users = await seedUsers();
 
   const registry = createRegistry({
     seedMode: true,
@@ -136,7 +179,7 @@ async function main(): Promise<void> {
 
   // Không in mật khẩu, không in chuỗi kết nối — log đi về Grafana (`D37`).
   console.log(
-    `gieo xong: ${companies} Công ty · ${contacts} Người liên hệ · ${opportunities} Cơ hội`,
+    `gieo xong: ${users} Tài khoản · ${companies} Công ty · ${contacts} Người liên hệ · ${opportunities} Cơ hội`,
   );
 }
 
