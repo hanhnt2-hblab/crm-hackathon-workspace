@@ -33,7 +33,7 @@ export type DropReason =
 
 /// Năm giá trị `enum AccountType` của `0.1.1`.
 const ACCOUNT_TYPES = [
-  "traditional", "it_solution", "it_product", "tech_startup", "ito",
+  "traditional", "it_solution", "it_product", "tech_based", "ito_other",
 ] as const;
 
 /// `AD-CR-11` — tám ô đích ↔ tên cột camelCase của Prisma.

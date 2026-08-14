@@ -36,8 +36,8 @@ enum AccountType {
   traditional
   it_solution
   it_product
-  tech_startup
-  ito
+  tech_based
+  ito_other
 }
 
 enum SignalType {

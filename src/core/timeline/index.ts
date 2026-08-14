@@ -18,8 +18,9 @@ import { isHuman, type Actor } from "@/core/actor";
 /// `AD-CR-7`: lõi TỰ mở giao dịch, nên không nhận `tx` từ ngoài.
 import { tx, type Tx } from "@/core/db";
 import type { CoreContext } from "@/core/context";
+import { BusinessRuleError } from "@/core/errors";
 
-const CHUA = "chưa hiện thực";
+const BT = "`";
 
 export type AppendEntryInput = {
   accountId: string;
@@ -87,17 +88,69 @@ export async function appendEntryWithin(
   return row.id;
 }
 
-/// `NFR-19` — máy chỉ được THÊM mục mới, không sửa mục do người tạo.
+/// `C5-16` · `NFR-19` · `D46` · `T-10a` vế 4 — máy chỉ được THÊM mục mới, không
+/// sửa mục do người tạo.
 ///
 /// Tham số gói vào object có chủ đích: dạng `(tx, actor, id, content)` để hai
 /// `string` đứng liền nhau, và gọi ngược thì ghi nội dung vào mệnh đề `where` —
 /// `updateMany` chạm 0 hàng, không lỗi, mất bản sửa mà không ai biết.
-export function updateTimelineEntry(
-  _actor: Actor,
-  _input: { id: string; content: string },
-  _ctx: CoreContext,
+///
+/// CHỐT LÀ CẶP `(!isHuman, addedBy = "nguoi")`, không phải một mình `!isHuman`.
+/// PRD §9 khai `NFR-19` nguyên văn *"không tự sửa mục Timeline **do người
+/// tạo**"*, và §6 xếp *"Sửa mục Timeline do người tạo"* vào cột ❌ của máy. Chặn
+/// máy sửa cả mục CHÍNH NÓ vừa thêm là một luật khác, chặt hơn, và không tài
+/// liệu nào ở thượng nguồn phát biểu nó — cài nó ở đây là dựng một luật thứ hai
+/// dưới cùng một mã.
+///
+/// ⚠ Đường sửa của máy trên mục máy tự thêm hiện KHÔNG có bên gọi nào: `T-10b`
+/// cấm mọi tệp `caps/` nhập hàm này, nên tầng ④ không có tay nắm. Chốt ở đây là
+/// lớp thứ hai — thứ còn đứng khi ai đó gọi vòng qua sổ đăng ký, đúng hình dạng
+/// mà `T-10a` đi kiểm.
+///
+/// Ghi CÓ ĐIỀU KIỆN chứ không đọc-rồi-ghi (`AD-10`): vế `where` lặp lại
+/// `addedBy` vừa đọc, nên một mục đổi chủ giữa hai câu lệnh thì `updateMany`
+/// chạm 0 hàng và lượt ghi bỏ đi, thay vì đè lên thứ vừa đổi.
+export async function updateTimelineEntry(
+  actor: Actor,
+  input: { id: string; content: string },
+  ctx: CoreContext,
 ): Promise<void> {
-  throw new Error(CHUA);
+  await tx(async (t) => {
+    const before = await t.timelineEntry.findUnique({
+      where: { id: input.id },
+      select: { content: true, addedBy: true },
+    });
+    // ⚠ `Error` thường, KHÔNG phải `BusinessRuleError`: *không tìm thấy bản
+    // ghi* không có mã nào ở thượng nguồn. Tầng ① xếp nó vào nhánh `unexpected`.
+    if (!before) throw new Error("Mục Dòng thời gian không tồn tại.");
+
+    if (!isHuman(actor) && before.addedBy === "nguoi") {
+      throw new BusinessRuleError(
+        "NFR-19",
+        "Chỉ người sửa được mục Dòng thời gian do người tạo; tác nhân là "
+          + BT + actor.kind + BT + ".",
+      );
+    }
+
+    const changed = await t.timelineEntry.updateMany({
+      // `AD-10` — vế `where` lặp TOÀN BỘ vị từ mà quyết định vừa dựa vào.
+      where: { id: input.id, deletedAt: null, addedBy: before.addedBy },
+      data: { content: input.content },
+    });
+    if (changed.count === 0) {
+      // `AD-CR-8` — bỏ lượt ghi là một KẾT CỤC, không phải một khoảng trống.
+      await ctx.audit.complete(t, ctx.auditId, "no_op", {
+        before,
+        after: { reason: "Mục đã đổi giữa lúc đọc và lúc ghi." },
+      });
+      return;
+    }
+
+    await ctx.audit.complete(t, ctx.auditId, "ok", {
+      before,
+      after: { content: input.content, addedBy: before.addedBy },
+    });
+  });
 }
 
 export async function readTimeline(

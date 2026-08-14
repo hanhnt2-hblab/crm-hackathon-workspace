@@ -82,12 +82,6 @@ const MAX_DUE_BUSINESS_DAYS = 14;
 
 /// `AD-14` — ngày làm việc theo THỊ TRƯỜNG của Công ty, không theo quốc gia
 /// (`market` ≠ `country`; ontology §14 nêu đích danh chỗ này hỏng im lặng).
-///
-/// ⚠ HIỆN TẠI ba thị trường dùng CHUNG một lịch: nghỉ Thứ Bảy và Chủ Nhật,
-/// KHÔNG có ngày lễ. Không có bảng ngày lễ nào trong `AD-CR-11`, và bịa một
-/// danh sách lễ Nhật trong mã là dựng một nguồn sự thật không ai bảo trì. Tham
-/// số `market` vẫn đi qua đủ đường để khi bảng lễ có thật thì chỉ sửa ở đây.
-/// Khoản NỢ đã báo: hạn rơi vào Tuần lễ Vàng hay Obon sẽ sớm hơn thực tế.
 const WEEKEND_BY_MARKET: Record<DueMarket, readonly number[]> = {
   JP: [0, 6],
   Global: [0, 6],
@@ -95,6 +89,136 @@ const WEEKEND_BY_MARKET: Record<DueMarket, readonly number[]> = {
 };
 
 const MS_PER_DAY = 24 * 60 * 60 * 1000;
+
+// ───────────────────────────────────────────────────────────────────────────
+// `AD-14` · `BR-D7` — LỊCH NGÀY LỄ. Khoản nợ đã báo, nay trả một phần.
+// ───────────────────────────────────────────────────────────────────────────
+//
+// Bản trước của tệp này viết *"ba thị trường dùng CHUNG một lịch: nghỉ Thứ Bảy
+// và Chủ Nhật, KHÔNG có ngày lễ"*, và hệ quả đo được: một hạn 3 ngày làm việc
+// đặt từ 28/4 rơi vào 1/5 thay vì 7/5 — **sớm hơn thực tế cả Tuần lễ Vàng**.
+// Với cửa sổ gấp nhất của bảng `0.2.1` (`funding` + `chac` + `high` = 1 ngày)
+// thì lệch đó là toàn bộ thời gian Sales có.
+//
+// ⚠ CHỖ NÀY LỆCH VỚI SPINE, và lý do phải nói cho đúng. Spine tầng ⑤ xếp
+// *"Lịch ngày lễ JP (`AD-14`)"* vào mục **Deferred** với ghi chú *"dữ liệu,
+// không phải cấu trúc; gieo cùng seeder"*, và bảng `Setting` (khoá/giá trị) CÓ
+// THẬT — nên chỗ để gieo thì có. Cái không có là đường ĐỌC: `computeDueDate` là
+// HÀM THUẦN theo `AD-CR-2` (*"chỉ lõi, hàm thuần"*), còn `getSetting` là `async`
+// và chạm CSDL. Đọc `settings` từ đây là biến cả chuỗi `computeDueDate` →
+// `addBusinessDays` → `isBusinessDay` thành `async`, tức đổi một chữ ký thuần đã
+// đóng băng, để lấy một khoá mà hôm nay không màn hình nào sửa.
+//
+// Nên bảng nằm trong mã, ĐÚNG NHƯ `DUE_TABLE` và `MAX_DUE_BUSINESS_DAYS` ngay
+// trên — cùng một khoản nợ `settings`, không phải một khoản nợ mới. `AD-15` cấm
+// hằng số nghiệp vụ đông cứng, và ba bảng này đang vi phạm cùng một điều; trả nợ
+// đúng cách là nạp cả ba vào lúc dựng rồi truyền xuống làm tham số.
+//
+// ⚠ ĐÂY LÀ BẢNG TỐI THIỂU, KHÔNG PHẢI LỊCH ĐẦY ĐỦ. Cố ý bỏ: bốn ngày lễ dời
+// theo *Happy Monday* (成人の日, 海の日, 敬老の日, スポーツの日 — thứ Hai tuần
+// thứ n), hai ngày phân/chí (春分の日, 秋分の日 — tính theo lịch thiên văn, 官報
+// công bố trước một năm nên không viết cứng được), và bốn ngày cố định ngoài ba
+// khối dưới đây (11/2, 23/2, 3/11, 23/11). Hạn rơi đúng những ngày đó vẫn sớm
+// hơn thực tế **một ngày**; ba khối dưới đây là ba khối dài nhất, nơi sai số
+// lên tới 5–9 ngày.
+
+type JpHoliday = {
+  month: number;
+  day: number;
+  /// `true` = 祝日 theo *Luật về ngày lễ quốc dân* — chỉ loại này sinh ra 振替休日
+  /// khi rơi vào Chủ nhật. `false` = ngày nghỉ theo luật hành chính hoặc theo tập
+  /// quán doanh nghiệp; chúng KHÔNG dời.
+  statutory: boolean;
+  label: string;
+};
+
+/// NGUỒN, ghi rõ vì bảng này là một khẳng định về thế giới bên ngoài mã:
+///
+/// ① 祝日 ngày cố định — *国民の祝日に関する法律* (Luật số 178 năm 1948), danh
+///    sách hằng năm do Nội các phủ (内閣府) công bố. Bốn ngày Tuần lễ Vàng
+///    (29/4, 3/5, 4/5, 5/5), 元日 (1/1) và 山の日 (11/8) đều là ngày CỐ ĐỊNH
+///    trong luật, nên chép được mà không cần dữ liệu theo năm.
+/// ② 振替休日 — cùng luật trên, Điều 3 khoản 2: ngày lễ rơi vào Chủ nhật thì
+///    ngày kế tiếp **không phải ngày lễ** trở thành ngày nghỉ bù.
+/// ③ 29/12–3/1 — *行政機関の休日に関する法律* (Luật số 91 năm 1988) Điều 1: kỳ
+///    nghỉ của cơ quan hành chính. Doanh nghiệp theo rộng rãi. KHÔNG phải 祝日,
+///    trừ 1/1.
+/// ④ Obon 13–16/8 — **KHÔNG** phải ngày lễ theo luật. Đây là kỳ nghỉ theo TẬP
+///    QUÁN, phần lớn doanh nghiệp đóng cửa. Ghi vào đây vì `BR-D7` hỏi *"bao giờ
+///    Sales chạm được tới khách"*, và một hạn rơi vào Obon là một hạn không ai
+///    nhấc máy. Đây là chỗ duy nhất trong bảng dựa trên tập quán chứ trên luật,
+///    và nó cần một dòng chốt ở Mục 0 nếu đội muốn giữ.
+const JP_HOLIDAYS: readonly JpHoliday[] = [
+  // Tết — nguồn ③, trừ 1/1 thuộc nguồn ①
+  { month: 1, day: 1, statutory: true, label: "元日 — Nguyên đán" },
+  { month: 1, day: 2, statutory: false, label: "Nghỉ Tết — luật ngày nghỉ hành chính" },
+  { month: 1, day: 3, statutory: false, label: "Nghỉ Tết — luật ngày nghỉ hành chính" },
+  // Tuần lễ Vàng — nguồn ①
+  { month: 4, day: 29, statutory: true, label: "昭和の日 — mở màn Tuần lễ Vàng" },
+  { month: 5, day: 3, statutory: true, label: "憲法記念日" },
+  { month: 5, day: 4, statutory: true, label: "みどりの日" },
+  { month: 5, day: 5, statutory: true, label: "こどもの日" },
+  // Obon — nguồn ④, cộng 山の日 thuộc nguồn ① dính liền vào khối này
+  { month: 8, day: 11, statutory: true, label: "山の日" },
+  { month: 8, day: 13, statutory: false, label: "Obon — tập quán" },
+  { month: 8, day: 14, statutory: false, label: "Obon — tập quán" },
+  { month: 8, day: 15, statutory: false, label: "Obon — tập quán" },
+  { month: 8, day: 16, statutory: false, label: "Obon — tập quán" },
+  // Cuối năm — nguồn ③
+  { month: 12, day: 29, statutory: false, label: "Nghỉ cuối năm — luật ngày nghỉ hành chính" },
+  { month: 12, day: 30, statutory: false, label: "Nghỉ cuối năm — luật ngày nghỉ hành chính" },
+  { month: 12, day: 31, statutory: false, label: "Nghỉ cuối năm — luật ngày nghỉ hành chính" },
+];
+
+/// ⚠ Tra theo THÁNG/NGÀY, không theo năm. `山の日` chỉ có từ 2016 và các ngày
+/// nghỉ hành chính đổi qua thời gian, nên một `eventDate` lùi nhiều năm sẽ nhận
+/// ngày lễ chưa từng tồn tại. Chấp nhận: `BR-D7` đo từ ngày sự kiện của tin
+/// trong Bản lưu, tính bằng tuần chứ không bằng thập kỷ.
+function findJpHoliday(d: Date): JpHoliday | undefined {
+  const m = d.getUTCMonth() + 1;
+  const day = d.getUTCDate();
+  return JP_HOLIDAYS.find((h) => h.month === m && h.day === day);
+}
+
+/// 振替休日 — Điều 3 khoản 2. `d` là ngày nghỉ bù khi chuỗi ngày lễ theo LUẬT
+/// đứng liền ngay trước nó bắt đầu từ một Chủ nhật.
+///
+/// Chuỗi chứ không phải một ngày: 3/5 rơi Chủ nhật thì 4/5 và 5/5 cũng là lễ,
+/// nên ngày bù là 6/5 chứ không phải 4/5. Chỉ đi qua ngày lễ `statutory` —
+/// Obon và kỳ nghỉ hành chính không nằm trong luật ấy nên không dời.
+function isJpSubstitute(d: Date): boolean {
+  // Luật nói *"ngày kế tiếp **không phải ngày lễ**"*, nên một ngày vốn đã là lễ
+  // KHÔNG phải ngày bù. Vế này không đổi kết quả của `isJpHoliday` (nó OR hai
+  // vế), nhưng làm hàm phát biểu đúng luật cho bên nào dùng lại nó để HIỂN THỊ.
+  if (findJpHoliday(d) !== undefined) return false;
+  let cur = new Date(d.getTime() - MS_PER_DAY);
+  // Chuỗi ngày lễ liên tiếp dài nhất trong bảng là 6 ngày (29/12–3/1), nên
+  // vòng lặp luôn dừng; trần tường minh để một dòng thêm sai không treo tiến trình.
+  for (let i = 0; i < 8; i++) {
+    const h = findJpHoliday(cur);
+    if (!h || !h.statutory) return false;
+    if (cur.getUTCDay() === 0) return true;
+    cur = new Date(cur.getTime() - MS_PER_DAY);
+  }
+  return false;
+}
+
+function isJpHoliday(d: Date): boolean {
+  return findJpHoliday(d) !== undefined || isJpSubstitute(d);
+}
+
+/// ⚠ `Global` và `KR` KHÔNG CÓ LỊCH LỄ, và hai lý do khác nhau — nêu riêng vì
+/// gộp chúng làm một khoản nợ che mất rằng một cái sửa được, cái kia thì không:
+///   · `Global` không phải một quốc gia, nên không có lịch nào để chép. Cần một
+///     quyết định nghiệp vụ (*lấy lịch nào?*), không phải một bảng dữ liệu.
+///   · `KR` có Seollal và Chuseok tính theo ÂM LỊCH, nên không viết được thành
+///     ngày cố định như bảng JP; nó cần một bảng theo năm hoặc một thư viện lịch.
+/// Hệ quả còn nguyên cho hai thị trường này: hạn rơi vào lễ vẫn sớm hơn thực tế.
+const HOLIDAY_BY_MARKET: Record<DueMarket, (d: Date) => boolean> = {
+  JP: isJpHoliday,
+  Global: () => false,
+  KR: () => false,
+};
 
 /// Cột `signal.event_date` và `next_action.due_date` đều là `@db.Date` — chỉ
 /// NGÀY, không giờ. Mọi phép tính chạy trên nửa đêm UTC, vì so ngày qua múi giờ
@@ -104,8 +228,10 @@ function atUtcMidnight(d: Date): Date {
   return new Date(Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate()));
 }
 
+/// Ngày làm việc = không cuối tuần VÀ không ngày lễ của thị trường ấy.
 function isBusinessDay(d: Date, market: DueMarket): boolean {
-  return !WEEKEND_BY_MARKET[market].includes(d.getUTCDay());
+  if (WEEKEND_BY_MARKET[market].includes(d.getUTCDay())) return false;
+  return !HOLIDAY_BY_MARKET[market](d);
 }
 
 /// *"Cuối ngày làm việc kế tiếp"* của `D7`. Cột là `@db.Date` nên *cuối ngày*
@@ -113,8 +239,18 @@ function isBusinessDay(d: Date, market: DueMarket): boolean {
 /// mà lược đồ cho phép.
 function nextBusinessDay(from: Date, market: DueMarket): Date {
   let d = new Date(atUtcMidnight(from).getTime() + MS_PER_DAY);
-  while (!isBusinessDay(d, market)) d = new Date(d.getTime() + MS_PER_DAY);
-  return d;
+  // ⚠ TRẦN TƯỜNG MINH, thêm cùng lúc với bảng ngày lễ. Vòng lặp này trước đây
+  // chỉ ăn cuối tuần nên tối đa chạy 2 lượt; giờ nó ăn cả ngày lễ, và một dòng
+  // sai trong `JP_HOLIDAYS` (ví dụ khai trọn một tháng) sẽ TREO vòng quét thay
+  // vì hỏng ồn ào. Chuỗi nghỉ dài nhất có thật là 29/12–3/1 cộng hai đầu cuối
+  // tuần, dưới 12 ngày.
+  for (let i = 0; i < 30; i++) {
+    if (isBusinessDay(d, market)) return d;
+    d = new Date(d.getTime() + MS_PER_DAY);
+  }
+  throw new Error(
+    `Lịch ngày làm việc của thị trường \`${market}\` không có ngày làm việc nào trong 30 ngày.`,
+  );
 }
 
 function addBusinessDays(from: Date, n: number, market: DueMarket): Date {
@@ -128,6 +264,13 @@ function addBusinessDays(from: Date, n: number, market: DueMarket): Date {
 /// tin chắc chắn nhưng ít liên quan không đáng gấp bằng tin chắc chắn và liên
 /// quan cao. Đây là một PHÉP ĐOÁN có chủ đích, đã báo — không phải một dòng
 /// đọc được ra từ Mục 0.
+///
+/// GIỮ NGUYÊN lựa chọn đó, rà lại 14/8 và đây là căn cứ để giữ: cột `chac+low`
+/// hôm nay hầu như không có ai đi qua — `BR-D5`/`D4` chốt *đáng chú ý* =
+/// `relevance = high` cộng `chac`/`co_the`, nên một Phát hiện `chac` + `low`
+/// không tự đặt gì; con số này chỉ là hạn ĐỀ NGHỊ đi kèm một Gợi ý chờ duyệt.
+/// Đổi nó sang `chacHigh` là rút ngắn hạn cho đúng nhóm ít liên quan nhất.
+/// VẪN LÀ ĐOÁN: cần một ô thứ ba ở bảng `0.2.1`, hoặc một dòng chốt ở Mục 0.
 function lookupDueBusinessDays(
   signalType: DueSignalType,
   confidence: DueConfidence,
@@ -137,6 +280,7 @@ function lookupDueBusinessDays(
   // `D4`/`BR-D5`: `doan` không bao giờ tự đặt.
   if (confidence === "doan") return null;
   if (confidence === "co_the") return row.coThe;
+  // ⚠ ĐOÁN: `low` rơi vào nhánh `chacMedium` vì bảng `0.2.1` không có ô cho nó.
   return relevance === "high" ? row.chacHigh : row.chacMedium;
 }
 

@@ -29,7 +29,7 @@ const COMPANIES = [
   { sourceRef: "seed:acc:2", name: "Kitagawa Manufacturing", market: "JP" as const,
     industry: "Manufacturing", accountType: "traditional" as const, country: "Japan" },
   { sourceRef: "seed:acc:3", name: "Blue Harbor Logistics", market: "Global" as const,
-    industry: "Logistics", accountType: "tech_startup" as const, country: "Singapore" },
+    industry: "Logistics", accountType: "tech_based" as const, country: "Singapore" },
 ];
 
 /// `C5-17` — LUỸ ĐẲNG THẬT: chạy hai lần liên tiếp cho cùng kết quả.
@@ -56,19 +56,38 @@ async function wipeSeedData(): Promise<void> {
   const c = new PrismaClient({ adapter: new PrismaPg({ connectionString: url }) });
   try {
     const like = { startsWith: "seed:" };
-    // Thứ tự theo chiều khoá ngoại: con trước, cha sau.
-    await c.opportunity.deleteMany({ where: { sourceRef: like } });
-    await c.contact.deleteMany({ where: { sourceRef: like } });
     const accounts = await c.account.findMany({
       where: { sourceRef: like },
       select: { id: true },
     });
     const ids = accounts.map((a) => a.id);
-    if (ids.length > 0) {
-      await c.timelineEntry.deleteMany({ where: { timeline: { accountId: { in: ids } } } });
-      await c.timeline.deleteMany({ where: { accountId: { in: ids } } });
-      await c.account.deleteMany({ where: { id: { in: ids } } });
-    }
+    if (ids.length === 0) return;
+    const cua = { accountId: { in: ids } };
+
+    // ⚠ Thứ tự theo chiều khoá ngoại: CON TRƯỚC, CHA SAU. Mười hai bảng trỏ tới
+    // `account`, và bỏ sót một bảng nào cũng cho cùng một lỗi `P2003` ở
+    // `account.deleteMany` — thông điệp nêu tên ràng buộc chứ không nêu bảng
+    // nào còn hàng, nên đọc lỗi không suy ra được chỗ thiếu.
+    //
+    // Bản trước dọn đúng bốn bảng và chạy được, vì bộ gieo chỉ tạo bốn bảng đó.
+    // Nó hỏng ngay khi có hàng đến từ đường khác — vòng quét thật, `src/ingest`,
+    // hay một lượt dựng tay. Tức phép luỹ đẳng của `C5-17` chỉ đúng trên một
+    // CSDL mà **chỉ bộ gieo từng chạm**, và đó là giả định không ai phát biểu.
+    await c.suggestion.deleteMany({ where: cua });
+    await c.signal.deleteMany({ where: cua });
+    await c.article.deleteMany({ where: cua });
+    await c.snapshot.deleteMany({ where: cua });
+    await c.notification.deleteMany({ where: cua });
+    await c.nextAction.deleteMany({ where: { opportunity: cua } });
+    await c.activity.deleteMany({ where: cua });
+    await c.opportunity.deleteMany({ where: cua });
+    await c.contact.deleteMany({ where: cua });
+    await c.timelineEntry.deleteMany({ where: { timeline: cua } });
+    await c.timeline.deleteMany({ where: cua });
+    await c.accountLock.deleteMany({ where: cua });
+    await c.scanLogEntry.deleteMany({ where: cua });
+    await c.auditRecord.deleteMany({ where: cua });
+    await c.account.deleteMany({ where: { id: { in: ids } } });
   } finally {
     await c.$disconnect();
   }

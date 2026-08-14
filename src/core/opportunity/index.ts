@@ -15,7 +15,6 @@ import { appendEntryWithin } from "@/core/timeline";
 import { isHuman } from "@/core/actor";
 import { BusinessRuleError } from "@/core/errors";
 
-const CHUA = "chưa hiện thực";
 const BT = "`";
 
 export type CreateOpportunityInput = {
@@ -107,8 +106,62 @@ export async function updateOpportunity(
   });
 }
 
-export function softDeleteOpportunity(_actor: Actor, _id: string, _ctx: CoreContext): Promise<void> {
-  throw new Error(CHUA);
+/// `C5-3` · `D26` · `NFR-17` — xoá mềm MỘT Cơ hội.
+///
+/// `NFR-17` — máy KHÔNG tự xoá dữ liệu do người tạo. Chốt ở lõi vì `T-10a` gọi
+/// thẳng tầng nghiệp vụ. `!isHuman` chứ không `isMachine`, cùng lý do với
+/// `updateOpportunity`: `seed` dựng dữ liệu bằng đường TẠO, không bằng đường xoá.
+///
+/// ⚠ CASCADE CỦA `softDeleteCompany` KHÔNG GỌI HÀM NÀY — nó dùng
+/// `t.opportunity.updateMany(...)` thẳng trong giao dịch của nó, vì lồng giao
+/// dịch trên ITX client là `TypeError` lúc chạy (`AD-CR-7`). Hàm này là cửa vào
+/// cho đường xoá MỘT Cơ hội lẻ.
+///
+/// ⚠ VIỆC TIẾP THEO ĐANG SỐNG XOÁ THEO, và đây là suy luận vượt quá chữ của
+/// `D26` — nêu ra để không ai đọc nhầm là đã có trong đề bài. `D26` liệt cascade
+/// cho **Công ty**, và *Việc tiếp theo* nằm trong danh sách đó; nó không nói gì
+/// về đường Công ty-còn-sống mà Cơ hội bị xoá. Vẫn làm, vì hai hệ quả đo được:
+///   · truy vấn *danh sách quá hạn* của `E1-S11` lọc `next_action.deleted_at`,
+///     và extension của `AD-CR-6` **không** đi xuống quan hệ lồng — một Việc
+///     tiếp theo còn sống của một Cơ hội đã xoá vẫn hiện trên bảng tổng quan
+///   · chỉ mục một phần `next_action_one_active` giữ ô đó bị chiếm mãi mãi
+/// Đây là ghi trong cùng giao dịch, nên hai bảng không bao giờ lệch nhau.
+export async function softDeleteOpportunity(
+  actor: Actor,
+  id: string,
+  ctx: CoreContext,
+): Promise<void> {
+  if (!isHuman(actor)) {
+    throw new BusinessRuleError(
+      "NFR-17",
+      "Chỉ người xoá được dữ liệu; tác nhân là " + BT + actor.kind + BT + ".",
+    );
+  }
+  await tx(async (t) => {
+    const now = new Date();
+    const before = await t.opportunity.findUnique({
+      where: { id },
+      select: { name: true, stage: true, deletedAt: true },
+    });
+    // ⚠ `Error` thường, KHÔNG phải `BusinessRuleError` — xem `updateOpportunity`.
+    if (!before) throw new Error("Cơ hội không tồn tại.");
+
+    // ⚠ `deletedAt: null` viết TAY. Extension của `AD-CR-6` chỉ lọc thao tác
+    // ĐỌC; `updateMany` không đi qua nó, nên thiếu vế này là đóng dấu lại mốc
+    // xoá của những hàng đã xoá từ trước — sai lịch sử, im lặng.
+    await t.nextAction.updateMany({
+      where: { opportunityId: id, deletedAt: null },
+      data: { deletedAt: now },
+    });
+    await t.opportunity.update({ where: { id }, data: { deletedAt: now } });
+
+    // ⚠ Hoạt động và mục Dòng thời gian KHÔNG xoá theo — chúng là bằng chứng,
+    // và `softDeleteCompany` cũng cố ý để Dòng thời gian đứng ngoài cascade.
+    await ctx.audit.complete(t, ctx.auditId, "ok", {
+      before,
+      after: { ...before, deletedAt: now },
+    });
+  });
 }
 
 /// `C5-5` · `BR-B2` — hai ô dấu hiệu. `false` là ĐÃ TRẢ LỜI, khác `null` chưa hỏi.

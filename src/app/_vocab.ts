@@ -58,8 +58,8 @@ export const ACCOUNT_TYPE_LABEL: Record<string, string> = {
   traditional: "Doanh nghiệp truyền thống",
   it_solution: "Giải pháp CNTT",
   it_product: "Sản phẩm CNTT",
-  tech_startup: "Startup công nghệ",
-  ito: "ITO",
+  tech_based: "Startup công nghệ",
+  ito_other: "ITO khác",
 };
 
 export const ADDED_BY_LABEL: Record<string, string> = {

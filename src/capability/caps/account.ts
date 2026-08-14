@@ -40,7 +40,7 @@ export const createCompanyCap = defineCap({
     market: z.enum(["JP", "Global", "KR"]),
     industry: z.string().nullable().optional(),
     accountType: z
-      .enum(["traditional", "it_solution", "it_product", "tech_startup", "ito"])
+      .enum(["traditional", "it_solution", "it_product", "tech_based", "ito_other"])
       .nullable()
       .optional(),
     country: z.string().nullable().optional(),

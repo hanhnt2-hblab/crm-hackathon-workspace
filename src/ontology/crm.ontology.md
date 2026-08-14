@@ -201,7 +201,7 @@ do ranh giới ở §1 giữ được: máy không thể rò rỉ thứ nó khô
 
 ```yaml
 stage:      [tiep_can, du_dieu_kien, soan_de_xuat, thuong_luong, thang, thua, tam_dung]
-account_type:   [traditional, it_solution, it_product, tech_startup, ito]
+account_type:   [traditional, it_solution, it_product, tech_based, ito_other]
 signal_type:       [funding, leadership, expansion, hiring, new_business, other]
 confidence:  [chac, co_the, doan]
 relevance:  [high, medium, low]

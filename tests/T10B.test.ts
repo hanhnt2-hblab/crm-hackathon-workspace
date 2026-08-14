@@ -21,6 +21,8 @@ import { join } from "node:path";
 import { ALL_ENTRIES } from "@/capability/caps";
 import { createRegistry } from "@/capability/registry";
 import { createAuditSink } from "@/core/audit";
+import { db } from "@/core/db";
+import { getSettingNumber } from "@/core/settings";
 import type { Actor } from "@/core/actor";
 
 const CAPS_DIR = join(process.cwd(), "src", "capability", "caps");
@@ -43,8 +45,19 @@ const CORE_FUNCTIONS_ALLOWED = new Set([
   "createSuggestion", "decideSuggestion",
   "setNextAction", "fillNextActionIfUnchanged", "undoSystemNextAction",
   "setQualificationSignals", "searchCompanies", "readTimeline",
-  // `AD-CP-6` hạng đọc-chung — tập phơi lên MCP
-  "readArticle", "readAccountType", "listEnums",
+  // `AD-CP-6` hạng đọc-chung — tập phơi lên MCP.
+  // ⚠ `readArticle` là TÊN CAPABILITY; hai hàm lõi đứng sau nó là
+  // `readArticleLatest` (`scope:"latest"`) và `listArticleFingerprints`
+  // (`scope:"all"`). Cả hai CHỈ ĐỌC.
+  "readArticle", "readArticleLatest", "listArticleFingerprints",
+  "readAccountType", "listEnums", "SIGNAL_ENUMS",
+  // `AD-8` · `AD-22` — hai đường GHI BẰNG CHỨNG của vòng quét. Chúng ghi Bản
+  // lưu và Phát hiện, tức dữ liệu MÁY TỰ SINH; không ô hồ sơ nào do người tạo bị
+  // chạm. Xem phép kiểm phân hoạch khối một bên dưới, chỗ hai họ được tách ra.
+  "createArticle",
+  // `AD-11` điều kiện dừng 4 — van ngân sách. Hai chiều, hai hàm, hai quyền:
+  // máy tắt được, máy KHÔNG bật lại được (xem phép kiểm riêng bên dưới).
+  "disableAi", "enableAi",
   // hạ tầng vòng quét
   "openScanLog", "closeScanLog", "addScanUsage", "recordScanEntry",
   "acquireAccountLock", "releaseAccountLock",
@@ -201,13 +214,45 @@ describe("T-10b — tác nhân MÁY không cầm được mục nào của vùng
   });
 
   it("`AD-3` — máy GHI dữ liệu nghiệp vụ ở ĐÚNG BA chạm, không hơn", async () => {
-    // Đây là khẳng định chịu lực nhất của tệp. Ba chạm của `AD-3`: thêm mục
-    // Dòng thời gian, đề nghị một Gợi ý, điền ô Việc tiếp theo ĐANG TRỐNG.
-    // Mục thứ tư xuất hiện ở đây là một quyền mới máy vừa có, và nó phải được
-    // đọc bằng mắt trước khi qua.
-    expect(registry.CAP_MACHINE_ALLOWED_GHI.slice().sort()).toEqual([
+    // Đây là khẳng định chịu lực nhất của tệp, và nó KHÔNG còn phát biểu được
+    // bằng một danh sách phẳng: khối một của `AD-2` gom cả mục ghi BẰNG CHỨNG
+    // (`createArticle`, `createSignal` — thêm 14/8) lẫn ba chạm HỒ SƠ của
+    // `AD-3`. Hai họ khác nhau về hậu quả, nên chúng được tách bằng thứ đo được
+    // — TẬP BẢNG mỗi mục khai ghi — chứ không bằng tên hay bằng ý định:
+    //
+    //   · họ ① — chạm bảng thuộc HỒ SƠ/VIỆC của người: `timeline_entry`,
+    //     `suggestion`, `next_action`. Đây là ba chạm của `AD-3`, và một mục
+    //     thứ tư ở đây là một quyền mới máy vừa có trên dữ liệu của người.
+    //   · họ ② — chỉ chạm bảng BẰNG CHỨNG do máy tự sinh: `snapshot`,
+    //     `article`, `signal`. Vòng quét không nạp được Bản lưu và không lưu
+    //     được Phát hiện thì `T-2` và `T-8` không có gì để đo.
+    //
+    // Nới danh sách họ ① là mở một quyền mới trên dữ liệu người tạo. Nới họ ②
+    // thì phải hỏi bảng mới ấy là bằng chứng của ai.
+    const HO_SO_VA_VIEC = new Set(["timeline_entry", "suggestion", "next_action"]);
+    const BANG_CHUNG = new Set(["snapshot", "article", "signal"]);
+
+    const bang = (ten: string): readonly string[] =>
+      ALL_ENTRIES.find((e) => e.name === ten)?.writesTables ?? [];
+
+    const chamHoSo = registry.CAP_MACHINE_ALLOWED_GHI
+      .filter((n) => bang(n).some((t) => HO_SO_VA_VIEC.has(t)))
+      .slice().sort();
+    const chiBangChung = registry.CAP_MACHINE_ALLOWED_GHI
+      .filter((n) => bang(n).length > 0 && bang(n).every((t) => BANG_CHUNG.has(t)))
+      .slice().sort();
+
+    expect(chamHoSo).toEqual([
       "appendTimelineEntry", "fillNextActionIfUnchanged", "queueSuggestion",
     ]);
+    expect(chiBangChung).toEqual(["createArticle", "createSignal"]);
+    // PHÂN HOẠCH: hai họ rời nhau và phủ hết khối một. Thiếu vế này thì một mục
+    // ghi cả `article` lẫn `next_action` sẽ lọt vào họ ② và biến mất khỏi tầm rà.
+    expect(chamHoSo.filter((n) => chiBangChung.includes(n))).toEqual([]);
+    expect(chamHoSo.length + chiBangChung.length).toBe(
+      registry.CAP_MACHINE_ALLOWED_GHI.length,
+    );
+
     // Và chúng phải cầm được thật — `F38`: chặn oan là hỏng cả nhóm 5.
     await expect(
       registry.loadCapability("appendTimelineEntry", machine),
@@ -221,9 +266,68 @@ describe("T-10b — tác nhân MÁY không cầm được mục nào của vùng
       registry.CAP_SYSTEM_INTERNAL.includes(n),
     );
     expect(giao).toEqual([]);
+    // `disableAi` thuộc khối này vì nó chỉ ghi bảng `setting` — một bảng HẠ
+    // TẦNG, không phải dữ liệu của người. Nó vào khối ba theo đúng bộ phân biệt
+    // `writesTables` mà `registry.ts` dùng, không theo một ngoại lệ viết tay.
     expect(registry.CAP_SYSTEM_INTERNAL.slice().sort()).toEqual([
-      "acquireAccountLock", "recordAccountCost", "releaseAccountLock", "writeScanLog",
+      "acquireAccountLock", "disableAi", "recordAccountCost",
+      "releaseAccountLock", "writeScanLog",
     ]);
+  });
+
+  it("`AD-11` điều kiện dừng 4 — máy TẮT được AI, và KHÔNG bật lại được", async () => {
+    // Hai chiều của phanh là hai mục, hai quyền. Gộp chúng — hoặc cho `system`
+    // vào `enableAi` — làm điều kiện dừng 4 chỉ TRÌ HOÃN một vòng: máy chạm
+    // trần, tự tắt, rồi tự bật lại, và hoá đơn chạy tiếp.
+    const tat = ALL_ENTRIES.find((e) => e.name === "disableAi");
+    const bat = ALL_ENTRIES.find((e) => e.name === "enableAi");
+    expect(tat, "sổ đăng ký phải có `disableAi`").toBeDefined();
+    expect(bat, "sổ đăng ký phải có `enableAi`").toBeDefined();
+
+    expect(tat!.allowedActors).toContain("system");
+    expect(bat!.allowedActors).not.toContain("system");
+    await expect(registry.loadCapability("enableAi", machine)).rejects.toMatchObject({
+      name: "GateDenied",
+      reason: "actor_not_allowed",
+    });
+  });
+
+  it("`disableAi` mang `selfLimiting` — van phải mở được ĐÚNG lúc trần chạm", async () => {
+    // Khẳng định trên CỜ là chưa đủ: cờ có thể đúng mà bước ⑥/⑦ đọc sai. Nên
+    // dựng đúng trạng thái mà van sinh ra để phục vụ — một vòng quét đang chạy
+    // đã tiêu HẾT ngân sách — rồi hỏi Cổng.
+    //
+    // Không có `selfLimiting`, `disableAi` bị bác `limit` ở đúng khoảnh khắc
+    // duy nhất máy gọi nó. Triệu chứng không phải một dòng lỗi mà là hoá đơn:
+    // vòng sau lại mở, lại tiêu, lại chạm trần, lại không tắt được.
+    expect(ALL_ENTRIES.find((e) => e.name === "disableAi")!.selfLimiting).toBe(true);
+
+    const tran = await getSettingNumber("scan_budget_usd");
+    const vong = await db.scanLog.create({
+      data: {
+        budgetUsd: String(tran),
+        // Vượt trần, không phải chạm đúng trần: `budget_stop_ratio` mặc định là
+        // `1.00`, và phép so là `>=`.
+        costUsedUsd: String(tran * 2),
+        modelCallsUsed: 9_999,
+      },
+      select: { id: true },
+    });
+    try {
+      // Van MỞ được…
+      await expect(
+        registry.loadCapability("disableAi", machine),
+      ).resolves.toBeTypeOf("function");
+      // …trong khi một mục ghi thường của máy thì KHÔNG. Vế đối chứng: thiếu nó
+      // thì phép kiểm trên cũng xanh khi Cổng quên đọc trần với mọi mục.
+      await expect(
+        registry.loadCapability("queueSuggestion", machine),
+      ).rejects.toMatchObject({ name: "GateDenied", reason: "limit" });
+    } finally {
+      // Dọn: một vòng quét treo `finished_at = NULL` làm mọi tệp kiểm sau đó đọc
+      // một ngữ cảnh Cổng đã cạn ngân sách.
+      await db.scanLog.delete({ where: { id: vong.id } });
+    }
   });
 
   it("tên không có trong sổ trả `unknown_capability`, không phải lỗi khác", async () => {

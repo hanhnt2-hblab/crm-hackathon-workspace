@@ -65,11 +65,17 @@ export function isIdempotent(raw: string): boolean {
 /// `BR-D2`: đích so khớp là bản CHUẨN HOÁ, không phải bản thô.
 /// Ai cài phép so đối chiếu với bản thô sẽ làm MỌI Phát hiện rụng, với triệu
 /// chứng giống hệt *"mô hình bịa câu trích"*.
+/// ⚠ Trả KÈM `normalizedQuote`, và bên gọi phải lưu chính chuỗi đó.
+///
+/// `start`/`end` là chỉ số vào `normalizedText`, nên chữ lưu kèm phải là chữ
+/// nằm ở đúng khoảng ấy. Lưu bản thô mà bên gọi đưa thì hai cột nói hai chuyện
+/// ngay khi mô hình trả câu trích có dấu cách kép — và triệu chứng là màn hình
+/// tô sáng một đoạn khác với chữ nó hiển thị.
 export function findQuote(
   normalizedText: string,
   quote: string,
-): { start: number; end: number } | null {
+): { start: number; end: number; normalizedQuote: string } | null {
   const q = normalize(quote);
   const i = normalizedText.indexOf(q);
-  return i < 0 ? null : { start: i, end: i + q.length };
+  return i < 0 ? null : { start: i, end: i + q.length, normalizedQuote: q };
 }

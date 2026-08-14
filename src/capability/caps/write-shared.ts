@@ -85,8 +85,17 @@ export const createSignalCap = defineCap({
     articleId: z.uuid(),
     claim: z.string().min(1),
     quote: z.string(),
-    quoteStart: z.number().int().nonnegative(),
-    quoteEnd: z.number().int().nonnegative(),
+    /// ⚠ KHÔNG khai `quoteStart`/`quoteEnd` ở đây, và đó không phải sơ suất.
+    ///
+    /// Bản đầu khai cả hai bắt buộc. Đo được trên một lượt quét thật: mô hình
+    /// rút 5 Phát hiện, **cả 5 bị bác ngay tại lược đồ này** vì không tầng nào
+    /// trên nó sinh ra được hai số đó — `AD-AG-3` cấm tầng ② nhập `@/core`, nên
+    /// nó không có `normalize()`, mà `AD-18` bắt offset tính trên bản chuẩn hoá.
+    ///
+    /// Lõi tự tính bằng `findQuote` và **cố ý bỏ qua** giá trị bên gọi đưa: mô
+    /// hình trả được offset đúng định dạng mà lệch vị trí, và khi đó `T-3` mở
+    /// sai đoạn văn mà không lớp nào bắt được. Một trường mà bên gọi không điền
+    /// nổi và bên nhận không dùng thì không thuộc về hợp đồng.
     signalType: z.enum(SIGNAL_ENUMS.signalType),
     signalSubtype: z.enum(SIGNAL_ENUMS.signalSubtype).nullable(),
     confidence: z.enum(SIGNAL_ENUMS.confidence),
