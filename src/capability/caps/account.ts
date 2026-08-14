@@ -9,7 +9,7 @@ import { defineCap, type RegistryEntry } from "../types";
 import { createCompany } from "@/core/company";
 import { createContact } from "@/core/contact";
 import {
-  createOpportunity, changeOpportunityStage, resumeOrReopenOpportunity,
+  createOpportunity, changeOpportunityStage, resumeFromPause, reopenClosedOpportunity,
 } from "@/core/opportunity";
 import { appendTimelineEntry } from "@/core/timeline";
 
@@ -140,17 +140,41 @@ export const changeStageCap = defineCap({
   writesTables: ["opportunity", "timeline_entry"],
 });
 
-export const resumeOpportunityCap = defineCap({
-  name: "resumeOrReopenOpportunity",
+/// §6 — Sales quay lại được từ `tam_dung`. `allowedRoles` RỖNG là đúng ở đây,
+/// vì đường này không giới hạn vai. Lõi đòi trạng thái vào phải là `tam_dung`.
+export const resumeFromPauseCap = defineCap({
+  name: "resumeFromPause",
   allowedActors: ["human"],
-  /// ⚠ RỖNG, không phải `["admin"]`. `D43` giới hạn việc mở lại Cơ hội ĐÃ ĐÓNG
-  /// cho Quản trị, nhưng cùng capability này cũng phục vụ đường `tam_dung` →
-  /// đang chạy mà Sales làm được (§6). Khai `["admin"]` ở đây là chặn oan Sales
-  /// trên nửa đường hợp lệ. Phân biệt hai đường cần trạng thái hiện tại của Cơ
-  /// hội, mà Cổng cố ý KHÔNG đọc dữ liệu (`AD-GT-1`).
-  /// ⚠ Hệ quả: `D43` hiện CHƯA được cưỡng chế ở đâu. Đã ghi `deferred-work.md`.
   allowedRoles: [],
   touches: ["NFR-14"],
+  selfLimiting: false,
+  zone: "ho_so_chinh_thuc",
+  risk: "medium",
+  requiresSignalSource: false,
+  cascades: ["timeline_entry"],
+  kind: "write",
+  params: z.object({ id: z.uuid() }),
+  dirtyFlags: ["BR-B1", "BR-B4"],
+  exposeToMcp: false,
+  fn: async (actor, p, ctx) => resumeFromPause(actor, p.id, ctx),
+  snapshot: null,
+  writesTables: ["opportunity", "timeline_entry"],
+});
+
+/// `D43` · `A5` · §5.2 — mở lại Cơ hội ĐÃ ĐÓNG, CHỈ vai Quản trị.
+///
+/// Đây là chỗ `D43` cuối cùng được cưỡng chế, và nó cưỡng chế ở CỔNG bước ⑤
+/// (`AD-CR-10`: lõi không đọc `actor.role`). Lõi chỉ canh trạng thái vào phải
+/// là đã đóng — đó không phải quyền, đó là *"gọi nhầm cửa"*.
+///
+/// Vì sao phải tách khỏi `resumeFromPause` thay vì thêm một tham số: một
+/// capability với một `allowedRoles` không phát biểu được hai luật vai khác
+/// nhau, và Cổng cố ý không đọc dữ liệu để phân biệt (`AD-GT-1`).
+export const reopenClosedOpportunityCap = defineCap({
+  name: "reopenClosedOpportunity",
+  allowedActors: ["human"],
+  allowedRoles: ["admin"],
+  touches: ["NFR-14", "NFR-15"],
   selfLimiting: false,
   zone: "ho_so_chinh_thuc",
   risk: "high",
@@ -158,9 +182,9 @@ export const resumeOpportunityCap = defineCap({
   cascades: ["timeline_entry"],
   kind: "write",
   params: z.object({ id: z.uuid() }),
-  dirtyFlags: ["BR-B1", "BR-B4"],
+  dirtyFlags: ["BR-B1", "BR-B3", "BR-B4"],
   exposeToMcp: false,
-  fn: async (actor, p, ctx) => resumeOrReopenOpportunity(actor, p.id, ctx),
+  fn: async (actor, p, ctx) => reopenClosedOpportunity(actor, p.id, ctx),
   snapshot: null,
   writesTables: ["opportunity", "timeline_entry"],
 });
@@ -206,6 +230,7 @@ export const entries: readonly RegistryEntry[] = [
   createContactCap,
   createOpportunityCap,
   changeStageCap,
-  resumeOpportunityCap,
+  resumeFromPauseCap,
+  reopenClosedOpportunityCap,
   appendTimelineEntryCap,
 ] as unknown as readonly RegistryEntry[];

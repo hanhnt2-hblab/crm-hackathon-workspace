@@ -14,7 +14,7 @@ import { createCompany } from "@/core/company";
 import {
   createOpportunity,
   changeOpportunityStage,
-  resumeOrReopenOpportunity,
+  resumeFromPause,
 } from "@/core/opportunity";
 import { readTimeline } from "@/core/timeline";
 import { createAuditSink } from "@/core/audit";
@@ -84,7 +84,7 @@ describe("AD-CR-7 — ghi chính và trường dẫn xuất trong CÙNG câu UPD
     const id = await newOpp("D");
     await changeOpportunityStage(sales, id, "du_dieu_kien", ctx);
     await changeOpportunityStage(sales, id, "tam_dung", ctx);
-    await resumeOrReopenOpportunity(sales, id, ctx);
+    await resumeFromPause(sales, id, ctx);
     expect(await stageOf(id)).toEqual({ stage: "du_dieu_kien", latestOpenStage: null });
   });
 });

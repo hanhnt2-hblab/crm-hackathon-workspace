@@ -32,7 +32,7 @@
       khai union đóng ở lõi là lớp canh duy nhất có thể có.
 
 - source_spec: `src/capability/caps/account.ts`
-  summary: `D43` — *mở lại Cơ hội đã đóng chỉ vai Quản trị* hiện CHƯA được cưỡng chế ở đâu.
+  summary: ✅ ĐÃ ĐÓNG 14/8 — tách làm hai capability, xem `tests/unit/d43-reopen.test.ts`. (Ghi chép cũ giữ lại vì lý do tách vẫn là thứ đáng đọc.) `D43` — *mở lại Cơ hội đã đóng chỉ vai Quản trị* hiện CHƯA được cưỡng chế ở đâu.
   evidence: |
     `resumeOrReopenOpportunity` phục vụ HAI đường qua cùng một capability: `tam_dung` → đang chạy
     (Sales làm được, §6) và `thang`/`thua` → đang chạy (chỉ Quản trị, `D43`/`A5`). Khai

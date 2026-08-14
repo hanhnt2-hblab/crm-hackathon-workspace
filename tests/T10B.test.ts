@@ -38,7 +38,7 @@ const CORE_FUNCTIONS_ALLOWED = new Set([
   "createOpportunity", "updateOpportunity", "setQualificationSignals", "setLossReasons",
   "createActivity",
   "appendTimelineEntry", "readTimeline",
-  "changeOpportunityStage", "resumeOrReopenOpportunity",
+  "changeOpportunityStage", "resumeFromPause", "reopenClosedOpportunity",
   "createSignal", "markSignalUnhelpful",
   "createSuggestion", "decideSuggestion",
   "setNextAction", "fillNextActionIfUnchanged", "undoSystemNextAction",
@@ -86,7 +86,8 @@ describe("T-10b · NFR-17 — không mục nào xoá dữ liệu do người t�
       (e.writesTables ?? []).includes("timeline_entry"),
     ).map((e) => e.name).sort();
     expect(chamTimeline).toEqual([
-      "appendTimelineEntry", "changeOpportunityStage", "resumeOrReopenOpportunity",
+      "appendTimelineEntry", "changeOpportunityStage", "reopenClosedOpportunity",
+      "resumeFromPause",
     ]);
   });
 

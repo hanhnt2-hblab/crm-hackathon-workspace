@@ -9,7 +9,7 @@ import type { Actor } from "@/core/actor";
 import { tx } from "@/core/db";
 import type { CoreContext } from "@/core/context";
 import {
-  INITIAL_STAGE, changeStage, resumeOrReopen, asRunningStage, type Stage,
+  INITIAL_STAGE, changeStage, resumeOrReopen, asRunningStage, isClosed, type Stage,
 } from "./stage";
 import { appendEntryWithin } from "@/core/timeline";
 import { isHuman } from "@/core/actor";
@@ -181,12 +181,47 @@ export async function changeOpportunityStage(
   });
 }
 
-/// `C5-4` — quay lại từ `tam_dung`, hoặc Quản trị mở lại Cơ hội đã đóng.
-/// Đích KHÔNG do người gọi chọn (`AD-CR-1` dòng 5 và 7).
-export async function resumeOrReopenOpportunity(
+/// `C5-4` · `D43` — HAI đường quay lại, HAI hàm, HAI capability.
+///
+/// Bản trước gộp cả hai vào `resumeOrReopenOpportunity`, và chỗ gộp đó làm `D43`
+/// không cưỡng chế được ở đâu:
+///   · `tam_dung` → đang chạy  — **Sales làm được** (§6)
+///   · `thang`/`thua` → đang chạy — **chỉ Quản trị** (`D43`, `A5`, §5.2)
+///
+/// Một capability thì `allowedRoles` phải chọn một giá trị cho cả hai: khai
+/// `["admin"]` chặn oan Sales trên đường thứ nhất, khai rỗng thì `D43` hở. Phân
+/// biệt hai đường cần TRẠNG THÁI HIỆN TẠI của Cơ hội, mà Cổng cố ý không đọc dữ
+/// liệu (`AD-GT-1` — sáu trường, toàn là sự kiện), còn `AD-CR-10` cấm lõi tự
+/// canh vai. Tách làm hai là lối ra duy nhất không phá `AD` nào:
+///
+///   `resumeFromPause`          `allowedRoles: []`        — lõi đòi `tam_dung`
+///   `reopenClosedOpportunity`  `allowedRoles: ["admin"]` — lõi đòi đã đóng
+///
+/// Vai vẫn do CỔNG canh (`AD-CR-10`); lõi chỉ canh TRẠNG THÁI ĐẦU VÀO, và đó
+/// không phải quyền — đó là *"gọi nhầm cửa"*.
+export async function resumeFromPause(
   actor: Actor,
   id: string,
   ctx: CoreContext,
+): Promise<void> {
+  await resumeInto(actor, id, ctx, "tam_dung");
+}
+
+export async function reopenClosedOpportunity(
+  actor: Actor,
+  id: string,
+  ctx: CoreContext,
+): Promise<void> {
+  await resumeInto(actor, id, ctx, "closed");
+}
+
+/// Thân dùng chung. `expect` KHÔNG phải một tham số công khai: hai cửa vào đã
+/// cố định nó, và để lộ nó ra ngoài là dựng lại đúng cửa gộp vừa bị tách.
+async function resumeInto(
+  actor: Actor,
+  id: string,
+  ctx: CoreContext,
+  expect: "tam_dung" | "closed",
 ): Promise<void> {
   await tx(async (t) => {
     const before = await t.opportunity.findUnique({
@@ -194,6 +229,17 @@ export async function resumeOrReopenOpportunity(
       select: { stage: true, latestOpenStage: true, accountId: true },
     });
     if (!before) throw new Error("Cơ hội không tồn tại.");
+
+    const dungCua =
+      expect === "tam_dung" ? before.stage === "tam_dung" : isClosed(before.stage);
+    if (!dungCua) {
+      throw new BusinessRuleError(
+        "STATE_TRANSITION_NOT_ALLOWED",
+        expect === "tam_dung"
+          ? `Cơ hội đang ở \`${before.stage}\`; đường này chỉ nhận \`tam_dung\`.`
+          : `Cơ hội đang ở \`${before.stage}\`; đường này chỉ nhận Cơ hội đã đóng.`,
+      );
+    }
 
     const next = resumeOrReopen(actor, {
       stage: before.stage,
@@ -206,7 +252,10 @@ export async function resumeOrReopenOpportunity(
     });
     await appendEntryWithin(t, actor, {
       accountId: before.accountId,
-      content: `Mở lại: ${before.stage} → ${next.stage}`,
+      content:
+        expect === "tam_dung"
+          ? `Quay lại: ${before.stage} → ${next.stage}`
+          : `Mở lại Cơ hội đã đóng: ${before.stage} → ${next.stage}`,
       occurredAt: new Date(),
     });
     await ctx.audit.complete(t, ctx.auditId, "ok", { before, after: next });
