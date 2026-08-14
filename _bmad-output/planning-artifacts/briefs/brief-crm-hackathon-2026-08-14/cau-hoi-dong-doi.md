@@ -35,11 +35,28 @@ sơ khách, dù nó có dẫn nguồn đầy đủ?
 | 3 | Ngưỡng độ tươi, thành một NFR có số | "Hồ sơ phải mới" là tính từ, không kiểm được |
 | 4 | Ranh giới quyền ghi của AI, đối chiếu `D16` | `D16` hiện đứng trên suy luận thiết kế, chưa có ai trong nghề xác nhận |
 
-## Chỗ trả lời
+## Câu trả lời — nhận 14/08/2026
 
-*(dán câu trả lời của anh ấy vào đây, rồi báo tôi để cập nhật brief)*
+- **1. Một BD mất 1–2 giờ mỗi ngày.** Khớp đúng con số playbook `§10` của BTC. Nghĩa là cái giá
+  hiện trạng đứng trên **nguồn của chính ban tổ chức**, không phải con số đội tự khai — giám khảo
+  khó cãi.
+- **2. Ba tới bốn trên mười cơ hội mất là vì biết tin muộn.** Đây là con số `BUS-3` đã chờ. Sản
+  phẩm nhắm đúng khoảng **một phần ba** lý do thua — đủ lớn để đáng làm, đủ nhỏ để không ai nghi
+  là phóng đại.
+- **3. Hồ sơ cũ quá một tháng thì không dùng được cho một cuộc gặp.** Khớp hai mốc đã có ở hệ
+  thống thật: *khách nguội > 30 ngày* và cửa sổ chống trùng tín hiệu 30 ngày. Thành một ngưỡng đo
+  được, không phải tính từ.
+- **4. Hai thứ không bao giờ cho máy tự ghi:**
+  - **Giá trị tiền của Opportunity** — đề bài đã cấm sẵn ở `§5.2`, và PRD chặn bằng `NFR-15`. Câu
+    trả lời này xác nhận ranh giới đó **đúng nghiệp vụ**, không chỉ đúng luật
+  - **Ghi chú và hồ sơ riêng của Sales** — ⚠ **PRD chưa có chỗ nào cấm điều này.** Máy được thêm
+    mục mới vào Timeline, nhưng không dòng nào nói nó không được **sửa** mục do người tạo
 
-- **1.**
-- **2.**
-- **3.**
-- **4.**
+## Ba câu này đã mở khoá gì
+
+| Câu | Đi vào đâu |
+|---|---|
+| 1 | Brief mục *Hiện trạng* — cái giá vận hành, nay có số |
+| 2 | PRD `BUS-3` — yêu cầu nghiệp vụ duy nhất chưa có số đo, nay có mốc |
+| 3 | Một ngưỡng độ tươi hồ sơ, thành cờ cảnh báo trên màn hình Account |
+| 4 | Ranh giới quyền ghi — một xác nhận, và **một lỗ hổng thật** |

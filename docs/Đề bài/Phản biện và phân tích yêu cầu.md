@@ -66,7 +66,7 @@ Mục 0 thì tổng hợp kết luận của cả năm mục, nên nó dùng c�
 
 | Mục | Nội dung | Đọc khi nào |
 |---|---|---|
-| **Mục 0** | Tầng chuẩn: từ vựng, enum, bảng số, 45 quyết định chốt `D1`…`D45`, trạng thái mọi `Q` và `F` | Trước khi viết dòng mã đầu tiên |
+| **Mục 0** | Tầng chuẩn: từ vựng, enum, bảng số, 47 quyết định chốt `D1`…`D47`, trạng thái mọi `Q` và `F` | Trước khi viết dòng mã đầu tiên |
 | **Mức 1** | Diễn giải lại đề bài, chấp nhận nguyên bản, không đánh giá | Khi cần bản rút gọn của đề bài |
 | **Mức 2** | 22 điểm mơ hồ `Q1`…`Q22`, mỗi điểm một câu hỏi cho BTC và một hướng đi | Khi cần biết vì sao một chi tiết phải tự quyết |
 | **Mức 3** | 7 epic, 41 story, tiêu chí nghiệm thu, ánh xạ `T`, lỗ hổng phủ kiểm thử | Khi lập kế hoạch sprint và viết kiểm thử |
@@ -217,6 +217,7 @@ duyệt. Đây là chỗ hoà giải giữa `Q2` (chỉ bốn loại tin đượ
 | Sàn ngày hạn | cuối ngày làm việc kế tiếp | không | `D7` |
 | Trần ngày hạn | 14 ngày làm việc | có | `D7` |
 | Cửa sổ chống trùng tín hiệu | 30 ngày | có | `D18` |
+| Ngưỡng độ tươi hồ sơ công ty | 30 ngày | có | `D47` |
 | Ngưỡng trùng tiêu đề (cosine) | 0,9 | có | `D18` |
 | TTL bộ đệm theo hash prompt | 24 giờ | có | `D20` |
 | Cửa sổ số đo ngắn của màn hình Quản trị | 24 giờ | có | `D29` |
@@ -244,7 +245,7 @@ Thứ tự hàng đợi = `relevance` × mức chắc chắn × (công ty có c�
 
 Tổng 11, mục tiêu vận hành **> 0,70**. Điền địa chỉ trang web đáng giá gấp đôi điền năm thành lập.
 
-## 0.3. Bảng quyết định chốt `D1`–`D45`
+## 0.3. Bảng quyết định chốt `D1`–`D47`
 
 Cột **Quan hệ với đề bài**: `giữ` = chép đúng đề bài · `bổ sung` = đề bài để trống, đội tự chốt ·
 `làm chặt hơn` = đội tự đặt ràng buộc nghiêm hơn đề bài · `chờ BTC` = chưa chốt được.
@@ -321,9 +322,11 @@ Cột **Rủi ro nghiệm thu**: chỗ nào một quyết định `làm chặt h
 | `D40` | **Không tối ưu khối lượng log.** Mọi đầu ra AI giữ lại trong ngày thi phải có một người đọc và nói được lý do trong một câu; nói không được thì bỏ, không giữ. Thể lệ cho vòng 2 rút **ngẫu nhiên 3–5 câu hỏi từ chính log của đội**, nên phần log không ai đọc chính là bề mặt bị hỏi | bổ sung | `F39` · thể lệ | không |
 | `D41` | **Giữ trống một nửa quỹ giờ ngày thi cho tính năng BTC phát thêm.** Kế hoạch 15/8 chia ba khối: nạp dữ liệu thật và sửa lớp ánh xạ · tính năng mới · hoàn thiện. Không xếp việc bắt buộc nào vào khối giữa. Thứ phải tập trước không phải sản phẩm mà là **một vòng đầy đủ RA → thiết kế → mã → kiểm thử → triển khai chạy được trong khoảng hai tiếng** | bổ sung | `F40` · giải đáp BTC 14/8 | không |
 
-### Nhóm G — Bổ sung từ bước PRD
+### Nhóm G — Bổ sung từ bước PRD và từ phỏng vấn
 
-Quyết định sinh ra khi dựng PRD, sau khi Mục 0 đã chốt `D1`–`D41`.
+Quyết định sinh sau khi Mục 0 đã chốt `D1`–`D41`. `D42`–`D45` sinh khi dựng PRD; `D46`–`D47` sinh
+từ **buổi hỏi Sales Manager ngày 14/8** — hai quyết định duy nhất trong cả sổ đứng trên câu trả
+lời của một người trong nghề, không trên tài liệu.
 
 | ID | Quyết định | Quan hệ với đề bài | Nguồn | Rủi ro nghiệm thu |
 |---|---|---|---|---|
@@ -331,6 +334,8 @@ Quyết định sinh ra khi dựng PRD, sau khi Mục 0 đã chốt `D1`–`D41`
 | `D43` | **Mở lại cơ hội đã đóng chỉ vai Quản trị.** `§4/nhóm 1` viết *"đi lùi và nhảy cóc đều được, hệ thống không chặn"*; giới hạn này chặt hơn câu đó. Lý do: số thắng/thua là gốc của mọi báo cáo | làm chặt hơn | PRD §5.2 | không — không điểm `T` nào kiểm việc mở lại cơ hội đã đóng |
 | `D44` | **Cơ hội mới luôn bắt đầu ở `tiep_can`**, người tạo không chọn được giai đoạn khác | làm chặt hơn | PRD §5.1 | không — `T-1` tạo cơ hội rồi mới kéo qua ba giai đoạn |
 | `D45` | Phát hiện có `relevance = low` **không** vào hàng đợi gợi ý; nó chỉ nằm ở vùng đọc của nhóm 2, đúng như `0.1.6` đã định nghĩa. Đề bài không lọc theo độ liên quan | làm chặt hơn | PRD `FR-18`, `D3` | không — không điểm `T` nào đòi hàng đợi chứa phát hiện `low` |
+| `D46` | **Hệ thống không tự sửa mục dòng thời gian do người tạo** — ghi chú và hoạt động của Sales chỉ người sửa được. Máy chỉ được **thêm mục mới**, gắn nhãn do hệ thống thêm. Đây là ranh giới thứ năm, đề bài chỉ có bốn | làm chặt hơn | **Sales Manager chốt 14/8** · PRD `NFR-19` | không — không điểm `T` nào đòi máy sửa được mục dòng thời gian |
+| `D47` | **Ngưỡng độ tươi hồ sơ: 30 ngày.** Công ty có hồ sơ không đổi quá 30 ngày mang cờ *hồ sơ đã cũ*. Khớp mốc khách nguội trên 30 ngày của hệ thống thật | bổ sung | **Sales Manager chốt 14/8** · PRD `NFR-18` | không |
 
 ## 0.4. Trạng thái 22 câu hỏi `Q1`–`Q22`
 

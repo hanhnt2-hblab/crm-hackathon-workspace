@@ -17,7 +17,7 @@ phải làm gì và cư xử ra sao*, không nói *dựng bằng gì* — lựa 
 | Hạng | Nguồn | Có thẩm quyền về |
 |---|---|---|
 | 1 | [Đề bài chính thức](../../../../docs/Đề%20bài/Yêu%20Cầu%20đề%20bài%20chính%20thức%20của%20cuộc%20thi%20prd.md) | Cái gì phải có · hành vi hệ thống · bộ nghiệm thu `T-1`…`T-10` |
-| 2 | [Mục 0 của bản phản biện](../../../../docs/Đề%20bài/Phản%20biện%20và%20phân%20tích%20yêu%20cầu.md) | Mọi chi tiết đề bài để trống: enum, ngưỡng, con số — `D1`–`D45` |
+| 2 | [Mục 0 của bản phản biện](../../../../docs/Đề%20bài/Phản%20biện%20và%20phân%20tích%20yêu%20cầu.md) | Mọi chi tiết đề bài để trống: enum, ngưỡng, con số — `D1`–`D47` |
 | 3 | [Product brief](../../briefs/brief-crm-hackathon-2026-08-14/brief.md) | Vấn đề, trạng thái mong muốn, phạm vi, tiêu chí thành công |
 
 **PRD này chỉ thêm ba thứ ba tài liệu trên không có**, và đó là lý do nó tồn tại:
@@ -52,12 +52,12 @@ lúc máy ghi.
 
 | Mã | Yêu cầu nghiệp vụ | Đo bằng |
 |---|---|---|
-| `BUS-1` | Giảm **số quyết định** người phải ra mỗi sáng, không phải giảm số thao tác gõ | `SM-1` |
+| `BUS-1` | Giảm **số quyết định** người phải ra mỗi sáng, không phải giảm số thao tác gõ. Mốc hiện trạng: **1–2 giờ mỗi BD mỗi ngày** cho rà tin và cập nhật hồ sơ *(nhận 14/8, khớp playbook đề bài `§10`)* | `SM-1` |
 | `BUS-2` | Giữ **niềm tin** của Sales vào dữ liệu trong CRM — một dòng sai tệ hơn một dòng trống | `SM-2`, `SM-4` |
-| `BUS-3` | Chạm được tín hiệu **trong cửa sổ cơ hội** của nó, tức không mất *Right Timing* | Chưa đo được trong phạm vi này — cần dữ liệu đối chứng không dựng nổi trong 4,5 tiếng. Ghi ra để không ai tưởng đã đo |
+| `BUS-3` | Chạm được tín hiệu **trong cửa sổ cơ hội** của nó, tức không mất *Right Timing* | **Mốc có, nhận 14/8:** 3–4 trên 10 cơ hội thua gần nhất là vì **biết tin muộn**. Sản phẩm nhắm đúng khoảng một phần ba lý do thua. Vẫn **chưa đo được trong phạm vi này** — cần dữ liệu đối chứng không dựng nổi trong 4,5 tiếng |
 
-`BUS-3` là yêu cầu **gần kết quả kinh doanh nhất** mà cũng là yêu cầu duy nhất chưa có số đo. Đó là
-giới hạn thật của bản này, không phải chỗ bỏ sót.
+`BUS-3` là yêu cầu **gần kết quả kinh doanh nhất**. Nó nay có **mốc** nhưng vẫn chưa có **số đo**
+trong sản phẩm — hai thứ khác nhau, và đó là giới hạn thật của bản này, không phải chỗ bỏ sót.
 
 ## 2. Người dùng đích
 
@@ -323,6 +323,7 @@ là chỗ `T-10` kiểm.
 | Xoá Công ty (xoá mềm, cascade — `D26`) | ✅ | ✅ | ❌ đề bài `§5.4` |
 | Ghi Hoạt động vào Dòng thời gian | ✅ | ✅ | ✅ **tự do** — chỉ nhóm 5, chỉ Công ty Đang theo dõi, gắn nhãn *do hệ thống thêm* |
 | Xoá mục do hệ thống thêm | ✅ | ✅ | ❌ |
+| **Sửa mục Timeline do người tạo** — ghi chú, Activity | ✅ | ✅ | ❌ `NFR-19` — Sales Manager chốt 14/8 |
 | Đổi Giai đoạn giữa các giai đoạn **đang chạy** | ✅ | ✅ | ❌ đề bài `§5.1` · bảng chuyển tiếp ở §5.1 của PRD |
 | Đóng Cơ hội — sang Thắng hoặc Thua | ✅ | ✅ | ❌ đề bài `§5.2` |
 | Đưa Cơ hội sang `tam_dung`, và đưa nó quay lại | ✅ | ✅ | ❌ đề bài `§5.1` |
@@ -346,7 +347,7 @@ là chỗ `T-10` kiểm.
 | **Tắt/bật toàn bộ phần AI** | ❌ | ✅ | ⚠️ **tự tắt** khi chạm 100% trần ngân sách (`NFR-3`) — đường duy nhất hệ thống chạm công tắc này, và nó chỉ **tắt**, không bao giờ tự bật lại |
 | Gọi ra dịch vụ ngoài trong danh sách cho phép | — | — | ✅ đề bài `§5.3` **không** cấm gọi mạng, chỉ cấm chạm người thật (`D25`, `F38`) |
 
-**Bốn dòng in đậm là toàn bộ khác biệt thật giữa Sales và Quản trị**, trên toàn bộ 26 hành động ở
+**Bốn dòng in đậm là toàn bộ khác biệt thật giữa Sales và Quản trị**, trên toàn bộ 27 hành động ở
 bảng. Mọi khác biệt khác chỉ là hiển
 thị. Điều đó có hệ quả cho bước Kiến trúc: cần đúng một điểm kiểm quyền ở tầng nghiệp vụ, không
 phải rải khắp giao diện.
@@ -827,6 +828,7 @@ dòng nào như vậy ở đây.
 | `NFR-10` | Truy vết: mọi lần người quyết và mọi lần máy ghi đều có bản ghi. Máy ghi dưới **một danh tính hệ thống riêng**, phân biệt được với hai tài khoản người và **không đăng nhập được** | 100% | `T-5`, `T-7`, `T-9` |
 | `NFR-11` | Bản dựng **production**: không dev server, không hot reload, không chế độ gỡ lỗi | 0 vi phạm | Rà cấu hình bản dựng (đề bài `§7.3`) |
 | `NFR-12` | *(gộp — năng lực đăng nhập ở `FR-49`, việc gieo hai tài khoản ở `TR-2`)* | — | Xem `FR-49` và `TR-2`. Giữ dòng này làm con trỏ để người đối chiếu đề bài `§7.3` không tưởng bị bỏ sót |
+| `NFR-18` | **Độ tươi hồ sơ Account.** Account có hồ sơ không đổi quá **30 ngày** mang một cờ *hồ sơ đã cũ* trên màn hình Account và trong danh sách | 30 ngày | Ngưỡng do Sales Manager chốt 14/8, khớp mốc *khách nguội > 30 ngày* của hệ thống thật. Cấu hình được qua `FR-44` |
 | `NFR-13` | Bộ kiểm thử chạy bằng **một lệnh**, kết quả in rõ ràng, phủ `T-1`…`T-10` **theo dạng `D36` đã chốt**: mỗi `T` là một `Feature` nhiều `Scenario`, `T-4` thêm điều kiện *Công ty đang bật Đang theo dõi*, `T-6` và `T-8` khẳng định **quan hệ** chứ không khẳng định con số | 1 lệnh · 10/10 điểm `T` xanh | Chạy từ bản clone sạch (đề bài `§7.4`, `D36`) |
 
 > **`NFR-7`, `NFR-8` và `NFR-13` chưa viết được lệnh thật** vì stack cho `src/` chưa chốt — đó là
@@ -853,7 +855,7 @@ Không có mã thì không có story, không có story thì ngày 15/8 không ai
 
 ### 10.1 Bốn ranh giới đề bài `§5` — chặn ở tầng nghiệp vụ
 
-**Bốn ranh giới mang mã `NFR-14`…`NFR-17`** — không phải để cho đẹp: §9.2 đã nói *"Epic & Story chỉ
+**Bốn ranh giới đề bài, cộng một ranh giới thứ năm đội tự thêm — mã `NFR-14`…`NFR-17` và `NFR-19`** — không phải để cho đẹp: §9.2 đã nói *"Epic & Story chỉ
 sinh story cho thứ có mã"*, và `T-10` là điểm nghiệm thu duy nhất treo hoàn toàn vào mục này.
 
 | Mã | Ranh giới | Cách chặn | Nghiệm thu |
@@ -862,6 +864,13 @@ sinh story cho thứ có mã"*, và `T-10` là điểm nghiệm thu duy nhất t
 | `NFR-15` | Hệ thống **không tự đánh dấu Thắng/Thua**, không tự sửa giá trị tiền | Cùng điểm chặn với `NFR-14` | `T-10` vế 2 |
 | `NFR-16` | Hệ thống **không tự liên hệ khách** — không thư, không tin nhắn | Danh sách cho phép cho lệnh gọi ra ngoài | Chặn một lệnh gọi ngoài danh sách; **và** kiểm một lệnh gọi mô hình vẫn qua được (`F38`) |
 | `NFR-17` | Hệ thống **không tự xoá dữ liệu do người tạo** | Không có công cụ xoá trong bộ công cụ của tầng AI | `T-10` vế 3 — chứng minh bằng **vắng mặt**: rà bộ công cụ, không có mục xoá |
+| `NFR-19` | Hệ thống **không tự sửa mục Timeline do người tạo** — ghi chú và Activity của Sales chỉ người sửa được. Máy chỉ được **thêm mục mới**, gắn nhãn *do hệ thống thêm* | 0 lần sửa | Bộ công cụ tầng AI không có thao tác sửa mục Timeline; kiểm thử gọi thẳng tầng nghiệp vụ với danh nghĩa hệ thống, phải bị từ chối |
+
+> `NFR-19` `mở rộng ngoài đề bài` — đề bài không nhắc tới việc máy **sửa** mục Timeline, chỉ nhắc
+> việc máy **thêm**. Ranh giới này do **Sales Manager chốt ngày 14/8**: ghi chú và hồ sơ riêng của
+> Sales là thứ họ **không bao giờ** cho máy tự ghi. Playbook nói vì sao — hồ sơ là thứ họ mang đi
+> họp và chịu trách nhiệm từng dòng. **Rủi ro nghiệm thu: không** — không điểm `T` nào đòi máy sửa
+> được mục Timeline.
 
 Ba ranh giới đầu phải chặn được **kể cả khi thao tác đến từ ngoài giao diện** — `T-10` kiểm đúng
 điều này, và *"một lời dặn dò suông với phần AI không tính là đã chặn"*.
@@ -1031,7 +1040,7 @@ tại; cắt chúng thì sản phẩm còn chạy nhưng không còn đúng.
 2. **Ngưỡng của `SM-1`.** Ghi tạm 40%; chỉ chốt được ngày 15/8 khi thấy dữ liệu thật
 3. **Cái giá của hiện trạng.** Chờ ba câu ở `cau-hoi-dong-doi.md` của bước brief. Thiếu nó thì
    `SM-1` đo được sản phẩm nhưng không nói được sản phẩm đáng giá bao nhiêu
-4. ~~Bổ sung ngược vào Mục 0~~ — **đã làm 14/8**, không còn treo. Mục 0 nay chốt `D1`–`D45`:
+4. ~~Bổ sung ngược vào Mục 0~~ — **đã làm 14/8**, không còn treo. Mục 0 nay chốt `D1`–`D47`:
 
    | Đã sửa gì ở Mục 0 | Chỗ trong PRD |
    |---|---|

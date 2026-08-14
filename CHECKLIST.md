@@ -5,7 +5,7 @@ Thi **15/08/2026**, 9:30–15:00. Đội: hai dev + một Sales Manager.
 Tệp này chỉ chứa **việc phải làm trước và trong ngày thi**. Thứ tự làm và lý do nằm ở
 [`docs/chien-luoc-ngay-thi.md`](docs/chien-luoc-ngay-thi.md); chi tiết kỹ thuật đã chốt nằm ở Mục 0
 của [Phản biện và phân tích yêu cầu](docs/Đề%20bài/Phản%20biện%20và%20phân%20tích%20yêu%20cầu.md)
-dưới dạng `D1`–`D45`.
+dưới dạng `D1`–`D47`.
 
 ---
 

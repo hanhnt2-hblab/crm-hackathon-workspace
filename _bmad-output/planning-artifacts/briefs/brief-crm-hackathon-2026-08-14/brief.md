@@ -49,9 +49,19 @@ khai.
 Đi kèm là một nghịch lý phải nhớ khi thiết kế: chính vì CRM là nguồn dữ liệu chuẩn duy nhất mà
 người Sales **cực kỳ khó tính với việc ai được ghi vào đó**.
 
-**Điều hiện trạng chưa trả lời được:** không tài liệu nào có con số về **cái giá** của nó — bao
-nhiêu cơ hội mỗi tháng đến muộn, tỉ lệ hồ sơ quá hạn cập nhật. Đây là chỗ phải hỏi người thật, và
-là điều kiện để mục *Tiêu chí thành công* không rỗng.
+### Cái giá của hiện trạng — có số, hỏi ngày 14/8
+
+Ba con số dưới đây do **Sales Manager của đội** trả lời, không phải suy ra:
+
+| Cái giá | Số | Đối chiếu |
+|---|---|---|
+| Giờ mỗi BD mất mỗi ngày cho rà tin và cập nhật hồ sơ | **1–2 giờ** | Khớp đúng playbook `§10` của BTC — nên con số này đứng trên nguồn của chính ban tổ chức |
+| Cơ hội mất vì **biết tin muộn**, trên 10 cơ hội thua gần nhất | **3–4** | Sản phẩm nhắm đúng khoảng **một phần ba** lý do thua |
+| Hồ sơ cũ tới mức không dùng được cho một cuộc gặp | **quá 1 tháng** | Khớp mốc *khách nguội > 30 ngày* của hệ thống thật |
+
+Con số thứ hai là con số quan trọng nhất trong cả brief: nó biến *"mất Right Timing"* từ một mệnh
+đề trong playbook thành **một phần ba số deal thua**. Nó cũng đủ nhỏ để trung thực — sản phẩm này
+không chữa hai phần ba còn lại, và brief không giả vờ ngược lại.
 
 ## Vấn đề
 
@@ -158,8 +168,8 @@ mình**. Đó là cái giá để đúng với nguyên tắc *một dòng sai t�
 chỉ là liều hơn. Năm dòng, lấy nguyên từ `D29` và `D30`, chi tiết ở [`addendum.md`](addendum.md)
 mục 4.
 
-Còn thiếu **cái giá của hiện trạng**, đang chờ `cau-hoi-dong-doi.md`. Thiếu nó thì bảng trên đo
-được sản phẩm nhưng không nói được sản phẩm đáng giá bao nhiêu.
+**Mốc so đã có** *(nhận 14/8)*: 1–2 giờ mỗi BD mỗi ngày, và 3–4 trên 10 cơ hội thua là vì biết tin
+muộn. Bảng trên đo sản phẩm; hai con số này nói sản phẩm đáng giá bao nhiêu.
 
 ## Phạm vi
 

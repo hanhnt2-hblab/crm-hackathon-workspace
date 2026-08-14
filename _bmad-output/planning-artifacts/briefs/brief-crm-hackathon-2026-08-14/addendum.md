@@ -116,6 +116,6 @@ bài học này và ghi thẳng vào đặc tả của nó: *"view filter không
 
 | Trống gì | Chặn cái gì | Lấy ở đâu |
 |---|---|---|
-| Cái giá của hiện trạng: giờ mất mỗi ngày, số cơ hội mất vì biết muộn, ngưỡng độ tươi hồ sơ | Mục *Tiêu chí thành công* không nối được với tiền | `cau-hoi-dong-doi.md` — đã soạn, chờ gửi |
+| ~~Cái giá của hiện trạng~~ | ~~không nối được với tiền~~ | ✅ **đã đóng 14/8** — 1–2 giờ/ngày · 3–4 trên 10 cơ hội thua vì muộn · độ tươi 1 tháng. Xem `cau-hoi-dong-doi.md` |
 | Ngưỡng của chỉ tiêu chính (tạm ghi 40%) | Không biết sản phẩm đạt hay chưa đạt | Chỉ chốt được sau khi thấy bộ dữ liệu BTC phát ngày 15/8 |
 | Lược đồ bộ dữ liệu BTC | Lớp ánh xạ khi nạp dữ liệu | `Q15` — câu chặn duy nhất còn lại, phải hỏi BTC |
