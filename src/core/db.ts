@@ -60,10 +60,30 @@ export const dbIncludingDeleted = base;
 /// `AD-CR-7`: mọi capability ghi mở ĐÚNG MỘT giao dịch, và nó mở TRONG LÕI.
 /// Tầng ④ không mở giao dịch — mở thêm ở đó là hai giao dịch trên hai kết nối,
 /// và `completeAuditRow` rơi ra ngoài giao dịch chính.
-export type Tx = Omit<typeof db, "$connect" | "$disconnect" | "$transaction" | "$extends">;
+/// `AD-CP-4` — DẪN XUẤT từ chính `$transaction`, không dựng bằng `Omit` rồi ép.
+///
+/// Bản trước là `Omit<typeof db, …>` cộng `as unknown as Tx` trong `tx()`. Ép
+/// kiểu ở đó che mất một sự thật đã đo: client đã `$extends` **không**
+/// assignable vào `Prisma.TransactionClient` (`TS2345`, Prisma 7.9.1). Dẫn xuất
+/// thì kiểu tự đúng, và khi client đổi hình dạng, `tsc` báo chứ không im lặng.
+///
+/// ⚠ VẪN PHẢI `Omit<…, "$transaction">`. Kiểu giao dịch tương tác của Prisma tự
+/// gỡ `$extends`, `$connect`, `$disconnect`, `$use` — nhưng **giữ**
+/// `$transaction`. Đã đo: bản dẫn xuất trần cho `t.$transaction(…)` biên dịch
+/// sạch, tức mất đúng vế chặn mà bản `Omit` thủ công trước đó có.
+///
+/// Lồng giao dịch không tồn tại lúc chạy trên ITX client: nó ném `TypeError`
+/// giữa một capability ghi, và `completeAuditRow` rơi ra ngoài giao dịch chính
+/// — đúng bất biến ② của `AD-4`, vỡ im lặng.
+///
+/// `@/capability/types` tái xuất kiểu này dưới tên `PrismaTx` cho tầng ④.
+export type Tx = Omit<
+  Parameters<Parameters<(typeof db)["$transaction"]>[0]>[0],
+  "$transaction"
+>;
 
 export async function tx<T>(fn: (t: Tx) => Promise<T>): Promise<T> {
-  return db.$transaction(async (t) => fn(t as unknown as Tx));
+  return db.$transaction(fn);
 }
 
 export { Prisma };

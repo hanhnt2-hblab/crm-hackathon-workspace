@@ -82,6 +82,7 @@ CREATE TABLE "contact" (
     "name" TEXT NOT NULL,
     "title" TEXT,
     "email" TEXT,
+    "is_primary" BOOLEAN NOT NULL DEFAULT false,
     "source_ref" TEXT,
     "created_at" TIMESTAMPTZ(6) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updated_at" TIMESTAMPTZ(6) NOT NULL,
@@ -116,8 +117,8 @@ CREATE TABLE "opportunity" (
 CREATE TABLE "next_action" (
     "id" UUID NOT NULL,
     "opportunity_id" UUID NOT NULL,
-    "content" TEXT NOT NULL,
-    "due_date" DATE NOT NULL,
+    "content" TEXT,
+    "due_date" DATE,
     "next_action_set_by" "SetBy" NOT NULL,
     "undo_deadline_at" TIMESTAMPTZ(6),
     "source_signal_id" UUID,
@@ -133,6 +134,7 @@ CREATE TABLE "activity" (
     "id" UUID NOT NULL,
     "account_id" UUID NOT NULL,
     "opportunity_id" UUID,
+    "contact_id" UUID,
     "occurred_at" TIMESTAMPTZ(6) NOT NULL,
     "type" "ActivityType" NOT NULL,
     "description" TEXT,
@@ -212,6 +214,7 @@ CREATE TABLE "signal" (
     "quote_end" INTEGER NOT NULL,
     "confidence" "Confidence" NOT NULL,
     "relevance" "Relevance" NOT NULL,
+    "event_date" DATE,
     "marked_unhelpful_at" TIMESTAMPTZ(6),
     "created_at" TIMESTAMPTZ(6) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "deleted_at" TIMESTAMPTZ(6),
@@ -363,7 +366,9 @@ CREATE INDEX "opportunity_account_id_idx" ON "opportunity"("account_id");
 CREATE INDEX "opportunity_stage_idx" ON "opportunity"("stage");
 
 -- CreateIndex
-CREATE UNIQUE INDEX "next_action_opportunity_id_key" ON "next_action"("opportunity_id");
+-- Chỉ mục duy nhất của `next_action` nằm ở khối viết tay cuối tệp
+-- (`next_action_one_active`), KHÔNG ở đây: bản do Prisma sinh thiếu vế
+-- `WHERE deleted_at IS NULL`.
 
 -- CreateIndex
 CREATE UNIQUE INDEX "activity_source_ref_key" ON "activity"("source_ref");
@@ -488,6 +493,9 @@ ALTER TABLE "audit_record" ADD CONSTRAINT "audit_record_account_id_fkey" FOREIGN
 -- AddForeignKey
 ALTER TABLE "audit_record" ADD CONSTRAINT "audit_record_actor_user_id_fkey" FOREIGN KEY ("actor_user_id") REFERENCES "user"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
+-- AddForeignKey
+ALTER TABLE "activity" ADD CONSTRAINT "activity_contact_id_fkey" FOREIGN KEY ("contact_id") REFERENCES "contact"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+
 -- ═══════════════════════════════════════════════════════════════════════
 -- VIẾT TAY — Prisma không diễn đạt được. `AD-CR-11`.
 -- Nếu ai chạy `migrate dev` sinh migration mới đè lên, mấy dòng này BIẾN MẤT
@@ -508,6 +516,26 @@ CREATE UNIQUE INDEX "suggestion_one_pending_per_slot"
 -- Email là định danh đăng nhập, unique trong phạm vi CHƯA XOÁ
 CREATE UNIQUE INDEX "user_email_active"
   ON "user" ("email")
+  WHERE "deleted_at" IS NULL;
+
+-- `BR-D4`: TỐI ĐA MỘT Đầu mối chính mỗi Công ty.
+--
+-- Chỉ mục này là thứ DUY NHẤT canh luật đó. "Đặt người mới thì người cũ tự mất
+-- nhãn trong cùng một giao dịch" cho tính NGUYÊN TỬ, không cho tính DUY NHẤT:
+-- hai giao dịch cùng đọc *"chưa có ai"* rồi cùng ghi sẽ tạo hai Đầu mối chính
+-- và không bên nào lỗi.
+CREATE UNIQUE INDEX "contact_one_primary"
+  ON "contact" ("account_id")
+  WHERE "is_primary" AND "deleted_at" IS NULL;
+
+-- `FR-7`: TỐI ĐA MỘT Việc tiếp theo ĐANG SỐNG mỗi Cơ hội.
+--
+-- Thay cho `next_action_opportunity_id_key` mà Prisma sinh từ `@unique`. Bản
+-- đó thiếu vế `deleted_at IS NULL`, nên một Việc tiếp theo đã xoá mềm khoá
+-- VĨNH VIỄN ô đó: lần thay thứ hai trên cùng Cơ hội ăn unique violation, và
+-- `T-7` (bấm Hoàn tác) đỏ với một lỗi Postgres không đọc được.
+CREATE UNIQUE INDEX "next_action_one_active"
+  ON "next_action" ("opportunity_id")
   WHERE "deleted_at" IS NULL;
 
 -- ① Bất biến HAI CHIỀU của latest_open_stage (`AD-CR-1`).

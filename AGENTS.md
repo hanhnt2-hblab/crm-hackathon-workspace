@@ -4,10 +4,11 @@
 ## crm-hackathon-workspace
 
 Repo của hackathon CRM, thi ngày 2026-08-15. Chứa cách đội làm việc — bản cài BMad Method, các
-file nối tri thức BABOK, và skill bù chỗ BMad thiếu — cùng mã sản phẩm CRM sẽ nằm ở `src/` khi
-stack được chốt. Bốn bước đầu của luồng đã chạy xong, artifact ở
-`_bmad-output/planning-artifacts/`; `src/` mới có `ontology/`, chưa có mã chạy được. Đề bài và
-phân tích ở `docs/Đề bài/`.
+file nối tri thức BABOK, và skill bù chỗ BMad thiếu — cùng mã sản phẩm CRM ở `src/`. Năm loại
+artifact kế hoạch đã xong ở `_bmad-output/planning-artifacts/` — brief, PRD, UX, kiến trúc, epic —
+và bước dựng đang chạy. `src/` có khung năm tầng và `tests/` chạy được; `tsc --noEmit`, `npm run lint`,
+`npm run build` và `npm test` đều sạch. Thân hàm phần lớn vẫn là `chưa hiện thực` — đó là chủ
+đích của Cục 0, không phải việc bỏ dở. Đề bài và phân tích ở `docs/Đề bài/`.
 
 ## Policy
 
@@ -41,15 +42,17 @@ phân tích ở `docs/Đề bài/`.
   trong kiểm thử. Cả thư mục `docs/Đề bài/` là nguồn yêu cầu gốc — bóc từ đây trước khi tự nghĩ.
 - Skill nào chạy ở bước nào, và nó nuôi cột chấm điểm nào: `README.md` mục *Luồng phát triển*.
   Bảng lệnh thô ở `_bmad/bmm/module-help.csv`.
-- Kiến trúc đã chốt, và nó là thứ phải đọc trước khi viết dòng mã đầu tiên trong `src/`:
+- Kiến trúc đã chốt, và nó là thứ phải đọc trước khi sửa bất cứ gì trong `src/`:
   `…/architecture/architecture-crm-hackathon-2026-08-14/ARCHITECTURE-SPINE.md` — 22 bất biến
   `AD-1`…`AD-22`, bảng Stack có phiên bản ghim, sổ đăng ký Capability đóng. Ma trận quyết định có
   trọng số nằm cạnh; `src/ontology/crm.ontology.md` là từ vựng chung. Sườn là nơi duy nhất ghi
-  đúng chiều phụ thuộc giữa các tầng.
-- Bốn bước đã chạy, artifact dùng làm đầu vào cho bước sau: brief ở
+  đúng chiều phụ thuộc giữa các tầng. Năm sườn tầng cùng thư mục cha
+  (`architecture-tier1-tuong-tac` … `tier5-core`) mang thêm 67 bất biến có tiền tố `AD-UI` `AD-AG`
+  `AD-GT` `AD-CP` `AD-CR`; `lint_spine.py` chỉ khớp `AD-<số>` nên KHÔNG kiểm được dải đó.
+- Năm bước đã chạy, artifact dùng làm đầu vào cho bước sau: brief ở
   `_bmad-output/planning-artifacts/briefs/brief-crm-hackathon-2026-08-14/`, PRD ở `…/prds/…/prd.md`
   (51 FR, mỗi FR mang nhãn ưu tiên suy từ `T-1`…`T-10`), UX ở `…/ux-designs/…/` gồm `DESIGN.md` và
-  `EXPERIENCE.md`.
+  `EXPERIENCE.md`, epic và story ở `…/epics/epics-crm-hackathon-2026-08-14/epics.md`.
 - Nguyên mẫu do Claude Design sinh ở `…/ux-designs/…/prototype/`. Mở `WhyNowPrototype.dc.html`
   bằng trình duyệt cho màn hình trắng — nó thiếu React. Nguyên mẫu dựng theo lớp token **cũ**, nay
   chỉ còn giá trị tham khảo về luồng; lớp token hiện tại là Fluent 2, xem `DESIGN.md`.
@@ -61,21 +64,35 @@ phân tích ở `docs/Đề bài/`.
   khẳng định bằng lệnh truy vấn của stack và ghi rõ đã dùng đường dự phòng.
 - CRM thật của HBLAB chạy trên Airtable: `docs/CRM clone từ Airtable/` — dùng khi cần một con số đã
   có người trả giá, thay vì tự suy ra.
-- Bản ghi quyết định chung của nửa thực thi sẽ nằm ở
-  `_bmad-output/implementation-artifacts/.memlog.md`. Ghi vào đó ngay khi chốt một quyết định,
-  không dồn tới cuối.
+- Nửa thực thi ở `_bmad-output/implementation-artifacts/`: `.memlog.md` ghi ngay khi chốt một
+  quyết định, không dồn tới cuối; `spec-c0-frozen-contracts.md` là hợp đồng kiểu giữa năm tầng, và
+  khối `<frozen-after-approval>` trong đó là ý định do người sở hữu nên đừng sửa; `deferred-work.md`
+  ghi việc đã tách ra kèm lý do — đọc nó trước khi "sửa" một hình dạng kiểu trông có vẻ sai, phần
+  lớn là cố ý hoãn chứ không phải sót.
 - Việc phải làm trước và trong ngày thi: `CHECKLIST.md`.
 
 ## Running and verifying
 
-- TODO — stack đã chốt ở sườn kiến trúc nhưng `package.json` chưa tồn tại, nên chưa lệnh nào chạy
-  được. Khi dựng, hai chỗ sườn đã cảnh báo và dễ làm sai: bản production chạy `npm ci` →
-  `npm run build` → `npm start`, **không `npm run dev`** (đề bài cấm dev server); và script test là
-  `vitest run`, **không `vitest`** — bản thiếu `run` chạy chế độ theo dõi, không bao giờ trả mã
-  thoát, giám khảo gõ `npm test` sẽ thấy treo.
-- Lớp AI xác thực bằng **đăng nhập subscription**, không phải `ANTHROPIC_API_KEY` — mặc định đặt
-  biến đó là đi ngược quyết định đã chốt. Đường lui sang API key có sẵn, nhưng là đổi quyết định
-  chứ không phải vá.
+- NĂM lệnh cổng nộp bài — `build` `start` `seed` `test` `stop` — và bẫy của từng lệnh:
+  `CHECKLIST.md` mục *B · Giai đoạn 1*. Đừng suy lệnh từ `package.json` — `npm run dev` có trong
+  đó nhưng `§7` cấm dev server.
+- Bốn lệnh thoát 0; `npm run seed` thoát **1** vì `prisma/seed.ts` chưa có. Đó là trạng thái đã
+  biết và là việc của `C5-17`, không phải hỏng cấu hình.
+- `npm test` tự dựng CSDL của nó ở cổng **5443**. `tests/global-setup.ts` xoá lược đồ rồi
+  `migrate deploy` — KHÔNG dùng `migrate reset` (cờ `--skip-seed` đã bị gỡ ở Prisma 7) và KHÔNG
+  dùng `db push` (nó bỏ qua migration, tức mất sạch 4 `CHECK` và 4 chỉ mục một phần viết tay).
+  Ba khẳng định ở đầu tệp đó chặn việc trỏ nhầm sang CSDL demo 5442; đừng nới chúng.
+- Khi `npm install` xuống nền thì **không gõ gì thêm** cho tới lúc có thông báo. Gõ tiếp giết tiến
+  trình cài giữa chừng; ngày 14/08 việc đó làm hỏng `node_modules` năm lần liên tiếp. Và đừng xoá
+  `node_modules` để cài lại cho sạch — riêng Fluent là 68 gói và 51.725 tệp. Hỏng thì `npm rebuild`
+  trước, nó nối lại `.bin` trong vài giây.
+- `npm run lint` cưỡng chế ranh giới nhập của `AD-1` cho cả năm tầng, cộng `instrumentation.ts`
+  (tệp ở gốc, `AD-1` gọi nó là chỗ nguy hiểm nhất). Mỗi khối đã được đo bằng một tệp thăm dò, không
+  phải viết rồi tin. `no-import-type-side-effects` bật cùng lúc là BẮT BUỘC, không phải trang trí:
+  thiếu nó thì `import { type X }` qua mặt mọi `allowTypeImports`, vì tuỳ chọn đó xét ở mức cả câu
+  lệnh.
+- Cấu hình lớp AI, gồm cả lý do để `ANTHROPIC_API_KEY` trống và đường lui nếu subscription hỏng:
+  `.env.example`. Nó là tệp tự giải thích, đọc trước khi đặt bất kỳ biến nào.
 - Ghim model cho lớp AI đặt ở **ba** biến, không phải một; bảng ở `AD-15` của sườn. Đặt mỗi
   `options.model` thì subagent và các lệnh gọi nền vẫn thoát ra model khác.
 - Sửa tài liệu nhiều dòng thì viết script ra scratchpad rồi chạy, đừng dùng heredoc của Bash —

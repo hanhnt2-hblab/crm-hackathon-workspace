@@ -99,9 +99,18 @@ export async function unclassifiedRatio(): Promise<{
     getSettingNumber("unclassified_ratio_threshold"),
     getSettingNumber("metrics_min_sample"),
   ]);
+  // ⚠ Đếm theo `signalSubtype = "unclassified"`, KHÔNG theo `signalType = "other"`.
+  //
+  // PRD §7.2 định nghĩa `BR-B5` là *"tỉ lệ Phát hiện mang `signal_subtype =
+  // unclassified`"*, và §3.2 nói rõ `unclassified` là **một trong 13 giá trị**
+  // của `signal_subtype`. Đếm theo `other` gộp cả 12 giá trị kia — `rfp`,
+  // `partnership`, `m_and_a`, `dx_initiative`… — vốn đều là phân loại THÀNH
+  // CÔNG. Bản trước làm thế, nên báo động bật ngay trên dữ liệu lành, và theo
+  // đúng lời chú thích ở dưới: nó *"làm giảm độ tin của mọi cảnh báo khác trên
+  // cùng màn hình"*.
   const [total, other] = await Promise.all([
     db.signal.count(),
-    db.signal.count({ where: { signalType: "other" } }),
+    db.signal.count({ where: { signalSubtype: "unclassified" } }),
   ]);
   // Dùng CÙNG sàn cỡ mẫu với hai chỉ số kia. Không có nó thì MỘT Phát hiện
   // loại `other` cho tỉ lệ 1,0 > 0,30 và báo động `BR-B5` bật trên bản demo

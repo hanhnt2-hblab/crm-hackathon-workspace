@@ -187,12 +187,24 @@ model Contact {
   name      String
   title     String?
   email     String?
+  /// `BR-D4` — Đầu mối chính. TỐI ĐA MỘT trên mỗi Công ty.
+  ///
+  /// Là một CỜ trên Người liên hệ, không phải một cột `primary_contact_id` trên
+  /// Công ty. Phương án cột-trên-Công-ty đã loại: nó cho phép trỏ sang một
+  /// Người liên hệ thuộc Công ty KHÁC, và không khoá ngoại nào bắt được điều đó.
+  ///
+  /// Duy nhất được canh bằng `contact_one_primary` — chỉ mục MỘT PHẦN, không
+  /// phải bằng "đặt trong cùng một giao dịch". Giao dịch cho tính nguyên tử,
+  /// không cho tính duy nhất: hai giao dịch cùng đọc *"chưa có ai"* rồi cùng
+  /// ghi sẽ tạo hai Đầu mối chính mà không lỗi.
+  isPrimary Boolean   @default(false) @map("is_primary")
   sourceRef String?   @unique @map("source_ref")
   createdAt DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
   updatedAt DateTime  @updatedAt @map("updated_at") @db.Timestamptz(6)
   deletedAt DateTime? @map("deleted_at") @db.Timestamptz(6)
 
-  account Account @relation(fields: [accountId], references: [id])
+  account    Account    @relation(fields: [accountId], references: [id])
+  activities Activity[]
 
   @@index([accountId])
   @@map("contact")
@@ -220,7 +232,14 @@ model Opportunity {
   deletedAt       DateTime? @map("deleted_at") @db.Timestamptz(6)
 
   account       Account        @relation(fields: [accountId], references: [id])
-  nextAction    NextAction?
+  /// MỘT-NHIỀU, không phải một-một. Về nghiệp vụ vẫn là *"tối đa một Việc tiếp
+  /// theo mỗi Cơ hội"*, nhưng xoá mềm để lại lịch sử: một Cơ hội có nhiều hàng
+  /// `next_action`, trong đó **đúng một** hàng còn sống. Ràng buộc thật nằm ở
+  /// chỉ mục một phần `next_action_one_active`, không ở kiểu quan hệ.
+  ///
+  /// ⚠ Bên đọc PHẢI lọc `deletedAt: null` — extension của `db.ts` chưa lọc
+  /// quan hệ lồng, nên `include: { nextActions: true }` trả cả hàng đã xoá.
+  nextActions   NextAction[]
   activities    Activity[]
   notifications Notification[]
 
@@ -232,9 +251,17 @@ model Opportunity {
 model NextAction {
   id              String    @id @default(uuid()) @db.Uuid
   /// TỐI ĐA MỘT trên mỗi Cơ hội — có hai là chưa ai quyết
-  opportunityId   String    @unique @map("opportunity_id") @db.Uuid
-  content         String
-  dueDate         DateTime  @map("due_date") @db.Date
+  /// ⚠ KHÔNG `@unique` ở đây. Prisma sinh chỉ mục unique ĐẦY ĐỦ, không có vế
+  /// `WHERE deleted_at IS NULL` — nên một Việc tiếp theo đã xoá mềm khoá VĨNH
+  /// VIỄN ô đó, và lần thay thứ hai trên cùng Cơ hội ăn unique violation. Đúng
+  /// cái bẫy mà migration đã nêu tên cho `suggestion` và `user.email`.
+  /// Duy nhất được canh bằng `next_action_one_active` (chỉ mục một phần).
+  opportunityId   String    @map("opportunity_id") @db.Uuid
+  /// `BR-B1` — thiếu một trong hai VẪN LƯU ĐƯỢC, chỉ mang cờ cảnh báo và không
+  /// vào danh sách việc phải làm. NOT NULL ở đây làm luật đó bất khả thi: nó
+  /// ném lỗi CSDL thay vì treo cờ, ngược hẳn *"vẫn lưu"*.
+  content         String?
+  dueDate         DateTime? @map("due_date") @db.Date
   /// Thuộc tính NGUỒN GỐC, không phải siêu dữ liệu: nó quyết định máy có được ghi đè không
   setBy           SetBy     @map("next_action_set_by")
   /// `D17`: máy đặt thì áp trước, hoàn tác sau — một cú bấm trong 7 ngày
@@ -254,6 +281,13 @@ model Activity {
   id            String       @id @default(uuid()) @db.Uuid
   accountId     String       @map("account_id") @db.Uuid
   opportunityId String?      @map("opportunity_id") @db.Uuid
+  /// `E1-S6` — Người liên hệ liên quan. Nullable: Hoạt động không nhất thiết
+  /// gắn với một người cụ thể (ví dụ *"gửi hồ sơ cho phòng mua"*).
+  ///
+  /// ⚠ Khoá ngoại KHÔNG bắt được luật *"chỉ chọn trong phạm vi Công ty đó"* —
+  /// nó chỉ bắt Người liên hệ có tồn tại. Luật đó do lõi canh; không có nó thì
+  /// Hoạt động của Công ty A gắn được người của Công ty B.
+  contactId     String?      @map("contact_id") @db.Uuid
   occurredAt    DateTime     @map("occurred_at") @db.Timestamptz(6)
   type          ActivityType
   description   String?
@@ -264,6 +298,7 @@ model Activity {
 
   account     Account      @relation(fields: [accountId], references: [id])
   opportunity Opportunity? @relation(fields: [opportunityId], references: [id])
+  contact     Contact?     @relation(fields: [contactId], references: [id])
 
   @@index([accountId])
   @@map("activity")
@@ -361,6 +396,17 @@ model Signal {
   quoteEnd      Int        @map("quote_end")
   confidence    Confidence
   relevance     Relevance
+  /// `BR-D7` — NGÀY SỰ KIỆN đọc được trong tin. Hạn Việc tiếp theo đo TỪ ĐÂY,
+  /// lui về ngày Bản lưu khi mô hình không đọc được (`D5`), nên nullable.
+  ///
+  /// Vì sao phải LƯU chứ không tính hạn một lần rồi bỏ: `BR-D8` định nghĩa
+  /// *"cùng lúc"* là **mọi tin còn trong cửa sổ cơ hội của nó** — muốn biết điều
+  /// đó khi một tin cũ tới sau thì phải còn ngày sự kiện của những tin trước.
+  ///
+  /// `@db.Date` chứ không `Timestamptz`: tin chỉ cho biết NGÀY. Lưu kèm giờ là
+  /// bịa ra độ chính xác không có thật, rồi so qua múi giờ sẽ lệch một ngày —
+  /// đúng lúc tính hạn, và `BR-D7` có sàn *cuối ngày làm việc kế tiếp*.
+  eventDate     DateTime?  @map("event_date") @db.Date
   /// `FR-42`: phản hồi của người — nguồn của `error-detection rate`
   markedUnhelpfulAt DateTime? @map("marked_unhelpful_at") @db.Timestamptz(6)
   createdAt     DateTime   @default(now()) @map("created_at") @db.Timestamptz(6)

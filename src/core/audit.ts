@@ -18,7 +18,10 @@
 
 import { db, type Tx } from "./db";
 import type { Actor } from "./actor";
-import type { DenyReason } from "./errors";
+/// Nhập KIỂU từ tầng ③. Không tạo cạnh lúc chạy — `import type` bị xoá khi biên
+/// dịch — và `@/autonomy/gate` vốn không nhập giá trị nào, nên không có chu
+/// trình. Đây là bên tiêu thụ từ vựng, không phải bên sở hữu (`AD-GT-12`).
+import type { GateDenyReason } from "@/autonomy/gate";
 
 export type AuditOutcome = "ok" | "business_rule_error" | "no_op" | "crashed";
 
@@ -30,7 +33,7 @@ export type AuditSink = {
     risk: string;
     accountId?: string | null;
     allowed: boolean;
-    denyReason?: DenyReason | null;
+    denyReason?: GateDenyReason | null;
     causedBy?: string | null;
   }): Promise<string | null>;
 

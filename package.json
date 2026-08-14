@@ -5,11 +5,12 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
-    "start": "next start",
+    "start": "docker compose up -d --wait && next start",
     "lint": "eslint",
-    "test": "vitest run",
-    "seed": "prisma generate && prisma migrate deploy && node prisma/seed.ts",
-    "postinstall": "prisma generate"
+    "test": "docker compose up -d --wait db_test && vitest run",
+    "seed": "docker compose up -d --wait && prisma generate && prisma migrate deploy && node prisma/seed.ts",
+    "postinstall": "prisma generate",
+    "stop": "docker compose down"
   },
   "dependencies": {
     "@anthropic-ai/claude-agent-sdk": "0.3.232",
@@ -38,6 +39,6 @@
     "vitest": "4.1.10"
   },
   "engines": {
-    "node": ">=22.6"
+    "node": ">=24.19.0"
   }
 }

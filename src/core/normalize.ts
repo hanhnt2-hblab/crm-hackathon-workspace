@@ -36,11 +36,22 @@ export function normalize(raw: string): string {
     // ⑤ gộp dấu cách và tab liên tiếp; giữ nguyên xuống dòng
     .replace(/[ \t]+/g, " ")
     // ⑥ cắt khoảng trắng đầu/cuối mỗi dòng, rồi gộp dòng trống liên tiếp
+    //
+    // ⚠ KHÔNG dùng `String.prototype.trim()`. Nó cắt theo định nghĩa khoảng
+    // trắng của ECMAScript, và định nghĩa đó GỒM U+3000 — nên bước ④ giữ lại
+    // U+3000 rồi bước này xoá ngay, đúng thứ ④ nói là không được đụng.
+    // Đã đo: `("x" + U+3000).trim()` trả `"x"`.
+    //
+    // Hệ quả nếu để nguyên: văn bản JP dùng U+3000 thụt đầu dòng (cách viết
+    // thông thường) mất thụt ở bản chuẩn hoá nhưng còn ở bản thô, nên mọi
+    // offset câu trích lệch — và triệu chứng trông y hệt *mô hình bịa câu
+    // trích*, tức chẩn đoán sẽ đi sai hướng.
     .split("\n")
-    .map((l) => l.trim())
+    .map((l) => l.replace(/^[ \t]+/, "").replace(/[ \t]+$/, ""))
     .join("\n")
     .replace(/\n{3,}/g, "\n\n")
-    .trim();
+    .replace(/^[ \t\n]+/, "")
+    .replace(/[ \t\n]+$/, "");
 }
 
 /// LUỸ ĐẲNG: `normalize(normalize(x)) === normalize(x)`.

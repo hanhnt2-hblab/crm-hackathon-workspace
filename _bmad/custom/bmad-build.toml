@@ -1,18 +1,86 @@
 # KHÔNG do hub babok-bmad-skill sinh ra — đội tự viết. install.py không đụng tệp này.
 #
-# Lý do: chín skill phase plan đã ghi memlog, nhưng bmad-build thì không. Cột
-# Development nặng 25 điểm và là phần sinh nhiều log nhất trong ngày thi, mà không
-# để lại bản ghi quyết định nào — trong khi vòng 2 bốc ngẫu nhiên 3-5 câu hỏi từ
-# chính log đó.
+# BABOK cố ý KHÔNG phủ bước này: mục Giới hạn của hub nói *"BABOK mô tả cái gì và
+# vì sao, không mô tả cách hiện thực trong một codebase cụ thể."* Nên tệp này
+# không nhúng kỹ thuật BABOK như chín override kia. Nó làm hai việc khác:
+#
+#   ① ĐỊNH TUYẾN ĐỌC — bmad-build có sẵn cơ chế link (`context:` ở frontmatter
+#      spec, subagent tự nạp ở step-03), nhưng KHÔNG bước nào nói điền gì vào đó:
+#      grep `context:` trong step-02-plan.md trả về rỗng. Không có bảng định
+#      tuyến thì Build hoặc bỏ trống `context:` và cài theo trí nhớ, hoặc nhét
+#      cả mười nghìn dòng artifact vào và ngộp.
+#   ② GHI VẾT QUYẾT ĐỊNH — chín skill phase plan đều ghi memlog, bmad-build thì
+#      không. Cột Development nặng 25 điểm và sinh nhiều log nhất trong ngày thi,
+#      mà không để lại bản ghi quyết định nào — trong khi vòng 2 bốc ngẫu nhiên
+#      3–5 câu hỏi từ chính log đó.
+#
+# ⚠ VÌ SAO CHỈ MỘT `file:` DUY NHẤT. `persistent_facts` nạp TRỌN tệp vào ngữ
+# cảnh mỗi lần chạy. Đã đo: PRD 1066 dòng · spine cha 1544 · năm spine tầng 4030
+# · UX 1118 · Mục 0 1675 · ontology 347 — tổng 10.303 dòng. Nạp hết là ngộp ngữ
+# cảnh ở MỌI lần chạy Build, kể cả lần chỉ sửa một dòng CSS. Nên chỉ `epics.md`
+# (313 dòng) được nạp sẵn — nó là sổ công việc, mang tệp sở hữu, tiêu chí nghiệm
+# thu và mã `T`. Phần còn lại định tuyến theo nhu cầu qua bảng dưới.
+#
+# Bề mặt tuỳ biến của bmad-build có sáu key phổ quát cộng hai array-of-tables:
+#   activation_steps_prepend · activation_steps_append · persistent_facts ·
+#   on_complete · open_spec · implementation_handoff ·
+#   [[review_layers]] · [[oneshot_review_layers]]
+# KHÔNG có external_sources và KHÔNG có doc_standards — nên chỉ thị có điều kiện
+# phải nằm trong persistent_facts dạng văn bản, không có chỗ nào khác.
+# Đã kiểm cả hai đầu: persistent_facts đọc ở workflow.md:49, on_complete đọc ở
+# step-05-present.md:75 và step-oneshot.md:77, review_layers ở step-04-review.md:23.
 
 [workflow]
 
 persistent_facts = [
+  # ── Sổ công việc, nạp sẵn mọi lần chạy ──────────────────────────────────────
+  "file:{project-root}/_bmad-output/planning-artifacts/epics/epics-crm-hackathon-2026-08-14/epics.md",
+
+  # ── ĐỊNH TUYẾN ĐỌC ─────────────────────────────────────────────────────────
+  """BẢNG ĐỊNH TUYẾN ARTIFACT. Ở step-02, điền `context:` của spec bằng những tệp CÓ LIÊN QUAN tới đúng việc đang làm — không bỏ trống, và không nhét cả bảng. Đường dẫn tính từ `{project-root}`.
+
+| Đang cần biết gì | Đọc tệp nào |
+|---|---|
+| Yêu cầu chức năng, luật nghiệp vụ `BR-D`/`BR-B`, ma trận vai §6, bảng chuyển trạng thái §5.1, ranh giới `NFR-14`…`NFR-19` | `_bmad-output/planning-artifacts/prds/prd-crm-hackathon-2026-08-14/prd.md` |
+| Một chi tiết đề bài để trống — enum, ngưỡng, con số | Mục 0 của `docs/Đề bài/Phản biện và phân tích yêu cầu.md` (`D1`–`D47`) |
+| Điểm nghiệm thu `T-1`…`T-10` nguyên văn | `docs/Đề bài/Yêu Cầu đề bài chính thức của cuộc thi prd.md` |
+| Bất biến XUYÊN TẦNG — `AD-1`…`AD-22`, ranh giới nhập, quy ước chung | `_bmad-output/planning-artifacts/architecture/architecture-crm-hackathon-2026-08-14/ARCHITECTURE-SPINE.md` |
+| Quyết định của MỘT tầng | spine tầng tương ứng, xem bảng tầng bên dưới |
+| Màu, khoảng cách, kiểu chữ, đặc tả component | `_bmad-output/planning-artifacts/ux-designs/ux-crm-hackathon-2026-08-14/DESIGN.md` |
+| Hành vi màn hình, trạng thái rỗng/đang tải/lỗi, luồng, microcopy, sàn tiếp cận | `_bmad-output/planning-artifacts/ux-designs/ux-crm-hackathon-2026-08-14/EXPERIENCE.md` |
+| Từ vựng miền — một danh từ nghĩa là gì, thuộc tính nào của nó | `src/ontology/crm.ontology.md` |
+
+Đọc ĐÚNG MỤC, không đọc trọn tệp: PRD 1066 dòng, spine cha 1544, Mục 0 1675.""",
+
+  """BẢNG TẦNG — mỗi thư mục thuộc đúng một tầng, và mỗi tầng có spine riêng dưới `_bmad-output/planning-artifacts/architecture/`. Đang sửa tệp ở cột trái thì đọc spine ở cột phải, KHÔNG đọc cả năm.
+
+| Thư mục | Tầng | Spine | Tiền tố mã |
+|---|---|---|---|
+| `src/app/**`, `src/ingest/**`, `src/scan/**` | ① Tương tác | `architecture-tier1-tuong-tac/` | `AD-UI-*` |
+| `src/agent/**` | ② Agent Runtime | `architecture-tier2-agent/` | `AD-AG-*` |
+| `src/autonomy/**` | ③ Cổng tự chủ | `architecture-tier3-autonomy/` | `AD-GT-*` |
+| `src/capability/**` | ④ Capability | `architecture-tier4-capability/` | `AD-CP-*` |
+| `src/core/**`, `prisma/**` | ⑤ Lõi domain | `architecture-tier5-core/` | `AD-CR-*` |
+
+Một `AD` của tầng KHÔNG được mâu thuẫn với `AD` của spine cha. Thấy mâu thuẫn thì NÊU RA, đừng tự chọn bên — đó là xung đột kiến trúc, không phải chi tiết cài đặt.""",
+
+  """TRUY VẾT NGƯỢC, bắt buộc. Mỗi thay đổi phải trỏ được về ít nhất một mã ở thượng nguồn, và mã đó phải TRA ĐƯỢC trong tệp nguồn của nó — `FR-n`/`NFR-n`/`BR-D n`/`BR-B n` ở PRD, `AD-*` ở spine, `D n` ở Mục 0, `T-n` ở đề bài, `S0`–`S11` ở EXPERIENCE.md. Trích mã ngay trong mã nguồn và trong phép kiểm.
+
+Không trỏ được về mã nào nghĩa là một trong hai: đang làm việc ngoài phạm vi, hoặc thượng nguồn thiếu một yêu cầu. Cả hai đều phải NÊU RA, không im lặng cài tiếp.
+
+⚠ Đừng bịa mã. `errors.ts` khai từ vựng ĐÓNG, và mỗi mã ở đó phải tồn tại sẵn ở thượng nguồn. Đã có tiền lệ hỏng: `BR-D3` từng bị dùng làm mã lỗi giai đoạn, trong khi PRD §7.1 định nghĩa nó là luật Bản lưu ↔ Công ty.""",
+
+  """THỨ TỰ PHÂN XỬ khi hai tài liệu nói khác nhau (`AD-13`):
+đề bài §1–§7  >  Mục 0 (`D1`–`D47`)  >  PRD  >  spine kiến trúc  >  UX  >  ontology  >  lược đồ.
+Áp thứ tự này rồi NÊU RA chỗ lệch — sửa im lặng tài liệu hạng dưới cho khớp là cách tạo nguồn sự thật thứ hai.""",
+
+  # ── Kỷ luật ngày thi ────────────────────────────────────────────────────────
   "Mọi đầu ra AI giữ lại trong ngày thi phải có một người đọc và nói được lý do trong một câu. Nói không được thì bỏ, đừng giữ. Bề mặt mã tối đa bằng bề mặt hai người đọc kịp, không bằng bề mặt AI sinh kịp.",
 
-  "Trước khi quyết một chi tiết đề bài để trống, tra Mục 0 của `docs/Đề bài/Phản biện và phân tích yêu cầu.md` — `D1`–`D41` đã chốt enum, ngưỡng và con số. Đừng quyết lại thứ đã quyết; trích `Dn` ngay trong mã và trong kiểm thử để truy được về sau.",
+  "Trước khi quyết một chi tiết đề bài để trống, tra Mục 0 — `D1`–`D47` đã chốt enum, ngưỡng và con số. Đừng quyết lại thứ đã quyết; trích `Dn` ngay trong mã và trong kiểm thử để truy được về sau.",
 
   "Ranh giới §5 của đề bài phải chặn ở tầng nghiệp vụ, không chặn bằng lời dặn trong prompt và không chỉ ẩn trên giao diện — đề bài nói thẳng một lời dặn suông không tính là đã chặn.",
+
   "Ghi memlog NGAY khi chốt một quyết định, không dồn tới lúc kết thúc. Lần chạy bị huỷ, hết giờ, hay lỗi giữa chừng là lần dễ bị vòng 2 hỏi nhất — vì nó để lại mã nửa vời — mà cũng chính là lần `on_complete` không bao giờ chạy tới. Lệnh: `python {project-root}/_bmad/scripts/memlog.py append --path {project-root}/_bmad-output/implementation-artifacts/.memlog.md --type <loại> --by <ai> --text \"<quyết gì, vì sao>\"`.",
 ]
 
@@ -22,8 +90,44 @@ Ghi một dòng vào bản ghi quyết định chung trước khi kết thúc:
   python {project-root}/_bmad/scripts/memlog.py append \\
     --path {project-root}/_bmad-output/implementation-artifacts/.memlog.md \\
     --type build --by dev \\
-    --text "<đã cài gì · chọn cách nào và loại cách nào, vì sao · trích Dn nếu có · chỗ nào còn nợ>"
+    --text "<đã cài gì · chọn cách nào và loại cách nào, vì sao · trích mã thượng nguồn (FR/AD/D/T) · chỗ nào còn nợ>"
 
 Một dòng, nêu quyết định và lý do — không chép lại mã. Đây là thứ dùng để trả lời
 khi vòng 2 bốc trúng câu hỏi về phần này.
+"""
+
+# Lớp rà thứ tư, chỉ ở đường plan-code-review. KHÔNG thêm vào oneshot: đường đó
+# theo định nghĩa là bán kính bằng không, và một subagent nữa cho mỗi sửa lặt vặt
+# là chi phí không đáng trong 16 giờ còn lại.
+[[workflow.review_layers]]
+id = "traceability"
+name = "Truy vết ngược"
+instruction = """
+Launch a context-free subagent with this prompt:
+
+Bạn kiểm TRUY VẾT NGƯỢC, không kiểm chất lượng mã. Trả lời bằng tiếng Việt có dấu.
+
+Nội dung cần rà:
+
+{diff_output}
+
+Với MỖI thay đổi hành vi trong diff, trả lời ba câu:
+1. Nó trỏ về mã thượng nguồn nào? (`FR-n` · `NFR-n` · `BR-D n` · `BR-B n` · `AD-*` · `D n` · `T-n` · `S0`–`S11`)
+2. Mã đó có TRA ĐƯỢC trong tệp nguồn của nó không? Tự mở tệp mà kiểm, đừng tin phần trích trong chú thích:
+   - `FR`/`NFR`/`BR` → `_bmad-output/planning-artifacts/prds/prd-crm-hackathon-2026-08-14/prd.md`
+   - `AD-*` → `_bmad-output/planning-artifacts/architecture/` (spine cha cho `AD-n`, spine tầng cho `AD-UI/AG/GT/CP/CR-n`)
+   - `D n` → Mục 0 của `docs/Đề bài/Phản biện và phân tích yêu cầu.md`
+   - `T-n` → `docs/Đề bài/Yêu Cầu đề bài chính thức của cuộc thi prd.md`
+   - `S0`–`S11` → `_bmad-output/planning-artifacts/ux-designs/ux-crm-hackathon-2026-08-14/EXPERIENCE.md`
+3. Mã đó có nói ĐÚNG thứ mã nguồn đang làm không? Trích mã sai chỗ còn tệ hơn không trích, vì nó trông như đã kiểm.
+
+BÁO CÁO ba nhóm, mỗi mục một dòng, kèm `tệp:dòng`:
+- **Không trỏ về đâu** — thay đổi hành vi không gắn được mã nào
+- **Mã không tra được** — trích một mã không tồn tại ở thượng nguồn
+- **Mã sai chỗ** — mã có tồn tại nhưng nói về chuyện khác
+
+Nhóm nào rỗng thì ghi một dòng "không có". Không xếp mức nghiêm trọng.
+Chỉ báo cái tra được; đừng suy đoán.
+
+Do not invoke any skill. Return only the review result.
 """
