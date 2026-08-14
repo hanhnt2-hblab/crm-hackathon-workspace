@@ -1,0 +1,17 @@
+/* Chuyển động. Ngưỡng UX-4: mọi thao tác phải có phản hồi thị giác
+   ≤ 200ms; việc lâu hơn 1 giây phải hiện trạng thái đang chạy.
+   UX-7: không hoạt ảnh nào được cướp tiêu điểm hay làm trang nhảy. */
+:root{
+  /* đổi màu hover/press */
+  --dur-instant:80ms; /* @kind other */
+  --dur-fast:140ms;        /* @kind other */
+  /* trần phản hồi cảm nhận được */
+  --dur-feedback:200ms; /* @kind other */
+  /* dải "có N việc mới" trượt vào */
+  --dur-slow:320ms; /* @kind other */
+  --ease-standard:cubic-bezier(.2,0,.3,1); /* @kind other */
+  --ease-out:cubic-bezier(0,0,.3,1);       /* @kind other */
+  --threshold-progress:1000ms;             /* @kind other */
+}
+/* prefers-reduced-motion: đưa mọi thời lượng về 0 — luật này sống trong CSS
+   của từng bề mặt, không trong tệp token, để tệp này chỉ khai token. */

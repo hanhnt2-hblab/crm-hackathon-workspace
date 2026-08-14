@@ -22,6 +22,10 @@ _bmad/**                                        linguist-vendored
 # Repo hiện chưa track tệp nhị phân nào; đây là lưới an toàn cho ảnh chụp màn hình
 # và tài liệu mà phần demo có thể thêm vào.
 *.png    binary
+*.webp   binary
+# Ảnh xem trước của Claude Design — WebP KHÔNG có đuôi tệp, nên `* text=auto`
+# sẽ đoán kiểu và có thể chuẩn hoá đầu dòng làm hỏng nó. Khai tường minh.
+**/.thumbnail  binary
 *.jpg    binary
 *.jpeg   binary
 *.gif    binary

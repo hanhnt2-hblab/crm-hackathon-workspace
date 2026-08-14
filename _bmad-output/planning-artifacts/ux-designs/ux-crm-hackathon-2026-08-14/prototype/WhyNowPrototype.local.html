@@ -1,0 +1,1150 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<!-- BẢN DẪN XUẤT — không phải đầu ra gốc của Claude Design.
+     Khác bản gốc đúng hai dòng dưới đây: React và ReactDOM.
+     Bản gốc chạy trong host của Claude Design, nơi hai thư viện này đã có sẵn;
+     mở tệp .dc.html gốc bằng trình duyệt thì màn hình trắng.
+     HAI DÒNG NÀY GỌI MẠNG — nên tệp này KHÔNG chạy offline. -->
+<script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+<script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="_ds/why-now-design-system-dd23e35f-f9d9-43a0-bd9c-88e1a8c1e781/tokens/fonts.css">
+<link rel="stylesheet" href="_ds/why-now-design-system-dd23e35f-f9d9-43a0-bd9c-88e1a8c1e781/tokens/colors.css">
+<link rel="stylesheet" href="_ds/why-now-design-system-dd23e35f-f9d9-43a0-bd9c-88e1a8c1e781/tokens/typography.css">
+<link rel="stylesheet" href="_ds/why-now-design-system-dd23e35f-f9d9-43a0-bd9c-88e1a8c1e781/tokens/spacing.css">
+<link rel="stylesheet" href="_ds/why-now-design-system-dd23e35f-f9d9-43a0-bd9c-88e1a8c1e781/tokens/borders.css">
+<link rel="stylesheet" href="_ds/why-now-design-system-dd23e35f-f9d9-43a0-bd9c-88e1a8c1e781/tokens/motion.css">
+<link rel="stylesheet" href="_ds/why-now-design-system-dd23e35f-f9d9-43a0-bd9c-88e1a8c1e781/tokens/semantic.css">
+<link rel="stylesheet" href="_ds/why-now-design-system-dd23e35f-f9d9-43a0-bd9c-88e1a8c1e781/styles.css">
+<script src="_ds/why-now-design-system-dd23e35f-f9d9-43a0-bd9c-88e1a8c1e781/_ds_bundle.js"></script>
+<script src="./wn-data.js"></script>
+<style>body{margin:0;background:#DDDBD6;padding:0}*{box-sizing:border-box}a{color:var(--link);text-decoration:none}a:hover{color:var(--ink-strong)}</style>
+</helmet>
+
+<div style="position:relative;width:1440px;height:928px;margin:0 auto;background:var(--app);display:flex;flex-direction:column;overflow:hidden;box-shadow:var(--shadow-app);font-family:var(--font-sans);color:var(--ink)">
+
+<x-import component-from-global-scope="WhyNowDesignSystem_dd23e3.Masthead" view="{{ screen }}" currency="JPY" user="{{ user }}" date="Thứ Sáu, 14/08/2026" stats="{{ stats }}" nav="{{ nav }}" active-nav="{{ screen }}" on-navigate="{{ go }}" hint-size="100%,86px"></x-import>
+
+<sc-if value="{{ aiOff }}" hint-placeholder-val="{{ false }}">
+<x-import component-from-global-scope="WhyNowDesignSystem_dd23e3.AIOffBanner" since="14/08 09:52" reason="Quản trị bấm phanh" can-resume="{{ isAdmin }}" on-resume="{{ resumeAI }}" hint-size="100%,44px"></x-import>
+</sc-if>
+
+<sc-if value="{{ offline }}" hint-placeholder-val="{{ false }}">
+<div style="display:flex;align-items:center;gap:12px;padding:8px 24px;background:var(--warn-bg);border-bottom:1px solid var(--warn-border);font-size:var(--fs-12-5);color:var(--warn)">
+<span style="font-weight:var(--fw-black)">▲ Chưa lưu được, thử lại.</span>
+<span style="color:var(--ink-body)">Mất kết nối lúc 10:07 — thứ bạn vừa gõ vẫn giữ nguyên trên màn hình, không có gì bị xoá.</span>
+<div style="margin-left:auto"><x-import component-from-global-scope="WhyNowDesignSystem_dd23e3.Button" variant="secondary" size="sm" on-click="{{ retrySave }}" hint-size="auto,28px">Thử lại</x-import></div>
+</div>
+</sc-if>
+
+<div style="display:flex;align-items:center;gap:12px;padding:6px 24px;background:var(--paper-tint);border-bottom:1px solid var(--rule);font-size:var(--fs-11-5);color:var(--ink-2)">
+<span style="letter-spacing:var(--ls-label);text-transform:uppercase;font-weight:var(--fw-black);color:var(--ink-2)">Khay thông báo</span>
+<span>Máy vừa đặt gì, cho Opportunity nào, vì sao — không tự biến mất trước khi bạn xem</span>
+<div style="margin-left:auto;display:flex;gap:8px;align-items:center">
+<span style="font-variant-numeric:tabular-nums;color:var(--suggestion);font-weight:var(--fw-black)">{{ notifCount }} chưa xem</span>
+<x-import component-from-global-scope="WhyNowDesignSystem_dd23e3.Button" variant="secondary" size="sm" on-click="{{ toggleNotif }}" hint-size="auto,28px">⚙ Mở khay</x-import>
+</div>
+</div>
+
+<sc-if value="{{ notifOpen }}" hint-placeholder-val="{{ false }}">
+<div style="background:var(--band);border-bottom:1px solid var(--band-edge);padding:11px 24px 13px">
+<sc-for list="{{ notifs }}" as="n" hint-placeholder-count="3">
+<div style="display:grid;grid-template-columns:60px 1fr 120px;gap:14px;padding:7px 0;border-bottom:1px solid var(--band-edge);align-items:baseline">
+<span style="font-size:var(--fs-11-5);color:var(--band-ink-2);font-variant-numeric:tabular-nums">{{ n.at }}</span>
+<span style="font-size:var(--fs-12-5);color:var(--band-ink);line-height:1.5"><b style="color:var(--band-ink-strong)">{{ n.what }}</b><span style="display:block;color:var(--band-ink-2);margin-top:2px">{{ n.opp }} — {{ n.why }}</span></span>
+<span style="text-align:right"><x-import component-from-global-scope="WhyNowDesignSystem_dd23e3.Button" variant="onMachine" size="sm" on-click="{{ n.onRead }}" hint-size="auto,26px">Đã xem</x-import></span>
+</div>
+</sc-for>
+<div style="display:flex;align-items:center;gap:12px;margin-top:10px">
+<x-import component-from-global-scope="WhyNowDesignSystem_dd23e3.Button" variant="onMachine" size="sm" on-click="{{ markAllRead }}" hint-size="auto,26px">Đánh dấu đã xem hết</x-import>
+<span style="font-size:var(--fs-11);color:var(--band-ink-2);line-height:1.5">Khay giữ nguyên mục chưa xem cho tới khi bạn xem — vòng quét mới không xoá thứ đang mở.</span>
+<div style="margin-left:auto"><x-import component-from-global-scope="WhyNowDesignSystem_dd23e3.Button" variant="onMachine" size="sm" on-click="{{ toggleNotif }}" hint-size="auto,26px">Đóng ✕</x-import></div>
+</div>
+</div>
+</sc-if>
+
+<div style="flex:1;min-height:0;display:flex;flex-direction:column">
+
+<sc-if value="{{ isToday }}" hint-placeholder-val="{{ true }}">
+<div style="flex:1;min-height:0;display:flex;flex-direction:column">
+
+<sc-if value="{{ showNewItems }}" hint-placeholder-val="{{ false }}">
+<x-import component-from-global-scope="WhyNowDesignSystem_dd23e3.NewItemsBanner" count="{{ newItems }}" scan-at="09:41" on-load="{{ loadNew }}" hint-size="100%,36px"></x-import>
+</sc-if>
+
+<div style="display:grid;grid-template-columns:1fr var(--col-rail);flex:1;min-height:0">
+<div style="background:var(--paper);overflow:auto">
+
+<sc-if value="{{ isLoading }}" hint-placeholder-val="{{ false }}">
+<x-import component-from-global-scope="WhyNowDesignSystem_dd23e3.SectionKicker" title="Quá hạn" tone="overdue" meta="đang tải" hint-size="100%,34px"></x-import>
+<x-import component-from-global-scope="WhyNowDesignSystem_dd23e3.SkeletonRows" count="{{ 9 }}" hint-size="100%,540px"></x-import>
+</sc-if>
+
+<sc-if value="{{ isEmpty }}" hint-placeholder-val="{{ false }}">
+<x-import component-from-global-scope="WhyNowDesignSystem_dd23e3.EmptyState" line="Hôm nay chưa có việc đến hạn." sub="Vòng quét gần nhất 09:41 — 15/15 Account đã quét. Không có việc nào quá hạn." hint-size="100%,180px">
+<x-import component-from-global-scope="WhyNowDesignSystem_dd23e3.Button" variant="suggestion" on-click="{{ goQueue }}" hint-size="auto,34px">{{ emptyCta }}</x-import>
+</x-import>
+</sc-if>
+
+<sc-if value="{{ isReady }}" hint-placeholder-val="{{ true }}">
+<sc-for list="{{ sections }}" as="sec" hint-placeholder-count="3">
+<div>
+<x-import component-from-global-scope="WhyNowDesignSystem_dd23e3.SectionKicker" title="{{ sec.title }}" tone="{{ sec.tone }}" meta="{{ sec.meta }}" hint-size="100%,34px"></x-import>
+<sc-for list="{{ sec.rows }}" as="row" hint-placeholder-count="2">
+<x-import component-from-global-scope="WhyNowDesignSystem_dd23e3.WorkItem" dc-props="{{ row.props }}" hint-size="100%,150px">
+<sc-if value="{{ row.hasQuote }}" hint-placeholder-val="{{ true }}">
+<x-import component-from-global-scope="WhyNowDesignSystem_dd23e3.QuoteBlock" dc-props="{{ row.quote }}" hint-size="100%,64px"></x-import>
+</sc-if>
+<sc-if value="{{ row.hasUndo }}" hint-placeholder-val="{{ false }}">
+<x-import component-from-global-scope="WhyNowDesignSystem_dd23e3.UndoButton" dc-props="{{ row.undo }}" hint-size="auto,26px"></x-import>
+</sc-if>
+<sc-if value="{{ row.hasFlag }}" hint-placeholder-val="{{ false }}">
+<x-import component-from-global-scope="WhyNowDesignSystem_dd23e3.WarningFlag" hint-size="100%,26px">{{ row.flag }}</x-import>
+</sc-if>
+<sc-if value="{{ row.hasQuiet }}" hint-placeholder-val="{{ false }}">
+<div style="font-size:var(--fs-11-5);color:var(--ink-3);margin-top:6px;line-height:1.45">{{ row.quiet }}</div>
+</sc-if>
+<sc-if value="{{ row.wasUndone }}" hint-placeholder-val="{{ false }}">
+<div style="font-size:var(--fs-11-5);color:var(--ink-3);margin-top:6px">Đã hoàn tác. Hệ thống không đặt lại ô này; bạn gõ hoặc để trống đều được.</div>
+</sc-if>
+</x-import>
+</sc-for>
+</div>
+</sc-for>
+</sc-if>
+
+</div>
+
+<div style="background:var(--app);border-left:1px solid var(--rule);padding:14px 18px;display:flex;flex-direction:column;gap:14px;overflow:auto">
+<sc-if value="{{ isError }}" hint-placeholder-val="{{ false }}">
+<x-import component-from-global-scope="WhyNowDesignSystem_dd23e3.PartialError" title="Không đọc được nguồn của Aozora Tech" detail="Trang nguồn chặn truy cập từ 12/08. Vòng quét sau sẽ thử lại — ba khối còn lại vẫn chạy." on-retry="{{ noop }}" hint-size="100%,96px"></x-import>
+</sc-if>
+<sc-if value="{{ showQueueCallout }}" hint-placeholder-val="{{ true }}">
+<x-import component-from-global-scope="WhyNowDesignSystem_dd23e3.QueueCallout" count="{{ pendingCount }}" subject="{{ queueSubject }}" sub="{{ queueSub }}" items="{{ queueItems }}" on-open="{{ goQueue }}" hint-size="100%,220px"></x-import>
+</sc-if>
+<x-import component-from-global-scope="WhyNowDesignSystem_dd23e3.StatBox" title="Opportunity theo Stage" sub="Tổng giá trị ước tính (chưa nhân xác suất) · JPY" note="8 Opportunity đang mở / 15 tổng cộng." hint-size="100%,220px">
+<sc-for list="{{ stageStats }}" as="s" hint-placeholder-count="7">
+<x-import component-from-global-scope="WhyNowDesignSystem_dd23e3.StatRow" name="{{ s.name }}" count="{{ s.count }}" value="{{ s.value }}" closed="{{ s.closed }}" last="{{ s.last }}" hint-size="100%,20px"></x-import>
+</sc-for>
+</x-import>
+<x-import component-from-global-scope="WhyNowDesignSystem_dd23e3.StatBox" title="Lý do thua" sub="4 Opportunity · 7 lượt lý do — một Opportunity đếm vào nhiều dòng" note="1 Opportunity Thua chưa có lý do — đứng ngoài bảng cho tới khi được bổ sung." hint-size="100%,160px">
+<sc-for list="{{ lossReasons }}" as="s" hint-placeholder-count="4">
+<x-import component-from-global-scope="WhyNowDesignSystem_dd23e3.StatRow" name="{{ s.name }}" count="{{ s.count }}" last="{{ s.last }}" hint-size="100%,20px"></x-import>
+</sc-for>
+</x-import>
+<x-import component-from-global-scope="WhyNowDesignSystem_dd23e3.StatBox" title="Account theo ngành" sub="15 Account trong danh mục của bạn" hint-size="100%,150px">
+<sc-for list="{{ industries }}" as="s" hint-placeholder-count="5">
+<x-import component-from-global-scope="WhyNowDesignSystem_dd23e3.StatRow" name="{{ s.name }}" count="{{ s.count }}" last="{{ s.last }}" hint-size="100%,20px"></x-import>
+</sc-for>
+</x-import>
+</div>
+</div>
+
+<x-import component-from-global-scope="WhyNowDesignSystem_dd23e3.Legend" items="{{ legendItems }}" hint-size="100%,34px"></x-import>
+</div>
+</sc-if>
+
+<sc-if value="{{ isQueue }}" hint-placeholder-val="{{ false }}">
+<div style="background:var(--paper);overflow:auto;flex:1">
+
+<sc-if value="{{ isLoading }}" hint-placeholder-val="{{ false }}">
+<x-import component-from-global-scope="WhyNowDesignSystem_dd23e3.SectionKicker" title="Hàng đợi" meta="đang tải" hint-size="100%,34px"></x-import>
+<x-import component-from-global-scope="WhyNowDesignSystem_dd23e3.SkeletonRows" count="{{ 4 }}" hint-size="100%,240px"></x-import>
+</sc-if>
+
+<sc-if value="{{ queueEmpty }}" hint-placeholder-val="{{ false }}">
+<x-import component-from-global-scope="WhyNowDesignSystem_dd23e3.EmptyState" line="Không có gợi ý nào chờ." sub="Vòng quét gần nhất 09:41 — 15/15 Account đã quét. Gợi ý mới sẽ hiện ở đây, không tự áp dụng vào hồ sơ." hint-size="100%,180px">
+<x-import component-from-global-scope="WhyNowDesignSystem_dd23e3.Button" variant="secondary" on-click="{{ goToday }}" hint-size="auto,34px">← Về Today</x-import>
+</x-import>
+</sc-if>
+
+<sc-if value="{{ queueReady }}" hint-placeholder-val="{{ true }}">
+<x-import component-from-global-scope="WhyNowDesignSystem_dd23e3.SectionKicker" title="Hàng đợi — xếp theo thứ tự ưu tiên, gom theo Account" meta="{{ queueMeta }}" hint-size="100%,34px"></x-import>
+<sc-for list="{{ queueGroups }}" as="g" hint-placeholder-count="4">
+<div style="padding:12px 24px 4px">
+<div style="font-size:var(--fs-11);letter-spacing:var(--ls-box);text-transform:uppercase;font-weight:var(--fw-black);color:var(--ink-2);margin-bottom:9px">{{ g.head }}</div>
+<div style="display:grid;gap:12px;margin-bottom:14px">
+<sc-for list="{{ g.items }}" as="s" hint-placeholder-count="2">
+<div>
+<x-import component-from-global-scope="WhyNowDesignSystem_dd23e3.SuggestionCard" dc-props="{{ s.props }}" hint-size="100%,230px"></x-import>
+<sc-if value="{{ s.isEditing }}" hint-placeholder-val="{{ false }}">
+<div style="background:var(--paper-tint);border:1px solid var(--rule);border-top:3px solid var(--ink);padding:11px 14px">
+<x-import component-from-global-scope="WhyNowDesignSystem_dd23e3.TextField" label="Sửa rồi duyệt" value="{{ draft }}" on-change="{{ setDraft }}" hint="Giá trị bạn sửa vào hồ sơ như thể bạn tự gõ — ô sẽ nằm trên giấy, không trên dải máy." hint-size="100%,70px"></x-import>
+<div style="display:flex;gap:8px;margin-top:10px">
+<x-import component-from-global-scope="WhyNowDesignSystem_dd23e3.Button" variant="primary" on-click="{{ s.confirmEdit }}" hint-size="auto,34px">Xác nhận</x-import>
+<x-import component-from-global-scope="WhyNowDesignSystem_dd23e3.Button" variant="secondary" on-click="{{ cancelEdit }}" hint-size="auto,34px">Thôi</x-import>
+</div>
+</div>
+</sc-if>
+<sc-if value="{{ s.isDismissing }}" hint-placeholder-val="{{ false }}">
+<x-import component-from-global-scope="WhyNowDesignSystem_dd23e3.DismissReasonPicker" on-pick="{{ s.pickReason }}" hint-size="100%,120px"></x-import>
+</sc-if>
+</div>
+</sc-for>
+</div>
+</div>
+</sc-for>
+<div style="padding:4px 24px 24px;font-size:var(--fs-11-5);color:var(--ink-2);line-height:1.55">Gợi ý chưa quyết giữ nguyên vô thời hạn — không tự áp dụng, không hết hạn thành hành động. Duyệt cũng có Hoàn tác, cùng cửa sổ 7 ngày.</div>
+</sc-if>
+
+</div>
+</sc-if>
+
+<sc-if value="{{ isAccountDetail }}" hint-placeholder-val="{{ false }}">
+<div style="background:var(--paper);overflow:auto;flex:1">
+<x-import component-from-global-scope="WhyNowDesignSystem_dd23e3.SectionKicker" title="{{ accName }}" meta="{{ accMeta }}" hint-size="100%,34px"></x-import>
+
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:18px;padding:16px 24px">
+<div>
+<div style="font-size:var(--fs-11);letter-spacing:var(--ls-box);text-transform:uppercase;font-weight:var(--fw-black);color:var(--ink-2);margin-bottom:9px;display:flex;align-items:center;gap:8px">Hồ sơ Account <sc-if value="{{ accHasPending }}" hint-placeholder-val="{{ true }}"><x-import component-from-global-scope="WhyNowDesignSystem_dd23e3.SuggestionPin" count="{{ accPending }}" on-click="{{ goQueue }}" hint-size="96px,16px"></x-import></sc-if></div>
+<div style="border:1px solid var(--rule);padding:12px 14px">
+<sc-for list="{{ accFields }}" as="f" hint-placeholder-count="5">
+<div style="display:flex;justify-content:space-between;gap:12px;padding:5px 0;border-bottom:1px dotted var(--rule-dotted);font-size:var(--fs-12-5)"><span style="color:var(--ink-2)">{{ f.label }}</span><span>{{ f.value }}</span></div>
+</sc-for>
+<sc-if value="{{ accStale }}" hint-placeholder-val="{{ true }}">
+<x-import component-from-global-scope="WhyNowDesignSystem_dd23e3.WarningFlag" tone="stale" hint-size="100%,26px">{{ accStaleText }}</x-import>
+</sc-if>
+</div>
+
+<div style="font-size:var(--fs-11);letter-spacing:var(--ls-box);text-transform:uppercase;font-weight:var(--fw-black);color:var(--ink-2);margin:18px 0 9px">{{ accOppsHead }}</div>
+<div style="display:flex;flex-direction:column;gap:9px">
+<sc-for list="{{ accOpps }}" as="o" hint-placeholder-count="1">
+<div style="border:1px solid var(--rule);padding:12px 14px">
+<div style="display:flex;justify-content:space-between;align-items:baseline;gap:12px">
+<a href="#" onClick="{{ o.onOpen }}" style="font-size:var(--fs-13);font-weight:var(--fw-bold);color:var(--link);text-decoration:none">{{ o.name }}</a>
+<x-import component-from-global-scope="WhyNowDesignSystem_dd23e3.StagePill" stage="{{ o.stage }}" hint-size="110px,20px"></x-import>
+</div>
+<div style="font-size:var(--fs-12);color:var(--ink-2);margin-top:6px;font-variant-numeric:tabular-nums">{{ o.money }} JPY · {{ o.due }}</div>
+<div style="font-size:var(--fs-12-5);margin-top:8px;font-family:var(--font-serif)">{{ o.nextStep }}</div>
+<sc-if value="{{ o.hasFlag }}" hint-placeholder-val="{{ false }}">
+<div style="margin-top:8px"><x-import component-from-global-scope="WhyNowDesignSystem_dd23e3.WarningFlag" tone="{{ o.flagTone }}" hint-size="100%,26px">{{ o.flagText }}</x-import></div>
+</sc-if>
+</div>
+</sc-for>
+<div style="font-size:var(--fs-11);color:var(--ink-3);line-height:1.5">Đổi Stage ở Pipeline board — máy không bao giờ đổi Stage, và mọi lượt đổi ghi một mục Timeline.</div>
+</div>
+</div>
+
+<div>
+<div style="font-size:var(--fs-11);letter-spacing:var(--ls-box);text-transform:uppercase;font-weight:var(--fw-black);color:var(--ink-2);margin-bottom:9px">Reading area — vùng đọc, không phải hồ sơ và không phải Timeline</div>
+<div style="border:1px solid var(--rule);border-left:4px solid var(--band-quote-rail);padding:12px 14px;background:var(--paper-tint)">
+<sc-if value="{{ snapUnreadable }}" hint-placeholder-val="{{ false }}">
+<x-import component-from-global-scope="WhyNowDesignSystem_dd23e3.PartialError" title="{{ unreadableText }}" detail="{{ unreadableDetail }}" on-retry="{{ noop }}" hint-size="100%,96px"></x-import>
+</sc-if>
+<sc-if value="{{ isError }}" hint-placeholder-val="{{ false }}">
+<x-import component-from-global-scope="WhyNowDesignSystem_dd23e3.PartialError" title="Bản lưu này không phải bản mới nhất" detail="Trang nguồn trả về lỗi từ 12/08. Nội dung dưới đây là bản lưu gần nhất đọc được — Timeline và hồ sơ vẫn chạy." on-retry="{{ noop }}" hint-size="100%,96px"></x-import>
+</sc-if>
+<div style="font-size:var(--fs-12);color:var(--ink-2);margin-bottom:9px">{{ readHead }}</div>
+<sc-if value="{{ hasSnap }}" hint-placeholder-val="{{ true }}">
+<div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px">
+<x-import component-from-global-scope="WhyNowDesignSystem_dd23e3.SignalChip" kind="Nhân sự" date="10/08" on-open="{{ openAccSnap }}" hint-size="auto,22px"></x-import>
+<x-import component-from-global-scope="WhyNowDesignSystem_dd23e3.SignalChip" kind="Mở rộng" date="10/08" on-open="{{ openAccSnap }}" hint-size="auto,22px"></x-import>
+</div>
+<div style="font-size:var(--fs-12-5);line-height:var(--lh-relaxed);color:var(--ink-body)" lang="{{ readLang }}">{{ readText }}</div>
+<div style="font-size:var(--fs-11);color:var(--ink-3);margin-top:8px">Bấm một Signal để mở đúng đoạn có đánh dấu trong bản lưu.</div>
+</sc-if>
+</div>
+
+<div style="font-size:var(--fs-11);letter-spacing:var(--ls-box);text-transform:uppercase;font-weight:var(--fw-black);color:var(--ink-2);margin:18px 0 9px">Timeline</div>
+<div style="border:1px solid var(--rule);padding:4px 14px 12px">
+<sc-for list="{{ timeline }}" as="t" hint-placeholder-count="3">
+<x-import component-from-global-scope="WhyNowDesignSystem_dd23e3.TimelineEntry" when="{{ t.when }}" by-system="{{ t.bySystem }}" author="{{ t.author }}" last="{{ t.last }}" hint-size="100%,44px">{{ t.text }}</x-import>
+</sc-for>
+<div style="font-size:var(--fs-11);color:var(--ink-3);margin-top:8px;line-height:1.5">Hệ thống chỉ thêm mục mới, không sửa mục do bạn tạo.</div>
+</div>
+</div>
+</div>
+</div>
+</sc-if>
+
+<sc-if value="{{ isPipeline }}" hint-placeholder-val="{{ false }}">
+<div style="background:var(--paper);overflow:hidden;flex:1;display:flex;flex-direction:column">
+<x-import component-from-global-scope="WhyNowDesignSystem_dd23e3.SectionKicker" title="Pipeline board — kéo thẻ sang một Stage khác" meta="15 Opportunity · 8 đang mở · JPY · lùi và nhảy cóc đều được giữa bốn Stage đang chạy" hint-size="100%,34px"></x-import>
+<div style="display:grid;grid-template-columns:repeat(7,1fr);align-items:stretch;flex:1;min-height:0;border-bottom:1px solid var(--rule)">
+<sc-for list="{{ pipeCols }}" as="c" hint-placeholder-count="7">
+<div style="display:flex;flex-direction:column;min-height:0;position:relative;border-right:1px solid var(--rule)">
+<div style="{{ c.headStyle }}">
+<div style="font-size:var(--fs-11);letter-spacing:var(--ls-label);text-transform:uppercase;font-weight:var(--fw-black)">{{ c.name }}</div>
+<div style="font-size:var(--fs-11-5);color:var(--ink-2);margin-top:3px;font-variant-numeric:tabular-nums">{{ c.count }} · {{ c.total }}</div>
+</div>
+<sc-if value="{{ c.isRefusalHere }}" hint-placeholder-val="{{ false }}">
+<div style="{{ c.refuseStyle }}">▲ {{ refusal }}<div style="margin-top:7px"><x-import component-from-global-scope="WhyNowDesignSystem_dd23e3.Button" variant="secondary" size="sm" on-click="{{ clearRefusal }}" hint-size="auto,26px">Đã hiểu</x-import></div></div>
+</sc-if>
+<sc-if value="{{ c.isGuardHere }}" hint-placeholder-val="{{ false }}">
+<div style="{{ c.popStyle }}">
+<div style="font-size:var(--fs-12-5);color:var(--ink-strong);font-weight:var(--fw-semibold)">{{ guardTitle }}</div>
+<div style="font-size:var(--fs-11);color:var(--ink-2);margin:4px 0 9px;line-height:1.5">{{ guardNote }}</div>
+<sc-for list="{{ guardFields }}" as="f" hint-placeholder-count="2">
+<x-import component-from-global-scope="WhyNowDesignSystem_dd23e3.TextField" label="{{ f.label }}" value="{{ f.value }}" on-change="{{ f.onChange }}" placeholder="{{ f.placeholder }}" hint-size="100%,58px"></x-import>
+</sc-for>
+<div style="display:flex;gap:8px;margin-top:10px">
+<x-import component-from-global-scope="WhyNowDesignSystem_dd23e3.Button" variant="primary" on-click="{{ guardSave }}" hint-size="auto,34px">Lưu rồi sang</x-import>
+<x-import component-from-global-scope="WhyNowDesignSystem_dd23e3.Button" variant="secondary" on-click="{{ guardSkip }}" hint-size="auto,34px">Bỏ qua — vẫn sang, mang cờ</x-import>
+</div>
+</div>
+</sc-if>
+<div style="{{ c.bodyStyle }}" onDragOver="{{ c.onDragOver }}" onDrop="{{ c.onDrop }}">
+<sc-for list="{{ c.cards }}" as="card" hint-placeholder-count="1">
+<div draggable="true" onDragStart="{{ card.onDragStart }}" onDragEnd="{{ card.onDragEnd }}" style="background:var(--paper);border:1px solid var(--rule);padding:9px 10px;cursor:grab">
+<a href="#" onClick="{{ card.onOpen }}" style="font-size:var(--fs-12-5);font-weight:var(--fw-semibold);color:var(--link);text-decoration:none;line-height:1.35;display:block">{{ card.name }}</a>
+<div style="font-size:var(--fs-11);color:var(--ink-2);margin-top:4px;line-height:1.4">{{ card.account }}</div>
+<div style="font-size:var(--fs-12);margin-top:5px;font-variant-numeric:tabular-nums;font-weight:var(--fw-semibold)">{{ card.money }}</div>
+<sc-if value="{{ card.hasFlag }}" hint-placeholder-val="{{ false }}">
+<div style="margin-top:6px"><x-import component-from-global-scope="WhyNowDesignSystem_dd23e3.WarningFlag" tone="{{ card.flagTone }}" hint-size="100%,24px">{{ card.flagText }}</x-import></div>
+</sc-if>
+<sc-if value="{{ card.canStep }}" hint-placeholder-val="{{ true }}">
+<div style="display:flex;gap:5px;margin-top:7px">
+<button onClick="{{ card.onPrev }}" style="{{ card.btnStyle }}">Lùi Stage</button>
+<button onClick="{{ card.onNext }}" style="{{ card.btnStyle }}">Stage sau</button>
+</div>
+</sc-if>
+</div>
+</sc-for>
+<sc-if value="{{ c.empty }}" hint-placeholder-val="{{ false }}">
+<div style="font-size:var(--fs-11);color:var(--ink-3);line-height:1.45">Chưa có Opportunity nào ở Stage {{ c.name }}.</div>
+</sc-if>
+</div>
+</div>
+</sc-for>
+</div>
+<div style="padding:12px 24px;flex-shrink:0;max-height:250px;overflow:auto;border-top:1px solid var(--rule)">
+<div style="font-size:var(--fs-11);color:var(--ink-3);line-height:1.5">Kéo thả không phải lối duy nhất: hai nút <b>Lùi Stage</b> và <b>Stage sau</b> làm cùng việc bằng bàn phím. Máy không bao giờ đổi Stage.</div>
+</div>
+</div>
+</sc-if>
+
+<sc-if value="{{ isOpp }}" hint-placeholder-val="{{ false }}">
+<div style="background:var(--paper);overflow:auto;flex:1">
+<x-import component-from-global-scope="WhyNowDesignSystem_dd23e3.SectionKicker" title="{{ oppName }}" meta="{{ oppAccount }}" hint-size="100%,34px"></x-import>
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:18px;padding:16px 24px">
+<div>
+<div style="font-size:var(--fs-11);letter-spacing:var(--ls-box);text-transform:uppercase;font-weight:var(--fw-black);color:var(--ink-2);margin-bottom:9px">Opportunity</div>
+<div style="border:1px solid var(--rule);padding:12px 14px">
+<div style="display:flex;justify-content:space-between;align-items:baseline;gap:12px">
+<span style="font-size:var(--fs-13);font-variant-numeric:tabular-nums;font-weight:var(--fw-semibold)">{{ oppMoney }} JPY</span>
+<x-import component-from-global-scope="WhyNowDesignSystem_dd23e3.StagePill" stage="{{ oppStage }}" hint-size="110px,20px"></x-import>
+</div>
+<div style="font-size:var(--fs-12);color:var(--ink-2);margin-top:6px">{{ oppDue }}</div>
+<sc-if value="{{ oppByMachine }}" hint-placeholder-val="{{ false }}">
+<div style="margin-top:10px;background:var(--band);border-left:4px solid var(--rail);padding:10px 12px">
+<div style="font-family:var(--font-serif);font-size:var(--fs-17);font-weight:var(--fw-medium);color:var(--band-ink-strong);line-height:1.4">{{ oppNextStep }}</div>
+<div style="font-size:var(--fs-11);letter-spacing:var(--ls-label-wide);text-transform:uppercase;font-weight:var(--fw-black);color:var(--rail);margin-top:7px">⚙ Next step do hệ thống đặt</div>
+</div>
+</sc-if>
+<div style="margin-top:11px">
+<x-import component-from-global-scope="WhyNowDesignSystem_dd23e3.TextField" label="{{ oppStepField.label }}" value="{{ oppStepField.value }}" on-change="{{ oppStepField.onChange }}" placeholder="{{ oppStepField.placeholder }}" hint="Máy không ghi đè ô này, kể cả khi đã quá hạn." hint-size="100%,70px"></x-import>
+</div>
+<sc-if value="{{ oppHasFlag }}" hint-placeholder-val="{{ false }}">
+<div style="margin-top:9px"><x-import component-from-global-scope="WhyNowDesignSystem_dd23e3.WarningFlag" tone="{{ oppFlagTone }}" hint-size="100%,26px">{{ oppFlagText }}</x-import></div>
+</sc-if>
+</div>
+</div>
+<div>
+<div style="font-size:var(--fs-11);letter-spacing:var(--ls-box);text-transform:uppercase;font-weight:var(--fw-black);color:var(--ink-2);margin-bottom:9px">Hai dấu hiệu Đủ điều kiện</div>
+<div style="border:1px solid var(--rule);padding:12px 14px">
+<div style="font-size:var(--fs-11);color:var(--ink-2);margin-bottom:9px;line-height:1.5">Bỏ trống được — Opportunity vẫn ở Stage này và mang cờ tới khi bạn bổ sung. Không ô nào chặn thao tác.</div>
+<x-import component-from-global-scope="WhyNowDesignSystem_dd23e3.TextField" label="{{ oppNeedField.label }}" value="{{ oppNeedField.value }}" on-change="{{ oppNeedField.onChange }}" placeholder="{{ oppNeedField.placeholder }}" hint-size="100%,58px"></x-import>
+<div style="height:9px"></div>
+<x-import component-from-global-scope="WhyNowDesignSystem_dd23e3.TextField" label="{{ oppBudgetField.label }}" value="{{ oppBudgetField.value }}" on-change="{{ oppBudgetField.onChange }}" placeholder="{{ oppBudgetField.placeholder }}" hint-size="100%,58px"></x-import>
+<sc-if value="{{ oppShowLoss }}" hint-placeholder-val="{{ false }}">
+<div style="margin-top:12px;padding-top:11px;border-top:1px solid var(--rule)">
+<x-import component-from-global-scope="WhyNowDesignSystem_dd23e3.TextField" label="{{ oppLossField.label }}" value="{{ oppLossField.value }}" on-change="{{ oppLossField.onChange }}" placeholder="{{ oppLossField.placeholder }}" hint="Chưa có lý do thì Opportunity đứng ngoài bảng thống kê lý do thua." hint-size="100%,70px"></x-import>
+</div>
+</sc-if>
+<div style="display:flex;gap:8px;margin-top:12px">
+<x-import component-from-global-scope="WhyNowDesignSystem_dd23e3.Button" variant="primary" on-click="{{ saveOpp }}" hint-size="auto,34px">Lưu</x-import>
+<x-import component-from-global-scope="WhyNowDesignSystem_dd23e3.Button" variant="secondary" on-click="{{ backToPipeline }}" hint-size="auto,34px">← Về Pipeline board</x-import>
+</div>
+</div>
+</div>
+</div>
+</div>
+</sc-if>
+
+<sc-if value="{{ isAccountList }}" hint-placeholder-val="{{ false }}">
+<div style="background:var(--paper);overflow:auto;flex:1">
+<x-import component-from-global-scope="WhyNowDesignSystem_dd23e3.SectionKicker" title="Account list" meta="{{ listMeta }}" hint-size="100%,34px"></x-import>
+<div style="display:flex;align-items:flex-end;gap:12px;padding:12px 24px;flex-wrap:wrap;border-bottom:1px solid var(--rule)">
+<div style="width:260px"><x-import component-from-global-scope="WhyNowDesignSystem_dd23e3.TextField" label="Tìm Account" value="{{ query }}" on-change="{{ setQuery }}" placeholder="tên, tên bản địa, hoặc thành phố" hint-size="100%,58px"></x-import></div>
+<div style="display:flex;gap:6px;flex-wrap:wrap">
+<sc-for list="{{ industries }}" as="i" hint-placeholder-count="6">
+<button onClick="{{ i.onClick }}" style="{{ i.style }}">{{ i.name }}</button>
+</sc-for>
+<button onClick="{{ toggleOnlyPending }}" style="{{ onlyPendingStyle }}">◆ Chỉ Account có Suggestion chờ</button>
+</div>
+</div>
+<sc-if value="{{ listEmpty }}" hint-placeholder-val="{{ false }}">
+<x-import component-from-global-scope="WhyNowDesignSystem_dd23e3.EmptyState" line="{{ listEmptyLine }}" sub="{{ listEmptySub }}" hint-size="100%,180px">
+<x-import component-from-global-scope="WhyNowDesignSystem_dd23e3.Button" variant="secondary" on-click="{{ clearFilters }}" hint-size="auto,34px">Bỏ hết lọc</x-import>
+</x-import>
+</sc-if>
+<div style="display:grid;grid-template-columns:1fr 130px 110px 150px 120px;gap:14px;padding:8px 24px;background:var(--paper-tint);border-bottom:1px solid var(--rule);font-size:var(--fs-11);letter-spacing:var(--ls-label);text-transform:uppercase;font-weight:var(--fw-black);color:var(--ink-2)">
+<span>Account</span><span>Ngành</span><span>Quy mô</span><span>Cập nhật lần cuối</span><span>Suggestion</span>
+</div>
+<sc-for list="{{ accRows }}" as="a" hint-placeholder-count="8">
+<div style="display:grid;grid-template-columns:1fr 130px 110px 150px 120px;gap:14px;padding:9px 24px;border-bottom:1px solid var(--rule);font-size:var(--fs-12-5);align-items:baseline">
+<span><a href="#" onClick="{{ a.onOpen }}" style="color:var(--link);text-decoration:none;font-weight:var(--fw-semibold)">{{ a.name }}</a><span style="display:block;font-size:var(--fs-11);color:var(--ink-2);margin-top:2px">{{ a.meta }}</span></span>
+<span style="color:var(--ink-2)">{{ a.industry }}</span>
+<span style="color:var(--ink-2);font-variant-numeric:tabular-nums">{{ a.size }}</span>
+<span style="font-variant-numeric:tabular-nums">{{ a.updated }}<sc-if value="{{ a.stale }}" hint-placeholder-val="{{ false }}"><span style="display:block;font-size:var(--fs-11);color:var(--warn);font-weight:var(--fw-black);margin-top:2px">▲ hồ sơ cũ {{ a.staleText }}</span></sc-if></span>
+<span><sc-if value="{{ a.hasPending }}" hint-placeholder-val="{{ false }}"><x-import component-from-global-scope="WhyNowDesignSystem_dd23e3.SuggestionPin" count="{{ a.pending }}" on-click="{{ goQueue }}" hint-size="96px,16px"></x-import></sc-if></span>
+</div>
+</sc-for>
+<sc-if value="{{ hidePendingCol }}" hint-placeholder-val="{{ false }}">
+<div style="padding:10px 24px;font-size:var(--fs-11-5);color:var(--ink-2);line-height:1.5">Phần AI đang tắt — cột dấu hiệu Suggestion ẩn đi, không có gợi ý mới nào sinh ra. Gợi ý đang chờ vẫn xử được ở Queue.</div>
+</sc-if>
+</div>
+</sc-if>
+
+<sc-if value="{{ isWatching }}" hint-placeholder-val="{{ false }}">
+<div style="background:var(--paper);overflow:auto;flex:1">
+<x-import component-from-global-scope="WhyNowDesignSystem_dd23e3.SectionKicker" title="Watching list" meta="{{ watchMeta }}" hint-size="100%,34px"></x-import>
+<sc-if value="{{ watchEmpty }}" hint-placeholder-val="{{ false }}">
+<x-import component-from-global-scope="WhyNowDesignSystem_dd23e3.EmptyState" line="Chưa theo dõi account nào." sub="Bật Watching ở Account list hoặc ở màn hình Account — một thao tác, và ô vì sao theo dõi là tuỳ chọn." hint-size="100%,180px">
+<x-import component-from-global-scope="WhyNowDesignSystem_dd23e3.Button" variant="secondary" on-click="{{ goAccounts }}" hint-size="auto,34px">Mở Account list</x-import>
+</x-import>
+</sc-if>
+<sc-for list="{{ watchRows }}" as="w" hint-placeholder-count="6">
+<div style="display:grid;grid-template-columns:1fr 320px;gap:18px;padding:12px 24px;border-bottom:1px solid var(--rule)">
+<div>
+<a href="#" onClick="{{ w.onOpen }}" style="font-size:var(--fs-13);font-weight:var(--fw-bold);color:var(--link);text-decoration:none">{{ w.name }}</a>
+<div style="font-size:var(--fs-11-5);color:var(--ink-2);margin-top:2px">{{ w.meta }}</div>
+<div style="font-size:var(--fs-12);margin-top:6px;color:var(--ink-body);display:flex;align-items:center;gap:7px"><span style="color:var(--ink-3)">⚙</span>{{ w.scan }}</div>
+<sc-if value="{{ w.skipped }}" hint-placeholder-val="{{ false }}">
+<div style="margin-top:7px"><x-import component-from-global-scope="WhyNowDesignSystem_dd23e3.WarningFlag" hint-size="100%,26px">Vòng quét chưa đọc được Account này — mở Scan log để xem vòng nào bỏ và vì sao</x-import></div>
+</sc-if>
+</div>
+<div>
+<x-import component-from-global-scope="WhyNowDesignSystem_dd23e3.TextField" label="{{ w.reasonField.label }}" optional="{{ true }}" value="{{ w.reasonField.value }}" on-change="{{ w.reasonField.onChange }}" placeholder="{{ w.reasonField.placeholder }}" hint-size="100%,58px"></x-import>
+<div style="margin-top:8px"><x-import component-from-global-scope="WhyNowDesignSystem_dd23e3.Button" variant="secondary" size="sm" on-click="{{ w.onOff }}" hint-size="auto,28px">Tắt Watching</x-import></div>
+</div>
+</div>
+</sc-for>
+<sc-if value="{{ aiOff }}" hint-placeholder-val="{{ false }}">
+<div style="padding:11px 24px;font-size:var(--fs-11-5);color:var(--ink-2);line-height:1.5">{{ watchOffNote }}</div>
+</sc-if>
+</div>
+</sc-if>
+
+<sc-if value="{{ isAdminBlocked }}" hint-placeholder-val="{{ false }}">
+<div style="background:var(--paper);flex:1;padding:28px 24px">
+<x-import component-from-global-scope="WhyNowDesignSystem_dd23e3.EmptyState" line="{{ adminBlockedLine }}" sub="{{ adminBlockedSub }}" hint-size="100%,200px">
+<x-import component-from-global-scope="WhyNowDesignSystem_dd23e3.Button" variant="secondary" on-click="{{ goToday }}" hint-size="auto,34px">← Về Today</x-import>
+</x-import>
+</div>
+</sc-if>
+
+<sc-if value="{{ isAdmin }}" hint-placeholder-val="{{ false }}">
+<div style="background:var(--paper);overflow:auto;flex:1">
+<x-import component-from-global-scope="WhyNowDesignSystem_dd23e3.SectionKicker" title="Admin dashboard — sức khoẻ phần máy" meta="Tỉ lệ duyệt cao cộng thời gian quyết thấp là tín hiệu xấu, không phải tốt" hint-size="100%,34px"></x-import>
+<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:14px;padding:16px 24px">
+<sc-for list="{{ adminMetrics }}" as="m" hint-placeholder-count="4">
+<x-import component-from-global-scope="WhyNowDesignSystem_dd23e3.Metric" label="{{ m.label }}" value="{{ m.value }}" compare="{{ m.compare }}" tone="{{ m.tone }}" hint-size="100%,90px"></x-import>
+</sc-for>
+</div>
+<div style="padding:0 24px 16px">
+<x-import component-from-global-scope="WhyNowDesignSystem_dd23e3.WarningFlag" hint-size="100%,26px">3 gợi ý cần rà lại — duyệt nhanh hơn thời gian đọc được câu trích</x-import>
+<div style="border:1px solid var(--warn-border);background:var(--warn-bg);padding:11px 14px;margin-top:9px">
+<sc-for list="{{ blindItems }}" as="b" hint-placeholder-count="3">
+<div style="font-size:var(--fs-12-5);color:var(--ink-body);padding:4px 0;line-height:1.5">▲ {{ b }}</div>
+</sc-for>
+<div style="font-size:var(--fs-11);color:var(--ink-2);margin-top:6px;line-height:1.5">Không chặn gì — đây là dấu hiệu để bạn rà lại, không phải một rào chắn với người bán.</div>
+</div>
+</div>
+<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:14px;padding:0 24px 16px">
+<sc-for list="{{ adminMetrics2 }}" as="m" hint-placeholder-count="4">
+<x-import component-from-global-scope="WhyNowDesignSystem_dd23e3.Metric" label="{{ m.label }}" value="{{ m.value }}" compare="{{ m.compare }}" insufficient="{{ m.insufficient }}" insufficient-note="{{ m.insufficientNote }}" hint-size="100%,90px"></x-import>
+</sc-for>
+</div>
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:18px;padding:0 24px 20px">
+<x-import component-from-global-scope="WhyNowDesignSystem_dd23e3.StatBox" title="Lý do Bỏ" sub="5 lượt Bỏ · một lượt đếm vào một dòng" note="4 lượt “Có gợi ý mới hơn” là hệ thống tự đóng gợi ý cũ — không tính vào tỉ lệ duyệt." hint-size="100%,180px">
+<sc-for list="{{ dismissReasons }}" as="r" hint-placeholder-count="5">
+<x-import component-from-global-scope="WhyNowDesignSystem_dd23e3.StatRow" name="{{ r.name }}" count="{{ r.count }}" last="{{ r.last }}" hint-size="100%,20px"></x-import>
+</sc-for>
+</x-import>
+<div>
+<div style="font-size:var(--fs-11);letter-spacing:var(--ls-box);text-transform:uppercase;font-weight:var(--fw-black);color:var(--ink-2);margin-bottom:9px">Tham số</div>
+<div style="border:1px solid var(--rule);padding:12px 14px">
+<sc-for list="{{ adminParams }}" as="p" hint-placeholder-count="4">
+<div style="display:flex;justify-content:space-between;gap:12px;padding:6px 0;border-bottom:1px dotted var(--rule-dotted)">
+<span style="font-size:var(--fs-12-5)">{{ p.label }}<span style="display:block;font-size:var(--fs-11);color:var(--ink-2);margin-top:2px;line-height:1.45">{{ p.hint }}</span></span>
+<span style="font-size:var(--fs-12-5);font-weight:var(--fw-semibold);font-variant-numeric:tabular-nums;white-space:nowrap">{{ p.value }}</span>
+</div>
+</sc-for>
+<div style="margin-top:12px">
+<sc-if value="{{ adminAiOff }}" hint-placeholder-val="{{ false }}">
+<x-import component-from-global-scope="WhyNowDesignSystem_dd23e3.Button" variant="primary" on-click="{{ resumeAI }}" hint-size="auto,34px">Bật lại phần AI — đã tắt từ 09:52</x-import>
+</sc-if>
+<sc-if value="{{ notAiOff }}" hint-placeholder-val="{{ true }}">
+<x-import component-from-global-scope="WhyNowDesignSystem_dd23e3.Button" variant="danger" on-click="{{ brake }}" hint-size="auto,34px">Tắt toàn bộ phần AI</x-import>
+<div style="font-size:var(--fs-11);color:var(--ink-2);margin-top:7px;line-height:1.5">Vòng đang chạy cắt tại ranh giới Account và vẫn ghi một dòng Scan log kèm lý do. Sales thấy ngay một dải báo phần AI đang tắt.</div>
+</sc-if>
+</div>
+</div>
+</div>
+</div>
+</div>
+</sc-if>
+
+<sc-if value="{{ isScanLog }}" hint-placeholder-val="{{ false }}">
+<div style="background:var(--paper);overflow:auto;flex:1">
+<x-import component-from-global-scope="WhyNowDesignSystem_dd23e3.SectionKicker" title="Scan log" meta="9 dòng gần nhất · chu kỳ 60 giây · vòng bị bỏ vẫn là một dòng, kèm lý do" hint-size="100%,34px"></x-import>
+<div style="display:grid;grid-template-columns:88px 260px 1fr;gap:14px;padding:8px 24px;background:var(--paper-tint);border-bottom:1px solid var(--rule);font-size:var(--fs-11);letter-spacing:var(--ls-label);text-transform:uppercase;font-weight:var(--fw-black);color:var(--ink-2)">
+<span>Thời điểm</span><span>Account</span><span>Kết quả</span>
+</div>
+<sc-for list="{{ scanRows }}" as="r" hint-placeholder-count="9">
+<div style="{{ r.style }}">
+<span style="font-variant-numeric:tabular-nums;color:var(--ink-2)">{{ r.at }}</span>
+<span>{{ r.account }}</span>
+<span style="line-height:1.5">{{ r.text }}</span>
+</div>
+</sc-for>
+<div style="padding:11px 24px;font-size:var(--fs-11-5);color:var(--ink-2);line-height:1.5">{{ scanFoot }}</div>
+</div>
+</sc-if>
+
+</div>
+
+<sc-if value="{{ showDemoBar }}" hint-placeholder-val="{{ true }}">
+<div style="display:flex;align-items:center;gap:14px;padding:7px 24px;background:var(--band);color:var(--band-ink-2);font-size:var(--fs-11);flex-wrap:wrap">
+<span style="letter-spacing:.1em;text-transform:uppercase;font-weight:800;color:var(--rail)">Điều khiển bản demo</span>
+<span>Vai:</span>
+<sc-for list="{{ roleBtns }}" as="b" hint-placeholder-count="2">
+<button onClick="{{ b.onClick }}" style="{{ b.style }}">{{ b.label }}</button>
+</sc-for>
+<span style="margin-left:10px">Trạng thái:</span>
+<sc-for list="{{ stateBtns }}" as="b" hint-placeholder-count="4">
+<button onClick="{{ b.onClick }}" style="{{ b.style }}">{{ b.label }}</button>
+</sc-for>
+<button onClick="{{ toggleAI }}" style="{{ aiBtnStyle }}">{{ aiBtnLabel }}</button>
+<button onClick="{{ toggleOffline }}" style="{{ offlineBtnStyle }}">{{ offlineBtnLabel }}</button>
+<button onClick="{{ logout }}" style="{{ logoutBtnStyle }}">Đăng xuất</button>
+<span style="margin-left:auto;color:var(--band-ink-3)">{{ lastLog }}</span>
+</div>
+</sc-if>
+
+<sc-if value="{{ isLogin }}" hint-placeholder-val="{{ false }}">
+<div style="position:absolute;inset:0;background:var(--app);z-index:25;display:flex;align-items:center;justify-content:center">
+<div style="width:520px;background:var(--paper);border:1px solid var(--rule);padding:28px 28px 24px">
+<div style="font-family:var(--font-serif);font-size:var(--fs-26);font-weight:var(--fw-bold);letter-spacing:var(--ls-mast)">Why&nbsp;Now</div>
+<div style="font-size:var(--fs-12-5);color:var(--ink-2);margin-top:6px;line-height:1.55">Công cụ nội bộ, hai vai. Chọn vai để vào — thanh điều hướng của hai vai khác nhau ở đúng một chỗ: lối vào Admin dashboard.</div>
+<div style="margin-top:18px"><x-import component-from-global-scope="WhyNowDesignSystem_dd23e3.TextField" label="Mật khẩu" value="{{ loginPw }}" on-change="{{ setPw }}" placeholder="nhập gì cũng vào được trong bản demo" hint-size="100%,58px"></x-import></div>
+<sc-if value="{{ hasLoginError }}" hint-placeholder-val="{{ false }}">
+<div style="margin-top:9px;background:var(--warn-bg);border:1px solid var(--warn-border);padding:8px 11px;font-size:var(--fs-11-5);color:var(--warn)">▲ {{ loginError }}</div>
+</sc-if>
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:16px">
+<x-import component-from-global-scope="WhyNowDesignSystem_dd23e3.Button" variant="primary" size="block" on-click="{{ loginSales }}" hint-size="100%,38px">Vào bằng vai Sales / BD</x-import>
+<x-import component-from-global-scope="WhyNowDesignSystem_dd23e3.Button" variant="secondary" size="block" on-click="{{ loginAdmin }}" hint-size="100%,38px">Vào bằng vai Quản trị</x-import>
+</div>
+<div style="font-size:var(--fs-11);color:var(--ink-3);margin-top:14px;line-height:1.55">Sai mật khẩu thì màn hình không nói tài khoản nào tồn tại. Việc chặn Admin diễn ra ở tầng nghiệp vụ, không phải bằng cách ẩn menu.</div>
+</div>
+</div>
+</sc-if>
+
+<sc-if value="{{ snapOpen }}" hint-placeholder-val="{{ false }}">
+<div style="position:absolute;inset:0;background:rgba(17,20,23,.55);display:flex;align-items:flex-start;justify-content:center;padding:40px 24px;z-index:20" onClick="{{ closeSnap }}">
+<div style="width:760px;max-width:100%" onClick="{{ stop }}">
+<div style="display:flex;align-items:center;gap:12px;background:var(--band);border-left:4px solid var(--rail);padding:9px 14px;color:var(--band-ink);font-size:var(--fs-12-5)">
+<span>Snapshot viewer — mở từ một Signal, một cú bấm</span>
+<div style="margin-left:auto"><x-import component-from-global-scope="WhyNowDesignSystem_dd23e3.Button" variant="onMachine" size="sm" on-click="{{ closeSnap }}" hint-size="auto,26px">Đóng ✕</x-import></div>
+</div>
+<x-import component-from-global-scope="WhyNowDesignSystem_dd23e3.SnapshotHighlight" dc-props="{{ snapProps }}" hint-size="100%,260px"></x-import>
+</div>
+</div>
+</sc-if>
+
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:1440,&quot;height&quot;:928},&quot;role&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;sales&quot;,&quot;admin&quot;],&quot;default&quot;:&quot;sales&quot;,&quot;tsType&quot;:&quot;\&quot;sales\&quot;|\&quot;admin\&quot;&quot;,&quot;section&quot;:&quot;Bản demo&quot;},&quot;demoState&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;ready&quot;,&quot;empty&quot;,&quot;loading&quot;,&quot;error&quot;],&quot;default&quot;:&quot;ready&quot;,&quot;tsType&quot;:&quot;string&quot;,&quot;section&quot;:&quot;Bản demo&quot;},&quot;aiOff&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:false,&quot;tsType&quot;:&quot;boolean&quot;,&quot;section&quot;:&quot;Bản demo&quot;},&quot;showDemoBar&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:true,&quot;tsType&quot;:&quot;boolean&quot;,&quot;section&quot;:&quot;Bản demo&quot;}}">
+class Component extends DCLogic {
+  state = { screen: "Today", role: null, ui: null, aiOff: null, snapshot: null,
+    undone: [], edited: [], decided: {}, newItems: 0, log: [] };
+
+  componentDidMount() {
+    this.timer = setTimeout(() => this.setState({ newItems: 2 }), 12000);
+  }
+  componentWillUnmount() { clearTimeout(this.timer); }
+
+  get role() { return this.state.role ?? this.props.role ?? "sales"; }
+  get ui() { return this.state.ui ?? this.props.demoState ?? "ready"; }
+  get aiOff() { return this.state.aiOff ?? this.props.aiOff ?? false; }
+
+  DS() { return window.WhyNowDesignSystem_dd23e3 || {}; }
+
+  note(t) { this.setState(s => ({ log: [t].concat(s.log).slice(0, 4) })); }
+
+  btn(active) {
+    return { background: active ? "var(--rail)" : "transparent",
+      color: active ? "var(--rail-ink)" : "var(--band-ink-2)",
+      border: "1px solid " + (active ? "var(--rail)" : "var(--band-rule)"),
+      padding: "2px 8px", fontSize: "var(--fs-11)", fontFamily: "var(--font-sans)",
+      cursor: "pointer", borderRadius: 0 };
+  }
+
+  rowProps(r) {
+    const DS = this.DS();
+    const undone = this.state.undone.indexOf(r.id) >= 0;
+    const edited = this.state.edited.indexOf(r.id) >= 0;
+    const machine = r.source === "machine" && !undone;
+    const bold = machine ? { color: "var(--band-ink-3)", fontWeight: 650 } : { color: "var(--ink-mid)", fontWeight: 650 };
+    const pin = r.pending && DS.SuggestionPin
+      ? React.createElement(DS.SuggestionPin, { count: r.pending, onMachine: machine, onClick: () => this.setState({ screen: "Queue" }) })
+      : null;
+    const opp = React.createElement("span", null,
+      React.createElement("b", { style: bold }, r.opp), " · Stage " + r.stage);
+    let sig = r.signalMeta || null;
+    if (sig && r.signalMeta2) sig = React.createElement("span", null, r.signalMeta, React.createElement("br"), r.signalMeta2);
+    return {
+      props: {
+        source: machine ? "machine" : "human",
+        when: r.when, whenDetail: r.whenDetail, overdue: r.overdue, flagged: r.flagged,
+        account: r.account, accountMeta: r.accountMeta, accountAdornment: pin,
+        opportunity: opp, stage: r.stage, money: r.money,
+        confidence: machine ? r.confidence : null,
+        headline: undone ? "— ô đã về giá trị trước khi máy chạm: chưa có Next step" : r.headline,
+        bylineDetail: machine ? null : (undone ? "hoàn tác 14/08" : r.byline),
+        signalMeta: sig
+      },
+      hasQuote: !!(machine && r.quote),
+      quote: { onMachine: true, lang: r.quoteLang, quote: r.quote, source: r.quoteSource,
+        onOpen: () => this.setState({ snapshot: r.snapshot }) },
+      hasUndo: !!(machine && r.undo && !edited),
+      undo: { remaining: r.undo, soon: r.undoSoon, note: r.undoNote,
+        onUndo: () => { this.setState(s => ({ undone: s.undone.concat([r.id]) }));
+          this.note("Hoàn tác ô Next step do máy đặt — về giá trị trước khi máy chạm"); } },
+      hasFlag: !!r.flag, flag: r.flag,
+      hasQuiet: !!r.quiet, quiet: r.quiet,
+      wasUndone: undone
+    };
+  }
+
+  STAGES = ["Tiếp cận", "Đủ điều kiện", "Soạn đề xuất", "Thương lượng", "Thắng", "Thua", "Tạm dừng"];
+  RUNNING = ["Tiếp cận", "Đủ điều kiện", "Soạn đề xuất", "Thương lượng"];
+
+  opps() { return window.OPPS || []; }
+  oppById(id) { return this.opps().filter(o => o.id === id)[0]; }
+  stageOf(o) { const m = this.state.stages || {}; return m[o.id] || o.stage; }
+  savedOf(o) { const m = this.state.saved || {}; return m[o.id] !== undefined ? m[o.id] : o.prevStage; }
+  flagOf(o) {
+    const m = this.state.flags || {};
+    if (m[o.id] !== undefined) return m[o.id];
+    if (o.flag) return { tone: "warn", text: o.flag };
+    if (o.quiet) return { tone: "quiet", text: o.quiet };
+    return null;
+  }
+
+  refuse(msg, target) { this.setState({ refusal: msg, refusalTarget: target || null, guard: null, dragOver: null, dragOpp: null }); }
+
+  commit(oppId, to, flag) {
+    const o = this.oppById(oppId);
+    const from = this.stageOf(o);
+    this.setState(s => ({
+      stages: Object.assign({}, s.stages, { [oppId]: to }),
+      flags: Object.assign({}, s.flags, { [oppId]: flag }),
+      guard: null, guardTarget: null, guardOpp: null, refusal: "", dragOver: null, dragOpp: null, guardVals: {},
+      extras: Object.assign({}, s.extras, {
+        [o.account]: [{ when: "14/08 10:05", author: "Linh Trần", text: "Đổi Stage " + o.name + ": " + from + " → " + to }]
+          .concat((s.extras || {})[o.account] || [])
+      })
+    }));
+    this.note(o.name + " — đổi Stage " + from + " → " + to);
+  }
+
+  attempt(oppId, to) {
+    const o = this.oppById(oppId);
+    if (!o) return;
+    const from = this.stageOf(o);
+    const saved = this.savedOf(o);
+    if (to === from) { this.refuse(""); return; }
+    if (from === "Thắng" || from === "Thua") {
+      if (to !== saved) { this.refuse(o.name + ": Opportunity đã đóng chỉ quay về đúng Stage trước khi đóng" + (saved ? " (" + saved + ")" : "") + ". Không chọn Stage khác được.", to); return; }
+      if (this.role !== "admin") { this.refuse(o.name + ": chỉ Quản trị mở lại được Opportunity đã đóng. Nhờ Quản trị mở lại, hoặc tạo Opportunity mới.", to); return; }
+      this.setState(s => ({ saved: Object.assign({}, s.saved, { [oppId]: null }) }));
+      this.commit(oppId, to, null); return;
+    }
+    if (from === "Tạm dừng") {
+      if (to !== saved) { this.refuse(o.name + ": Opportunity ở Tạm dừng chỉ quay về đúng Stage cũ — " + saved + ".", to); return; }
+      this.setState(s => ({ saved: Object.assign({}, s.saved, { [oppId]: null }) }));
+      this.commit(oppId, to, null); return;
+    }
+    if (to === "Tạm dừng") {
+      this.setState(s => ({ saved: Object.assign({}, s.saved, { [oppId]: from }) }));
+      this.commit(oppId, to, { tone: "quiet", text: "Cũng thiếu Next step, nhưng cờ im lặng có chủ đích; hệ thống không tự đặt cho tới khi Opportunity quay lại Stage đang chạy." });
+      return;
+    }
+    if (to === "Đủ điều kiện") { this.setState({ guard: "qualify", guardTarget: to, guardOpp: oppId, refusal: "", dragOver: null, dragOpp: null }); return; }
+    if (to === "Thua") {
+      this.setState(s => ({ guard: "loss", guardTarget: to, guardOpp: oppId, refusal: "", dragOver: null, dragOpp: null, saved: Object.assign({}, s.saved, { [oppId]: from }) }));
+      return;
+    }
+    if (to === "Thắng") {
+      this.setState(s => ({ saved: Object.assign({}, s.saved, { [oppId]: from }) }));
+      this.commit(oppId, to, null); return;
+    }
+    this.commit(oppId, to, null);
+  }
+
+  guardSaveNow() {
+    const g = this.state.guard, v = this.state.guardVals || {}, to = this.state.guardTarget, id = this.state.guardOpp;
+    if (g === "qualify") {
+      const ok = (v.need || "").trim() && (v.budget || "").trim();
+      this.commit(id, to, ok ? null : { tone: "warn", text: "Thiếu một trong hai dấu hiệu cho Stage Đủ điều kiện — bổ sung ngay" });
+    } else {
+      const ok = (v.reason || "").trim();
+      this.commit(id, to, ok ? null : { tone: "warn", text: "Chưa có lý do thua — Opportunity này đứng ngoài bảng thống kê lý do thua cho tới khi được bổ sung" });
+    }
+  }
+
+  guardSkipNow() {
+    const g = this.state.guard;
+    this.commit(this.state.guardOpp, this.state.guardTarget, g === "qualify"
+      ? { tone: "warn", text: "Thiếu dấu hiệu nhu cầu và dấu hiệu ngân sách cho Stage Đủ điều kiện — bổ sung ngay" }
+      : { tone: "warn", text: "Chưa có lý do thua — Opportunity này đứng ngoài bảng thống kê lý do thua cho tới khi được bổ sung" });
+  }
+
+  gv(key) {
+    return {
+      value: (this.state.guardVals || {})[key] || "",
+      onChange: (e) => this.setState(s => ({ guardVals: Object.assign({}, s.guardVals, { [key]: e.target.value }) }))
+    };
+  }
+
+  fv(oppId, key, fallback) {
+    const f = (this.state.oppFields || {})[oppId] || {};
+    return {
+      value: f[key] !== undefined ? f[key] : (fallback || ""),
+      onChange: (e) => {
+        const val = e.target.value;
+        this.setState(s => ({ oppFields: Object.assign({}, s.oppFields, { [oppId]: Object.assign({}, (s.oppFields || {})[oppId], { [key]: val }) }) }));
+      }
+    };
+  }
+
+  loginAs(r) {
+    if (!(this.state.pw || "").trim()) { this.setState({ loginError: "Email hoặc mật khẩu không đúng." }); return; }
+    this.setState({ loggedOut: false, role: r, screen: r === "admin" ? "Admin" : "Today", loginError: "", pw: "" });
+    this.note("Đăng nhập vai " + (r === "admin" ? "Quản trị" : "Sales / BD"));
+  }
+
+  accById(id) { return (window.ACCOUNTS || []).filter(a => a.id === id)[0] || (window.ACCOUNTS || [])[1]; }
+
+  timelineFor(acc) {
+    const base = acc.id === "a2"
+      ? [{ when: "10/08 11:03", bySystem: true, text: "Signal mới: Nhân sự — 田中 宏 làm đầu mối dự án" },
+         { when: "08/08 14:22", author: "Linh Trần", text: "Gửi bản đề xuất lần 1, ông Tanaka xin sửa phạm vi" },
+         { when: "04/07 10:10", author: "Linh Trần", text: "Gọi lần đầu, xác nhận nhu cầu nâng cấp WMS" }]
+      : [{ when: acc.updated.slice(0, 5) + " 09:41", bySystem: true, text: "Vòng quét đọc lại nguồn công khai của " + acc.name },
+         { when: acc.updated.slice(0, 5) + " 08:20", author: "Linh Trần", text: "Cập nhật hồ sơ Account sau một lượt liên hệ" }];
+    return ((this.state.extras || {})[acc.name] || []).concat(base);
+  }
+
+  groupKeys(list) {
+    const out = [];
+    list.forEach(s => { if (out.indexOf(s.account) < 0) out.push(s.account); });
+    return out;
+  }
+
+  decide(id, how) {
+    this.setState(s => ({ decided: Object.assign({}, s.decided, { [id]: how }) }));
+    this.note("Suggestion " + id + " — " + how);
+  }
+
+  suggProps(s) {
+    return {
+      props: {
+        account: s.account, field: s.field, current: s.current, proposed: s.proposed,
+        confidence: s.confidence, quote: s.quote, quoteLang: s.quoteLang,
+        quoteSource: s.quoteSource, risk: s.risk, staleProfile: s.staleProfile,
+        onOpenSource: () => this.setState({ snapshot: s.snapshot }),
+        onApprove: () => this.decide(s.id, "duyệt"),
+        onEditApprove: () => this.setState({ editing: s.id, draft: typeof s.proposed === "string" ? s.proposed : "" }),
+        onDismiss: () => this.setState({ dismissing: s.id })
+      },
+      isEditing: this.state.editing === s.id,
+      isDismissing: this.state.dismissing === s.id,
+      confirmEdit: () => { this.setState({ editing: null }); this.decide(s.id, "sửa rồi duyệt"); },
+      pickReason: (reason) => { this.setState({ dismissing: null }); this.decide(s.id, "bỏ · " + reason); }
+    };
+  }
+
+  renderVals() {
+    const rows = window.TODAY_ROWS || [];
+    const sugg = window.SUGGESTIONS || [];
+    const snaps = window.SNAPSHOTS || {};
+    const ui = this.ui, aiOff = this.aiOff, role = this.role;
+    const screen = this.state.screen;
+    const pending = sugg.filter(s => !this.state.decided[s.id]);
+    const mark = (arr) => (arr || []).map((x, i, a) => Object.assign({}, x, { last: i === a.length - 1 }));
+
+    const sectionDefs = [
+      { key: "overdue", title: "Quá hạn", tone: "overdue", meta: "2 việc · việc cũ nhất quá 2 ngày" },
+      { key: "today", title: "Đến hạn hôm nay", tone: "default",
+        meta: aiOff ? "4 việc · phần gợi ý đang tắt, ô do máy đặt giữ nguyên" : "4 việc · 2 do hệ thống đặt" },
+      { key: "flagged", title: "Mang cờ — không nằm trong danh sách việc", tone: "default", meta: "2 Opportunity" }
+    ];
+
+    const V = {
+      screen, user: role === "admin" ? "Hà Nguyễn — Quản trị chất lượng dữ liệu" : "Linh Trần — Sales / BD, thị trường JP",
+      isAdmin: role === "admin",
+      nav: role === "admin"
+        ? ["Today", "Pipeline", "Accounts", "Watching", "Scan log", "Admin"]
+        : ["Today", "Pipeline", "Accounts", "Watching", "Scan log"],
+      stats: [
+        aiOff ? "Vòng quét đang tắt — số liệu giữ ở lần quét 09:41" : "Vòng quét gần nhất 09:41 — 15/15 Account đã quét, 4 Signal mới",
+        aiOff ? "Hệ thống đã tự đặt 3/8 Next step hôm nay (ngừng sinh mới)" : "Hệ thống đã tự đặt 3/8 Next step hôm nay",
+        pending.length + " Suggestion đang chờ trên " + this.groupKeys(pending).length + " Account"
+      ],
+      queueSubject: "Suggestion đang chờ trên " + this.groupKeys(pending).length + " Account",
+      go: (label) => this.setState({ screen: label }),
+      goQueue: () => this.setState({ screen: "Queue" }),
+      noop: () => {},
+      stop: (e) => e.stopPropagation(),
+
+      aiOff, resumeAI: () => { this.setState({ aiOff: false }); this.note("Bật lại phần AI"); },
+
+      isToday: screen === "Today",
+      isQueue: screen === "Queue",
+      isForm: false,
+      isAccountList: screen === "Accounts",
+      isAccountDetail: screen === "Account",
+      isPipeline: screen === "Pipeline",
+      isOpp: screen === "Opportunity",
+      isWatching: screen === "Watching",
+      isScanLog: screen === "Scan log",
+      isAdmin: screen === "Admin" && role === "admin",
+      isAdminBlocked: screen === "Admin" && role !== "admin",
+      isForm: ["Pipeline", "Watching", "Scan log", "Admin"].indexOf(screen) >= 0,
+
+      goToday: () => this.setState({ screen: "Today" }),
+      queueEmpty: ui === "empty" || (ui !== "loading" && pending.length === 0),
+      queueReady: ui !== "loading" && ui !== "empty" && pending.length > 0,
+      queueMeta: pending.length + " gợi ý chờ trên " + this.groupKeys(pending).length + " Account · Duyệt 1 bấm · Bỏ 2 bấm",
+      queueGroups: this.groupKeys(pending).map(acc => ({
+        head: acc + " — " + pending.filter(s => s.account === acc).length + " gợi ý",
+        items: pending.filter(s => s.account === acc).map(s => this.suggProps(s))
+      })),
+      draft: this.state.draft || "",
+      setDraft: (e) => this.setState({ draft: e.target.value }),
+      cancelEdit: () => this.setState({ editing: null }),
+
+      isLoading: ui === "loading", isEmpty: ui === "empty", isError: ui === "error",
+      isReady: ui !== "loading" && ui !== "empty",
+      emptyCta: "Mở Suggestion queue — " + pending.length + " đang chờ →",
+
+      sections: sectionDefs.map(s => Object.assign({}, s,
+        { rows: rows.filter(r => r.section === s.key).map(r => this.rowProps(r)) })),
+
+      showNewItems: this.state.newItems > 0 && ui === "ready",
+      newItems: this.state.newItems,
+      loadNew: () => { this.setState({ newItems: 0 }); this.note("Nạp 2 việc mới — người dùng bấm, trang không tự nhảy"); },
+
+      showQueueCallout: ui !== "empty",
+      pendingCount: pending.length,
+      queueSub: aiOff
+        ? "Phần sinh gợi ý đang tắt. Gợi ý đang chờ vẫn bấm được — phanh chặn phần sinh ra, không chặn phần bạn quyết."
+        : "19 Suggestion đã sinh trong 24 giờ qua. Không duyệt thì hồ sơ giữ nguyên — không có gợi ý nào tự áp dụng.",
+      queueItems: pending.slice(0, 3).map(s => ({
+        text: s.account + " — " + (s.current ? s.field + " " + s.current + " → " + s.proposed
+          : s.field + " — còn trống, đề nghị " + s.proposed),
+        confidence: s.confidence
+      })),
+
+      stageStats: mark(window.STAGE_STATS), lossReasons: mark(window.LOSS_REASONS), industries: mark(window.INDUSTRIES),
+      legendItems: [
+        { swatch: "machine", text: "Dải nền tối + ray vàng + ⚙ = Next step do hệ thống đặt" },
+        { swatch: "paper", text: "Giấy trắng + ✎ = Next step do bạn gõ" },
+        { text: "Mức chắc chắn ● Chắc · ◐ Có thể · ○ Đoán — ký hiệu đi cùng màu, không dùng màu đơn độc" }
+      ],
+
+      showDemoBar: this.props.showDemoBar ?? true,
+      roleBtns: [["sales", "Sales"], ["admin", "Quản trị"]].map(r => ({
+        label: r[1], style: this.btn(role === r[0]),
+        onClick: () => this.setState({ role: r[0], screen: (r[0] === "sales" && screen === "Admin") ? "Today" : screen })
+      })),
+      stateBtns: [["ready", "bình thường"], ["empty", "rỗng"], ["loading", "đang tải"], ["error", "lỗi một phần"]].map(s => ({
+        label: s[1], style: this.btn(ui === s[0]), onClick: () => this.setState({ ui: s[0] })
+      })),
+      toggleAI: () => { this.setState({ aiOff: !aiOff }); this.note(aiOff ? "Bật lại phần AI" : "Đã tắt toàn bộ phần AI"); },
+      aiBtnLabel: aiOff ? "AI đang tắt — bật lại" : "Tắt phần AI",
+      aiBtnStyle: Object.assign(this.btn(false), { marginLeft: "10px", color: aiOff ? "var(--band-od)" : "var(--band-ink-2)" }),
+      lastLog: this.state.log[0] || "",
+
+      snapOpen: !!this.state.snapshot,
+      snapProps: snaps[this.state.snapshot] || {},
+      closeSnap: () => this.setState({ snapshot: null })
+    };
+    return Object.assign(V, this.surfaceVals());
+  }
+
+  num(s) { return parseInt(String(s || "0").replace(/\./g, ""), 10) || 0; }
+  fmt(n) { return n.toLocaleString("de-DE"); }
+
+  surfaceVals() {
+    const role = this.role, aiOff = this.aiOff, ui = this.ui;
+    const accs = window.ACCOUNTS || [];
+    const opps = this.opps();
+    const acc = this.accById(this.state.selAcc || "a2");
+    const opp = this.oppById(this.state.selOpp || "o2") || opps[1] || opps[0];
+    const snaps = window.SNAPSHOTS || {};
+    const A = window.ADMIN || {};
+    const notifs = window.NOTIFS || [];
+    const q = (this.state.query || "").toLowerCase();
+    const ind = this.state.industry || "Tất cả ngành";
+    const onlyPending = !!this.state.onlyPending;
+    const filtered = accs.filter(a =>
+      (!q || (a.name + " " + a.local + " " + a.city).toLowerCase().indexOf(q) >= 0) &&
+      (ind === "Tất cả ngành" || a.industry === ind) &&
+      (!onlyPending || a.pending > 0));
+    const watched = accs.filter(a => (this.state.watching || {})[a.id] !== undefined ? (this.state.watching || {})[a.id] : a.watching);
+    const accOpps = opps.filter(o => o.account === acc.name);
+    const snap = acc.snapshot ? snaps[acc.snapshot] : null;
+    const oppStage = this.stageOf(opp);
+    const oppFlag = this.flagOf(opp);
+
+    const cardBtn = { background: "var(--paper)", border: "1px solid var(--rule)", padding: "2px 6px",
+      fontSize: "var(--fs-11)", fontFamily: "var(--font-sans)", cursor: "pointer", borderRadius: 0, color: "var(--ink-2)" };
+
+    return {
+      // ——— S0 khay thông báo · mất kết nối
+      notifCount: notifs.length - (this.state.notifRead || []).length,
+      notifOpen: !!this.state.notifOpen,
+      toggleNotif: () => this.setState(s => ({ notifOpen: !s.notifOpen })),
+      notifs: notifs.map((n, i) => Object.assign({}, n, {
+        read: (this.state.notifRead || []).indexOf(i) >= 0,
+        onRead: () => this.setState(s => ({ notifRead: (s.notifRead || []).concat([i]) }))
+      })),
+      markAllRead: () => this.setState({ notifRead: notifs.map((n, i) => i) }),
+      goAccounts: () => this.setState({ screen: "Accounts" }),
+      offlineBtnStyle: Object.assign(this.btn(!!this.state.offline), { marginLeft: "10px" }),
+      logoutBtnStyle: this.btn(false),
+      offlineBtnLabel: this.state.offline ? "Đang mất kết nối — nối lại" : "Mất kết nối",
+      notAiOff: !aiOff,
+      offline: !!this.state.offline,
+      toggleOffline: () => this.setState(s => ({ offline: !s.offline })),
+      retrySave: () => { this.setState({ offline: false }); this.note("Đã lưu lại thứ bạn vừa gõ"); },
+
+      // ——— S11 Login
+      isLogin: !!this.state.loggedOut,
+      loginPw: this.state.pw || "",
+      setPw: (e) => this.setState({ pw: e.target.value }),
+      loginError: this.state.loginError || "",
+      hasLoginError: !!this.state.loginError,
+      loginSales: () => this.loginAs("sales"),
+      loginAdmin: () => this.loginAs("admin"),
+      _loginAs: (r) => {
+        if (!(this.state.pw || "").trim()) { this.setState({ loginError: "Email hoặc mật khẩu không đúng." }); return; }
+        this.setState({ loggedOut: false, role: r, screen: r === "admin" ? "Admin" : "Today", loginError: "", pw: "" });
+      },
+      logout: () => this.setState({ loggedOut: true, notifOpen: false }),
+
+      // ——— S4 Pipeline board
+      pipeCols: this.STAGES.map(name => {
+        const cards = opps.filter(o => this.stageOf(o) === name);
+        const total = cards.reduce((n, o) => n + this.num(o.money), 0);
+        const closed = name === "Thắng" || name === "Thua";
+        return {
+          name, count: cards.length, total: this.fmt(total), closed,
+          headStyle: { padding: "7px 9px", background: closed ? "var(--paper-tint)" : "var(--paper)",
+            borderBottom: "2px solid " + (this.state.dragOver === name ? "var(--link)" : "var(--ink)"),
+            color: closed ? "var(--ink-quiet)" : "var(--ink)" },
+          bodyStyle: { padding: "8px", display: "flex", flexDirection: "column", gap: "8px",
+            flex: 1, minHeight: 0, overflowY: "auto",
+            background: this.state.dragOver === name ? "var(--paper)" : "var(--paper-tint)",
+            outline: this.state.dragOver === name ? "2px solid var(--link)" : "none",
+            outlineOffset: "-2px" },
+          onDragOver: (e) => { e.preventDefault(); if (this.state.dragOver !== name) this.setState({ dragOver: name }); },
+          onDrop: (e) => { if (e && e.preventDefault) e.preventDefault(); if (this.state.dragOpp) this.attempt(this.state.dragOpp, name); },
+          isGuardHere: !!this.state.guard && this.state.guardTarget === name,
+          isRefusalHere: !!this.state.refusal && this.state.refusalTarget === name,
+          popStyle: Object.assign({ position: "absolute", top: "46px", zIndex: 6, width: "420px",
+            background: "var(--paper)", border: "1px solid var(--rule)", borderTop: "3px solid var(--ink)",
+            padding: "12px 15px" }, this.STAGES.indexOf(name) > 3 ? { right: "6px" } : { left: "6px" }),
+          refuseStyle: Object.assign({ position: "absolute", top: "46px", zIndex: 6, width: "360px",
+            background: "var(--warn-bg)", border: "1px solid var(--warn-border)", padding: "9px 12px",
+            fontSize: "var(--fs-11-5)", color: "var(--warn)", lineHeight: 1.5 },
+            this.STAGES.indexOf(name) > 3 ? { right: "6px" } : { left: "6px" }),
+          empty: cards.length === 0,
+          cards: cards.map(o => {
+            const fl = this.flagOf(o);
+            const idx = this.RUNNING.indexOf(this.stageOf(o));
+            return {
+              id: o.id, name: o.name, account: o.account, money: o.money,
+              hasFlag: !!fl, flagTone: fl ? fl.tone : "warn", flagText: fl ? fl.text : "",
+              onDragStart: (e) => { e.dataTransfer.effectAllowed = "move"; e.dataTransfer.setData("text/plain", o.id); this.setState({ dragOpp: o.id }); },
+              onDragEnd: () => this.setState({ dragOpp: null, dragOver: null }),
+              onOpen: () => this.setState({ selOpp: o.id, screen: "Opportunity" }),
+              canStep: idx >= 0,
+              onPrev: () => { if (idx > 0) this.attempt(o.id, this.RUNNING[idx - 1]); },
+              onNext: () => { if (idx >= 0 && idx < 3) this.attempt(o.id, this.RUNNING[idx + 1]); },
+              btnStyle: cardBtn
+            };
+          })
+        };
+      }),
+      hasRefusal: !!this.state.refusal, refusal: this.state.refusal,
+      clearRefusal: () => this.setState({ refusal: "", refusalTarget: null }),
+      hasGuard: !!this.state.guard,
+      guardTitle: this.state.guard === "qualify" ? "Sang Đủ điều kiện — hai dấu hiệu" : "Sang Thua — lý do thua",
+      guardNote: this.state.guard === "qualify"
+        ? "Bỏ qua được: Opportunity vẫn sang Đủ điều kiện và mang cờ tới khi bạn bổ sung."
+        : "Bỏ qua được: Opportunity vẫn sang Thua, mang cờ và đứng ngoài bảng thống kê lý do thua.",
+      guardFields: this.state.guard === "qualify"
+        ? [Object.assign({ label: "Dấu hiệu nhu cầu", placeholder: "vd: WMS hiện tại hết vòng đời 03/2027" }, this.gv("need")),
+           Object.assign({ label: "Dấu hiệu ngân sách", placeholder: "vd: đã có ngân sách quý IV, chờ HĐQT phê" }, this.gv("budget"))]
+        : [Object.assign({ label: "Lý do thua", placeholder: "vd: Giá cao hơn đối thủ" }, this.gv("reason"))],
+      guardSave: () => this.guardSaveNow(),
+      guardSkip: () => this.guardSkipNow(),
+
+      // ——— S3 Account detail
+      accName: "Account · " + acc.name,
+      accMeta: acc.local + " · " + acc.city + " · " + (acc.pending ? acc.pending + " Suggestion đang chờ" : "không có Suggestion chờ"),
+      accPending: acc.pending || 0,
+      accHasPending: (acc.pending || 0) > 0,
+      accFields: [
+        { label: "Primary contact", value: acc.id === "a2" ? "— còn trống" : "Đang có", quiet: acc.id === "a2" },
+        { label: "Ngành", value: acc.industry },
+        { label: "Quy mô nhân sự", value: acc.size },
+        { label: "Trụ sở", value: acc.city },
+        { label: "Cập nhật lần cuối", value: acc.updated }
+      ].map((f, i, a) => Object.assign({}, f, { last: i === a.length - 1 })),
+      accStale: acc.stale > 30,
+      accStaleText: "Hồ sơ không đổi " + acc.stale + " ngày — quá ngưỡng 30 ngày, không mang đi họp được",
+      accOppsHead: "Opportunity — " + accOpps.filter(o => ["Thắng", "Thua"].indexOf(this.stageOf(o)) < 0).length + " đang mở",
+      accOpps: accOpps.map(o => {
+        const fl = this.flagOf(o);
+        return { id: o.id, name: o.name, stage: this.stageOf(o), money: o.money,
+          due: o.due ? o.due + (o.overdue ? " — quá " + o.overdue + " ngày" : "") : "chưa có hạn",
+          nextStep: o.nextStep || "— chưa có Next step",
+          byMachine: o.by === "machine",
+          hasFlag: !!fl, flagTone: fl ? fl.tone : "warn", flagText: fl ? fl.text : "",
+          onOpen: () => this.setState({ selOpp: o.id, screen: "Opportunity" }) };
+      }),
+      hasSnap: !!snap && !acc.unreadable,
+      snapUnreadable: !!acc.unreadable,
+      unreadableText: "Không đọc được nguồn của " + acc.name,
+      unreadableDetail: (acc.unreadable || "") + ". Vòng sau thử lại — không đoán, và không để trống như thể chưa quét.",
+      readHead: snap ? "Bản lưu gần nhất " + snap.capturedAt + " · " + snap.source : "Chưa đọc nguồn nào cho account này.",
+      readText: snap ? snap.paragraphs.map(p => (typeof p === "string" ? p : p.text)).join(" ") : "",
+      readLang: snap ? snap.lang : "vi",
+      openAccSnap: () => acc.snapshot && this.setState({ snapshot: acc.snapshot }),
+      timeline: this.timelineFor(acc).map((t, i, a) => Object.assign({}, t, { last: i === a.length - 1 })),
+
+      // ——— S5 Opportunity detail
+      oppName: opp.name, oppAccount: opp.account, oppMoney: opp.money, oppStage: oppStage,
+      oppDue: opp.due ? "hạn " + opp.due + (opp.overdue ? " — quá " + opp.overdue + " ngày" : "") : "chưa có ngày hạn",
+      oppByMachine: opp.by === "machine",
+      oppNextStep: opp.nextStep || "— chưa có Next step",
+      oppHasFlag: !!oppFlag, oppFlagTone: oppFlag ? oppFlag.tone : "warn", oppFlagText: oppFlag ? oppFlag.text : "",
+      oppNeedField: Object.assign({ label: "Dấu hiệu nhu cầu", placeholder: "vd: WMS hiện tại hết vòng đời 03/2027" }, this.fv(opp.id, "need", opp.need)),
+      oppBudgetField: Object.assign({ label: "Dấu hiệu ngân sách", placeholder: "vd: đã có ngân sách quý IV, chờ HĐQT phê" }, this.fv(opp.id, "budget", opp.budget)),
+      oppLossField: Object.assign({ label: "Lý do thua", placeholder: "vd: Giá cao hơn đối thủ" }, this.fv(opp.id, "loss", opp.loss)),
+      oppShowLoss: oppStage === "Thua",
+      oppStepField: Object.assign({ label: "Next step do bạn gõ", placeholder: "vd: Gọi bà Ishikawa xác nhận ngân sách quý IV" }, this.fv(opp.id, "step", opp.by === "human" ? opp.nextStep : "")),
+      saveOpp: () => {
+        const f = (this.state.oppFields || {})[opp.id] || {};
+        const need = f.need !== undefined ? f.need : opp.need;
+        const budget = f.budget !== undefined ? f.budget : opp.budget;
+        const loss = f.loss !== undefined ? f.loss : opp.loss;
+        if (this.state.offline) { this.note("Chưa lưu được — thứ bạn vừa gõ vẫn giữ nguyên trên màn hình"); return; }
+        let flag = null;
+        if (oppStage === "Đủ điều kiện" && !(String(need || "").trim() && String(budget || "").trim()))
+          flag = { tone: "warn", text: "Thiếu một trong hai dấu hiệu cho Stage Đủ điều kiện — bổ sung ngay" };
+        if (oppStage === "Thua" && !String(loss || "").trim())
+          flag = { tone: "warn", text: "Chưa có lý do thua — Opportunity này đứng ngoài bảng thống kê lý do thua cho tới khi được bổ sung" };
+        this.setState(s => ({ flags: Object.assign({}, s.flags, { [opp.id]: flag }) }));
+        this.note(opp.name + " — đã lưu");
+      },
+      backToPipeline: () => this.setState({ screen: "Pipeline" }),
+
+      // ——— S6 Account list
+      industries: ["Tất cả ngành"].concat((window.INDUSTRIES || []).map(i => i.name)).map(name => ({
+        name, style: {
+          background: ind === name ? "var(--ink)" : "var(--paper-tint)", color: ind === name ? "var(--paper)" : "var(--ink-2)",
+          border: "1px solid var(--rule)", padding: "3px 9px", fontSize: "var(--fs-11-5)", fontFamily: "var(--font-sans)",
+          cursor: "pointer", borderRadius: 0
+        },
+        onClick: () => this.setState({ industry: name })
+      })),
+      query: this.state.query || "",
+      setQuery: (e) => this.setState({ query: e.target.value }),
+      onlyPendingStyle: {
+        background: onlyPending ? "var(--suggestion)" : "var(--paper-tint)", color: onlyPending ? "#FDF6EC" : "var(--ink-2)",
+        border: "1px solid " + (onlyPending ? "var(--suggestion)" : "var(--rule)"), padding: "3px 9px",
+        fontSize: "var(--fs-11-5)", fontFamily: "var(--font-sans)", cursor: "pointer", borderRadius: 0
+      },
+      toggleOnlyPending: () => this.setState({ onlyPending: !onlyPending }),
+      listMeta: filtered.length + "/" + accs.length + " Account đang hiện",
+      listEmpty: filtered.length === 0,
+      listEmptyLine: "Lọc không ra kết quả.",
+      listEmptySub: "Đang bật: ngành " + ind + (onlyPending ? " · chỉ Account có Suggestion chờ" : "") + (q ? " · từ khoá “" + this.state.query + "”" : "") + ". Bỏ một lọc để thấy lại Account.",
+      clearFilters: () => this.setState({ industry: "Tất cả ngành", onlyPending: false, query: "" }),
+      accRows: filtered.map(a => ({
+        id: a.id, name: a.name, meta: a.local + " · " + a.city, industry: a.industry, size: a.size,
+        updated: a.updated, stale: a.stale > 30, staleText: a.stale + " ngày",
+        pending: a.pending, hasPending: a.pending > 0 && !aiOff,
+        onOpen: () => this.setState({ selAcc: a.id, screen: "Account" })
+      })),
+      hidePendingCol: aiOff,
+
+      // ——— S7 Watching list
+      watchEmpty: watched.length === 0,
+      watchMeta: watched.length + "/" + accs.length + " Account đang theo dõi",
+      watchRows: watched.map(a => ({
+        id: a.id, name: a.name, meta: a.local + " · " + a.city,
+        scan: aiOff ? "Vòng quét đang dừng — số liệu giữ ở lần quét 09:41"
+          : (a.scanned ? "Đã quét 09:41 trong vòng gần nhất" : "Bỏ vòng — " + (a.unreadable || "nguồn không đọc được") + ", vòng sau thử lại"),
+        skipped: !a.scanned,
+        reasonField: Object.assign({ label: "Vì sao theo dõi", optional: true, placeholder: "tuỳ chọn — để trống vẫn theo dõi được" }, this.fv("w-" + a.id, "why", "")),
+        onOff: () => { this.setState(s => ({ watching: Object.assign({}, s.watching, { [a.id]: false }) })); this.note("Tắt Watching cho " + a.name); },
+        onOpen: () => this.setState({ selAcc: a.id, screen: "Account" })
+      })),
+      watchOffNote: aiOff ? "Phần AI đang tắt — vòng quét đang dừng, danh sách vẫn đúng nhưng không có dữ liệu mới." : "",
+
+      // ——— S8 Admin
+      adminMetrics: [
+        { label: "Tỉ lệ duyệt", value: (A.decisions || {}).approve, compare: (A.decisions || {}).approveRaw, tone: "warn" },
+        { label: "Thời gian quyết trung bình", value: (A.decisions || {}).decideTime, compare: "ngưỡng rà lại: dưới 3 giây", tone: "warn" },
+        { label: "Sửa-rồi-duyệt", value: (A.decisions || {}).editApprove, compare: "4/141 lượt quyết" },
+        { label: "Bỏ", value: (A.decisions || {}).dismiss, compare: "2/141 lượt quyết" }
+      ],
+      adminMetrics2: [
+        { label: "Signal đã sinh", value: (A.signals || {}).total, compare: "Chắc " + (A.signals || {}).chac + " · Có thể " + (A.signals || {}).cothe + " · Đoán " + (A.signals || {}).doan },
+        { label: "Signal chưa phân loại", value: (A.signals || {}).unclassified, compare: "ngưỡng cảnh báo: 10% tổng số" },
+        { label: "Máy tự đặt Next step", value: (A.machineNextStep || {}).total, compare: "bị hoàn tác " + (A.machineNextStep || {}).undone },
+        { label: "Tỉ lệ phát hiện tin sai", value: "", compare: "", insufficient: true,
+          insufficientNote: "cần ít nhất 20 lượt Bỏ để tính — hiện có 2" }
+      ],
+      blindItems: (A.blind || []),
+      adminParams: (A.params || []),
+      dismissReasons: ((A.dismissReasons || []).map((r, i, a) => Object.assign({}, r, { last: i === a.length - 1 }))),
+      brake: () => { this.setState({ aiOff: true, screen: "Today" }); this.note("Quản trị bấm phanh — đã tắt toàn bộ phần AI"); },
+      adminAiOff: aiOff,
+      adminBlockedLine: "Bạn không có quyền mở Admin dashboard.",
+      adminBlockedSub: "Việc chặn diễn ra ở tầng nghiệp vụ, không phải bằng cách ẩn menu — lối vào này không hiện với vai Sales, và kể cả khi bạn tới đúng địa chỉ, máy chủ vẫn từ chối.",
+
+      // ——— S9 Scan log
+      scanRows: (window.SCAN_LOG || []).map(r => ({
+        at: r.at, account: r.account || "", text: r.text,
+        isSum: r.kind === "sum", isSkip: r.kind === "skip", isCut: r.kind === "cut",
+        style: {
+          display: "grid", gridTemplateColumns: "88px 260px 1fr", gap: "14px", padding: "7px 24px",
+          borderBottom: "1px solid var(--rule)", fontSize: "var(--fs-12-5)",
+          background: r.kind === "sum" ? "var(--paper-tint)" : (r.kind === "skip" || r.kind === "cut" ? "var(--warn-row)" : "var(--paper)"),
+          fontWeight: r.kind === "sum" ? 650 : 400
+        }
+      })),
+      scanFoot: aiOff ? "Vòng quét dừng lúc 09:52 — Quản trị bấm phanh. Không có vòng nào chạy sau thời điểm này."
+        : "Chu kỳ quét 60 giây. Dòng tổng hợp hiện mỗi 10 vòng, nền giấy nhạt."
+    };
+  }
+}
+</script>
+</body>
+</html>

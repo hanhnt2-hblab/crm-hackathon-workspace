@@ -1,0 +1,49 @@
+/* Hai họ chữ có vai trò tách bạch (ràng buộc từ design-handoff.md):
+   sans cho dữ liệu và nhãn, serif cho măng-sét và câu Next step.
+   Nguồn không kèm tệp webfont — dùng đúng ngăn xếp chữ hệ thống của
+   direction-ban-tin.html. Nội dung tiếng Nhật dựa vào chữ CJK mặc định
+   của hệ điều hành qua nhánh sans-serif / serif cuối stack. */
+:root{
+  --font-sans:"Segoe UI",system-ui,-apple-system,"Helvetica Neue",Arial,sans-serif;
+  /* Noto Serif đứng trước Georgia vì Georgia/Times thiếu glyph Việt dựng sẵn
+     — xem tokens/fonts.css. Georgia giữ lại làm lớp dự phòng khi mất mạng. */
+  --font-serif:"Noto Serif",Georgia,"Times New Roman",serif;
+
+  /* Bậc chữ — px nguyên văn từ hướng C */
+  --fs-10:10px;      /* pin Suggestion */
+  --fs-10-5:10.5px;  /* nhãn Mức chắc chắn */
+  --fs-11:11px;      /* nhãn viết hoa, chú giải, ghi chú */
+  --fs-11-5:11.5px;  /* byline, sigmeta, cờ, dòng thống kê phụ */
+  --fs-12:12px;      /* opp, dòng phụ */
+  --fs-12-5:12.5px;  /* trích, nút, dòng thống kê */
+  --fs-13:13px;      /* account, money, tiêu đề rail */
+  --fs-14-5:14.5px;  /* thân bài dài */
+  --fs-17:17px;      /* câu Next step do người gõ */
+  --fs-19:19px;      /* câu Next step do máy đặt — to hơn một bậc */
+  --fs-26:26px;      /* măng-sét thương hiệu */
+  --fs-30:30px;      /* số lớn trong hộp Queue */
+
+  --fw-regular:400;  /* @kind font */
+  --fw-medium:600;   /* @kind font */
+  --fw-semibold:650; /* @kind font */
+  --fw-bold:700;     /* @kind font */
+  /* nhãn viết hoa, cờ, Mức chắc chắn */
+  --fw-black:800; /* @kind font */
+
+  --lh-tight:1.1;    /* @kind other */
+  --lh-snug:1.4;     /* @kind other */
+  --lh-normal:1.45;  /* @kind other */
+  --lh-relaxed:1.55; /* @kind other */
+  --lh-loose:1.62;   /* @kind other */
+
+  --ls-mast:-.02em;      /* @kind other */
+  --ls-headline:-.005em; /* @kind other */
+  --ls-label:.07em;      /* @kind other */
+  --ls-label-wide:.08em; /* @kind other */
+  --ls-kicker:.16em;     /* @kind other */
+  --ls-box:.14em;        /* @kind other */
+  --ls-unit:.06em;       /* @kind other */
+  --ls-badge:.04em;      /* @kind other */
+
+  --num-tabular:tabular-nums; /* @kind other */
+}

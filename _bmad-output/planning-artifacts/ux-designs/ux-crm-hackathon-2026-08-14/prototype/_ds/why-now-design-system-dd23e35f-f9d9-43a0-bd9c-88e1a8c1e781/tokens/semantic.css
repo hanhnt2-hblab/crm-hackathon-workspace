@@ -1,0 +1,49 @@
+/* Bí danh theo vai trò. EXPERIENCE.md gọi tên vai trò — dải máy, ray,
+   giấy, mực phụ — nên đây là chỗ những tên đó thành token. */
+:root{
+  /* Bề mặt */
+  --surface-page:var(--app);
+  --surface-paper:var(--paper);
+  --surface-section:var(--paper-tint);
+  --surface-machine:var(--band);
+  --surface-machine-inset:var(--band-2);
+  --surface-warn-row:var(--warn-row);
+  --surface-queue:var(--suggestion-bg);
+  --surface-legend:var(--legend-bg);
+
+  /* Chữ */
+  --text-body:var(--ink);
+  --text-headline:var(--ink-strong);
+  --text-muted:var(--ink-2);
+  --text-quiet:var(--ink-3);
+  --text-closed:var(--ink-quiet);
+  --text-link:var(--link);
+  --text-on-machine:var(--band-ink);
+  --text-on-machine-headline:var(--band-ink-strong);
+  --text-on-machine-muted:var(--band-ink-2);
+  --text-overdue:var(--overdue);
+  --text-overdue-on-machine:var(--band-od);
+
+  /* Ranh giới máy / người */
+  --machine-rail:var(--rail);
+  --machine-glyph:"⚙";  /* @kind other */
+  --human-glyph:"✎";    /* @kind other */
+
+  /* Ký hiệu Mức chắc chắn — luôn đi cùng màu, không dùng màu đơn độc */
+  --glyph-chac:"●";   /* @kind other */
+  --glyph-cothe:"◐";  /* @kind other */
+  --glyph-doan:"○";   /* @kind other */
+  --glyph-flag:"▲";   /* @kind other */
+  --glyph-pin:"◆";    /* @kind other */
+  --glyph-undo:"↩";   /* @kind other */
+
+  /* Kẻ */
+  --divider-row:var(--rule);
+  --divider-machine:var(--band-edge);
+  --divider-soft:var(--rule-dotted);
+
+  /* Tiêu điểm — không bao giờ outline:none (sàn khả năng tiếp cận) */
+  --focus-ring:2px solid var(--link);          /* @kind other */
+  --focus-offset:1px;                          /* @kind spacing */
+  --focus-ring-on-machine:2px solid var(--rail); /* @kind other */
+}

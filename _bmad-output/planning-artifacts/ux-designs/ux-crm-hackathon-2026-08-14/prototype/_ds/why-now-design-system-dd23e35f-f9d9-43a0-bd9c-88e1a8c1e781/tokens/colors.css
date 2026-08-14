@@ -1,0 +1,78 @@
+/* Why Now — bảng màu hướng C "Bản tin". Giá trị lấy nguyên văn từ
+   .working/direction-ban-tin.html và design-handoff.md. Không làm tròn. */
+:root{
+  /* Giấy / nền ứng dụng */
+  --paper:#FFFFFF;
+  --app:#F4F3F1;
+  --paper-tint:#FAFAF8;      /* nền măng-sét mục, ô stage */
+  --desk:#DDDBD6;            /* nền ngoài khung, chrome trình duyệt */
+
+  /* Mực */
+  --ink:#111417;
+  --ink-strong:#1B1F23;      /* câu Next step trên giấy */
+  --ink-2:#5C636A;           /* mực phụ */
+  --ink-3:#7B828A;           /* mực phụ nhạt, byline */
+  --ink-mid:#3D444B;
+  --ink-mid-2:#464C52;
+  --ink-quiet:#8B9097;       /* dòng Stage đã đóng */
+  --ink-body:#2A2E33;
+
+  /* Kẻ */
+  --rule:#E2E0DC;            /* kẻ tóc mảnh */
+  --rule-dotted:#E8E6E1;
+  --rule-strong:#D5D2CC;
+  --rule-frame:#C6C3BD;
+  --rule-chrome:#B6B3AD;
+  --rule-field:#CFCDC8;
+  --rule-stage:#D6D4CF;
+
+  /* DẢI MÁY — nền đảo, ranh giới thị giác quan trọng nhất */
+  --band:#16232E;
+  --band-2:#1D2C38;          /* khối trích, ô stage trên dải */
+  --band-edge:#0C1620;       /* kẻ dưới dải */
+  --band-ink:#F2F5F7;
+  --band-ink-strong:#FFFFFF;
+  --band-ink-2:#A9BBC8;
+  --band-ink-3:#D9E2E8;
+  --band-rule:#33414D;
+  --band-rule-2:#44535F;
+  --band-quote-rail:#4C6B84;
+  --band-quote-ink:#C7D6E1;
+  --band-quote-src:#8AA0B1;
+  --band-od:#F0A79C;         /* quá hạn trên dải */
+  --rail:#C9942A;            /* ray trái dải máy, 4px đặc */
+  --rail-ink:#0F1A22;
+
+  /* Nhấn */
+  --link:#1B4E7A;
+
+  /* Trạng thái */
+  --overdue:#B03024;
+  --warn:#C4351F;
+  --warn-bg:#FCF0EE;
+  --warn-border:#EDC6BE;
+  --warn-row:#FDF8F7;
+  --suggestion:#8A4A05;
+  --suggestion-bg:#FBEEDA;
+  --suggestion-border:#E0BA84;
+  --suggestion-ink:#5E3403;
+  --suggestion-ink-2:#7A5423;
+  --suggestion-ink-3:#4A3A22;
+  --suggestion-ink-4:#33260F;
+  --suggestion-rule:#DEBD8C;
+  --undo-soon-ink:#3A0E08;
+
+  /* Mức chắc chắn — trên giấy */
+  --chac:#176B45;   --chac-bg:#E5F1EA;   --chac-border:#A9CFBC;
+  --cothe:#8C5A0C;  --cothe-bg:#FAEFDA;  --cothe-border:#DCBE88;
+  --doan:#5A626B;   --doan-bg:#ECEEF0;   --doan-border:#C6CACE;
+
+  /* Mức chắc chắn — trên dải máy tối */
+  --chac-band:#7FD3A5;   --chac-band-bg:#1E3A33;   --chac-band-border:#3E6B58;
+  --cothe-band:#E9BC63;  --cothe-band-bg:#3A2E17;  --cothe-band-border:#6B5629;
+  --doan-band:#A9B6C0;   --doan-band-bg:#26333D;   --doan-band-border:#44535F;
+
+  /* Chân trang chú giải */
+  --legend-bg:#EDEBE7;
+  --legend-ink:#4E545A;
+}

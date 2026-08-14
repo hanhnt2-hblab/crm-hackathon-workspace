@@ -1,0 +1,23 @@
+/* Viền và bóng. Hướng C không dùng bo góc và gần như không dùng bóng —
+   bo góc bằng 0 ở mọi nơi trừ điểm tròn của chrome trình duyệt.
+   Bóng duy nhất trong nguồn là bóng khung ứng dụng ở ảnh dựng. */
+:root{
+  --radius-0:0;
+  --radius-chrome:3px;
+  --radius-dot:50%;
+
+  --bw-hairline:1px;      /* kẻ tóc giữa các dòng */
+  --bw-rail:4px;          /* ray vàng dải máy */
+  --bw-quote:3px;         /* ray khối trích */
+  --bw-masthead:2px;      /* kẻ đậm dưới măng-sét */
+  --bw-rationale:5px;
+
+  --border-hairline:1px solid var(--rule);
+  --border-dotted:1px dotted var(--rule-dotted);
+  --border-frame:1px solid var(--rule-frame);
+  --border-masthead:2px solid var(--ink);
+  --rail-left:4px solid var(--rail);
+
+  --shadow-app:0 10px 34px rgba(0,0,0,.16);
+  --shadow-none:none;
+}

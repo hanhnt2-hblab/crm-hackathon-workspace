@@ -1,0 +1,401 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<title>Hướng A — Sổ cái · S1 Today · Why Now</title>
+<style>
+/* =========================================================================
+   HƯỚNG A — "SỔ CÁI"
+   Bảng màu (hex ghi đầy đủ để chuyển thành token ở DESIGN.md)
+   --------------------------------------------------------------------
+   Nền giấy          #FBFAF7
+   Mực chính         #16171A
+   Mực phụ           #55585F
+   Đường kẻ          #DCD9D2   · kẻ đậm #C4C0B7
+   LÀN MÁY (nền)     #EBF1F7   · viền làn #2F5D8C   · chữ nhãn #24507B
+   LÀN NGƯỜI (nền)   #FFFFFF   · gạch chân ô nhập #B9BCC2
+   Chắc              #1E6B45   (nền #E4F0E9)
+   Có thể            #9A6212   (nền #FBF0DC)
+   Đoán              #5A6068   (nền #ECEDEF)
+   Quá hạn           #B3261E   (nền #FBE7E5)
+   Cảnh báo          #A32B1C
+   Nhấn (Suggestion) #7A3E00   (nền #FDF0DF)
+   ========================================================================= */
+
+:root{
+  --paper:#FBFAF7; --ink:#16171A; --ink2:#55585F; --rule:#DCD9D2; --rule2:#C4C0B7;
+  --may-bg:#EBF1F7; --may-line:#2F5D8C; --may-ink:#24507B;
+  --nguoi-bg:#FFFFFF; --nguoi-line:#B9BCC2;
+  --chac:#1E6B45; --chac-bg:#E4F0E9;
+  --cothe:#9A6212; --cothe-bg:#FBF0DC;
+  --doan:#5A6068; --doan-bg:#ECEDEF;
+  --quahan:#B3261E; --quahan-bg:#FBE7E5;
+  --canhbao:#A32B1C; --sug:#7A3E00; --sug-bg:#FDF0DF;
+}
+*{box-sizing:border-box}
+body{margin:0;padding:28px;background:#E7E4DE;
+  font-family:"Segoe UI",system-ui,-apple-system,"Helvetica Neue",Arial,sans-serif;
+  color:var(--ink);-webkit-font-smoothing:antialiased}
+
+.rationale{max-width:1440px;margin:0 auto 20px;background:#FFFFFF;border:1px solid #C4C0B7;
+  border-left:5px solid #16171A;padding:16px 20px;font-size:14.5px;line-height:1.62;color:#2A2C31}
+.rationale b{color:#16171A}
+.rationale .h{font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:#6B6E75;margin-bottom:6px}
+
+/* ---- khung trình duyệt ---- */
+.browser{max-width:1440px;margin:0 auto;background:#FFFFFF;border:1px solid #B7B3AB;
+  box-shadow:0 10px 34px rgba(0,0,0,.16)}
+.chrome{display:flex;align-items:center;gap:10px;height:38px;padding:0 12px;
+  background:#DEDAD2;border-bottom:1px solid #B7B3AB}
+.dot{width:11px;height:11px;border-radius:50%}
+.urlbar{flex:1;height:22px;background:#FBFAF7;border:1px solid #C4C0B7;border-radius:3px;
+  font-size:11.5px;color:#6B6E75;display:flex;align-items:center;padding:0 9px}
+
+.app{background:var(--paper);height:928px;overflow:hidden;display:flex;flex-direction:column}
+
+/* ---- thanh trên ---- */
+.top{display:flex;align-items:baseline;gap:18px;padding:12px 18px 10px;border-bottom:1px solid var(--rule2)}
+.brand{font-size:17px;font-weight:700;letter-spacing:-.01em}
+.brand span{font-weight:400;color:var(--ink2)}
+.top .who{font-size:12.5px;color:var(--ink2)}
+.top .spacer{flex:1}
+.unit{font-size:11.5px;color:var(--ink2);border:1px solid var(--rule2);padding:2px 7px}
+.nav{display:flex;gap:2px;padding:0 18px;border-bottom:1px solid var(--rule)}
+.nav a{font-size:12.5px;color:var(--ink2);text-decoration:none;padding:7px 11px;border-bottom:2px solid transparent}
+.nav a.on{color:var(--ink);font-weight:600;border-bottom-color:var(--ink)}
+
+/* ---- dải trạng thái quét ---- */
+.scan{display:flex;align-items:center;gap:14px;padding:7px 18px;background:#F2F5F8;
+  border-bottom:1px solid var(--rule);font-size:12px;color:#33465A}
+.scan b{color:#1D3F63}
+.scan .sep{color:#9AA6B2}
+
+/* ---- lối vào Suggestion queue ---- */
+.queue{display:flex;align-items:center;gap:12px;margin-left:auto;background:var(--sug-bg);
+  border:1px solid #E2B87C;padding:4px 10px;color:var(--sug);font-size:12.5px;font-weight:600}
+.queue .n{font-size:15px;font-weight:800;font-variant-numeric:tabular-nums}
+.queue .go{font-size:11.5px;font-weight:600;border-left:1px solid #E2B87C;padding-left:10px}
+
+/* ---- tiêu đề khối ---- */
+.sec{display:flex;align-items:baseline;gap:10px;padding:11px 18px 6px}
+.sec h2{margin:0;font-size:13px;letter-spacing:.1em;text-transform:uppercase}
+.sec .meta{font-size:12px;color:var(--ink2);font-variant-numeric:tabular-nums}
+
+/* ---- bảng việc ---- */
+table{width:100%;border-collapse:collapse;table-layout:fixed}
+thead th{font-size:10.5px;letter-spacing:.09em;text-transform:uppercase;color:#63666D;
+  font-weight:700;text-align:left;padding:5px 9px;border-bottom:1px solid var(--rule2);vertical-align:bottom}
+thead tr.grp th{padding-bottom:2px;border-bottom:none;text-align:center;color:#3D4048}
+thead tr.grp th.gm{background:var(--may-bg);border-left:3px solid var(--may-line);color:var(--may-ink)}
+thead tr.grp th.gn{background:var(--nguoi-bg);border-left:1px solid var(--rule2)}
+tbody td{font-size:12.5px;line-height:1.45;padding:7px 9px;border-bottom:1px solid var(--rule);
+  vertical-align:top}
+tbody tr:hover td{background:#F5F3EE}
+
+/* HAI LÀN — cơ chế phân biệt của hướng này */
+td.may{background:var(--may-bg);border-left:3px solid var(--may-line)}
+td.nguoi{background:var(--nguoi-bg);border-left:1px solid var(--rule2)}
+tbody tr:hover td.may{background:#E3ECF5}
+tbody tr:hover td.nguoi{background:#FFFFFF}
+td.may .lbl{font-size:9.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--may-ink);font-weight:700;display:block;margin-bottom:2px}
+td.nguoi .lbl{font-size:9.5px;letter-spacing:.1em;text-transform:uppercase;color:#7B7E85;font-weight:700;display:block;margin-bottom:2px}
+td.may .txt{color:#14314D;font-weight:600}
+td.nguoi .txt{color:#1F2126;border-bottom:1px dashed var(--nguoi-line);display:inline-block;padding-bottom:1px}
+.trich{margin-top:4px;padding-left:8px;border-left:2px solid #A9C3DC;color:#3B5771;
+  font-size:11.5px;line-height:1.4}
+.trich .src{display:block;color:#6C8299;font-size:10.5px;margin-top:2px}
+.undo{margin-top:5px;display:inline-flex;align-items:center;gap:6px;font-size:11px;color:#24507B;
+  border:1px solid #A9C3DC;background:#F6FAFD;padding:1px 7px}
+.undo b{font-variant-numeric:tabular-nums}
+.empty{color:#A5A8AE;font-size:12px}
+
+/* ---- ô nhỏ ---- */
+.hanh{font-variant-numeric:tabular-nums;font-weight:700;font-size:12.5px}
+.hanh .d{display:block;font-size:10.5px;font-weight:600;letter-spacing:.05em;text-transform:uppercase;margin-top:1px}
+.od{color:var(--quahan)} .od .d{color:var(--quahan)}
+.td{color:#16171A} .td .d{color:#5A6068}
+.acc{font-weight:650;font-size:12.5px;display:block}
+.acc-jp{color:#6B6E75;font-size:11px;display:block;margin-top:1px}
+.opp{color:#2A2C31}
+.opp .st{display:inline-block;margin-top:3px;font-size:10.5px;color:#4A4D54;border:1px solid var(--rule2);padding:0 5px;background:#FFFFFF}
+.money{font-variant-numeric:tabular-nums;text-align:right;color:#2A2C31;font-size:12.5px}
+td.rt{text-align:right}
+
+/* dấu hiệu Account đang có Suggestion chờ */
+.pin{display:inline-flex;align-items:center;gap:3px;background:var(--sug-bg);border:1px solid #E2B87C;
+  color:var(--sug);font-size:10px;font-weight:700;padding:0 4px;margin-left:5px;vertical-align:1px}
+
+/* Mức chắc chắn — KÝ HIỆU + MÀU + CHỮ, không bao giờ chỉ màu */
+.mc{display:inline-flex;align-items:center;gap:4px;font-size:10.5px;font-weight:700;padding:1px 6px;border:1px solid}
+.mc .g{font-size:11px;line-height:1}
+.mc.chac{color:var(--chac);background:var(--chac-bg);border-color:#A8CDBA}
+.mc.cothe{color:var(--cothe);background:var(--cothe-bg);border-color:#E0C287}
+.mc.doan{color:var(--doan);background:var(--doan-bg);border-color:#C6C9CD}
+.sig{display:block;font-size:10.5px;color:#5A5D64;margin-top:3px}
+
+/* ---- cờ cảnh báo ---- */
+.flagrow td{background:#FDF6F5}
+.flag{display:inline-flex;align-items:center;gap:5px;color:var(--canhbao);font-size:11px;font-weight:700}
+.flag .g{font-size:12px}
+
+/* ---- ba khối chân ---- */
+.panels{display:grid;grid-template-columns:1fr 1fr 1.12fr;gap:0;border-top:2px solid var(--rule2);margin-top:auto}
+.panel{padding:10px 18px 12px;border-right:1px solid var(--rule)}
+.panel:last-child{border-right:none}
+.panel h3{margin:0 0 2px;font-size:11.5px;letter-spacing:.1em;text-transform:uppercase}
+.panel .sub{font-size:11px;color:var(--ink2);margin-bottom:6px}
+.mini{width:100%;border-collapse:collapse}
+.mini td{font-size:12px;padding:2.5px 0;border-bottom:1px dotted #DEDBD4}
+.mini td.n{text-align:right;font-variant-numeric:tabular-nums;width:38px;font-weight:650}
+.mini td.v{text-align:right;font-variant-numeric:tabular-nums;width:112px;color:#3D4048}
+.mini tr.closed td{color:#7A7D84}
+.note{font-size:11px;color:#6B6E75;margin-top:6px;line-height:1.45}
+.warnbox{background:#FDF6F5;border:1px solid #E8C2BC;padding:7px 9px;margin-top:2px}
+.warnbox .l{font-size:12px;color:#7C2318;line-height:1.5}
+.warnbox .l b{color:#5E1A12}
+.mute{color:#7A7D84}
+
+/* chú giải */
+.legend{display:flex;align-items:center;gap:16px;padding:8px 18px;background:#F3F1EC;
+  border-top:1px solid var(--rule2);font-size:11px;color:#5A5D64}
+.legend .k{display:inline-flex;align-items:center;gap:5px}
+.sw{width:22px;height:11px;display:inline-block;border:1px solid}
+.sw.may{background:var(--may-bg);border-color:var(--may-line);border-left-width:3px}
+.sw.nguoi{background:#FFFFFF;border-color:var(--nguoi-line);border-bottom-style:dashed}
+</style>
+</head>
+<body>
+
+<div class="rationale">
+  <div class="h">Hướng A · sổ cái</div>
+  <b>Tính cách: một cuốn sổ cái mở sẵn.</b> Dữ liệu dẫn dắt chứ không phải câu chữ — số căn phải, chữ nhỏ, kẻ mảnh,
+  toàn bộ buổi sáng nằm trên một màn không cuộn. Nó nói với giám khảo rằng đây là công cụ làm việc chứ không phải trang giới thiệu.
+  <br><br>
+  <b>Ranh giới máy-quyết / người-quyết giải bằng CỘT RIÊNG.</b> Ô Next step bị tách làm hai làn dọc cố định —
+  <i>Do hệ thống đặt</i> (làn xanh, có viền trái dày, kèm câu trích và nút Hoàn tác) và <i>Do người gõ</i> (làn trắng, gạch chân nét đứt
+  như một ô nhập). Một Opportunity chỉ có giá trị ở đúng một làn; làn kia là ô trống có kẻ. Mắt đọc theo cột, nên chỉ cần liếc dọc
+  là biết máy đã gánh bao nhiêu phần việc — không cần đọc một chữ nào.
+</div>
+
+<div class="browser">
+  <div class="chrome">
+    <span class="dot" style="background:#E0685E"></span>
+    <span class="dot" style="background:#E4B75B"></span>
+    <span class="dot" style="background:#7FBF6B"></span>
+    <div class="urlbar">whynow.hblab.local/today</div>
+  </div>
+
+  <div class="app">
+
+    <div class="top">
+      <div class="brand">Why&nbsp;Now <span>· Today</span></div>
+      <div class="who">Linh Trần — Sales / BD, thị trường JP</div>
+      <div class="spacer"></div>
+      <div class="unit">Đơn vị tiền: JPY</div>
+      <div class="who">Thứ Sáu, 14/08/2026</div>
+    </div>
+
+    <div class="nav">
+      <a class="on" href="#">Today</a>
+      <a href="#">Pipeline</a>
+      <a href="#">Accounts</a>
+      <a href="#">Watching</a>
+      <a href="#">Suggestion queue</a>
+      <a href="#">Scan log</a>
+    </div>
+
+    <div class="scan">
+      <span>Vòng quét gần nhất 09:41 — <b>15/15 Account đã quét</b>, thêm <b>4</b> Signal mới</span>
+      <span class="sep">│</span>
+      <span>Hôm nay hệ thống đã tự đặt <b>3/8</b> Next step</span>
+      <div class="queue">
+        <span>Suggestion queue</span>
+        <span class="n">7</span>
+        <span>đang chờ · 4 Account</span>
+        <span class="go">Mở →</span>
+      </div>
+    </div>
+
+    <div class="sec">
+      <h2>Việc hôm nay</h2>
+      <div class="meta">6 việc — 2 quá hạn, 4 đến hạn hôm nay · trên tổng 8 Opportunity đang mở</div>
+    </div>
+
+    <table>
+      <colgroup>
+        <col style="width:88px"><col style="width:196px"><col style="width:178px">
+        <col style="width:104px"><col style="width:116px">
+        <col style="width:326px"><col style="width:236px"><col style="width:130px">
+      </colgroup>
+      <thead>
+        <tr class="grp">
+          <th colspan="5"></th>
+          <th class="gm">Next step — do hệ thống đặt</th>
+          <th class="gn">Next step — do người gõ</th>
+          <th></th>
+        </tr>
+        <tr>
+          <th>Hạn</th>
+          <th>Account</th>
+          <th>Opportunity</th>
+          <th>Stage</th>
+          <th class="rt">Giá trị ước tính</th>
+          <th class="gm" style="background:var(--may-bg);border-left:3px solid var(--may-line)">Nội dung · bằng chứng · Hoàn tác</th>
+          <th class="gn" style="background:#fff;border-left:1px solid var(--rule2)">Nội dung</th>
+          <th>Signal</th>
+        </tr>
+      </thead>
+      <tbody>
+
+        <tr>
+          <td><span class="hanh od">12/08<span class="d">Quá 2 ngày</span></span></td>
+          <td><span class="acc">Sōkō Logistics Co., Ltd.<span class="pin">◆ 2 Suggestion</span></span>
+              <span class="acc-jp">倉庫ロジスティクス株式会社 · Tōkyō</span></td>
+          <td class="opp">Nâng cấp WMS</td>
+          <td class="opp">Soạn đề xuất</td>
+          <td class="money">32.000.000</td>
+          <td class="may"><span class="lbl">Hệ thống đặt</span><span class="empty">— không có —</span></td>
+          <td class="nguoi"><span class="lbl">Người gõ</span>
+              <span class="txt">Gửi bản đề xuất sửa lần 2 cho ông Tanaka</span></td>
+          <td><span class="sig mute">— không sinh từ Signal —</span></td>
+        </tr>
+
+        <tr>
+          <td><span class="hanh od">13/08<span class="d">Quá 1 ngày</span></span></td>
+          <td><span class="acc">Hoshino Retail Systems</span>
+              <span class="acc-jp">星野リテールシステムズ · Ōsaka</span></td>
+          <td class="opp">Cổng đối tác B2B</td>
+          <td class="opp">Soạn đề xuất</td>
+          <td class="money">21.000.000</td>
+          <td class="may"><span class="lbl">Hệ thống đặt</span>
+              <span class="txt">Hoshino mở trung tâm phát triển thứ hai tại Ōsaka — hỏi lại phạm vi giai đoạn 2</span>
+              <div class="trich">「大阪に第二開発拠点を開設し、2026年内に80名体制とする計画です」
+                <span class="src">Bản lưu 11/08 09:41 · bấm để mở đúng đoạn</span></div>
+              <div class="undo">↩ Hoàn tác — còn <b>5 ngày 22 giờ</b></div></td>
+          <td class="nguoi"><span class="lbl">Người gõ</span><span class="empty">— ô trống —</span></td>
+          <td><span class="mc chac"><span class="g">●</span>Chắc</span><span class="sig">Mở rộng · 11/08</span></td>
+        </tr>
+
+        <tr>
+          <td><span class="hanh td">14/08<span class="d">Hôm nay</span></span></td>
+          <td><span class="acc">Kaisei Denshi K.K.<span class="pin">◆ 1 Suggestion</span></span>
+              <span class="acc-jp">株式会社カイセイ電子 · Nagoya</span></td>
+          <td class="opp">MES giai đoạn 1</td>
+          <td class="opp">Thương lượng</td>
+          <td class="money">48.000.000</td>
+          <td class="may"><span class="lbl">Hệ thống đặt</span>
+              <span class="txt">Kaisei Denshi vừa công bố Series B 3,2 tỷ yên — liên hệ trong ngày</span>
+              <div class="trich">「シリーズBラウンドにて総額32億円の資金調達を完了いたしました」
+                <span class="src">Bản lưu 14/08 08:12 · bấm để mở đúng đoạn</span></div>
+              <div class="undo">↩ Hoàn tác — còn <b>6 ngày 21 giờ</b></div></td>
+          <td class="nguoi"><span class="lbl">Người gõ</span><span class="empty">— ô trống —</span></td>
+          <td><span class="mc chac"><span class="g">●</span>Chắc</span><span class="sig">Gọi vốn · 13/08</span></td>
+        </tr>
+
+        <tr>
+          <td><span class="hanh td">14/08<span class="d">Hôm nay</span></span></td>
+          <td><span class="acc">CTCP Công nghệ Minh Quang</span>
+              <span class="acc-jp">IT Product · Hà Nội</span></td>
+          <td class="opp">Thuê ngoài đội QA</td>
+          <td class="opp">Tiếp cận</td>
+          <td class="money">9.500.000</td>
+          <td class="may"><span class="lbl">Hệ thống đặt</span>
+              <span class="txt">Minh Quang có CTO mới từ 01/09 — chào lại với người quyết mới</span>
+              <div class="trich">"Hội đồng quản trị bổ nhiệm ông Nguyễn Đức Toàn giữ chức Giám đốc Công nghệ kể từ ngày 01/09/2026"
+                <span class="src">Bản lưu 13/08 16:20 · bấm để mở đúng đoạn</span></div>
+              <div class="undo">↩ Hoàn tác — còn <b>6 ngày 3 giờ</b></div></td>
+          <td class="nguoi"><span class="lbl">Người gõ</span><span class="empty">— ô trống —</span></td>
+          <td><span class="mc chac"><span class="g">●</span>Chắc</span><span class="sig">Nhân sự cấp cao · 12/08</span></td>
+        </tr>
+
+        <tr class="flagrow">
+          <td><span class="hanh td">14/08<span class="d">Hôm nay</span></span></td>
+          <td><span class="acc">Midori Pharma K.K.<span class="pin">◆ 1 Suggestion</span></span>
+              <span class="acc-jp">株式会社ミドリ製薬 · Kyōto</span></td>
+          <td class="opp">Hệ thống truy xuất lô</td>
+          <td class="opp">Đủ điều kiện</td>
+          <td class="money">26.500.000</td>
+          <td class="may"><span class="lbl">Hệ thống đặt</span>
+              <span class="txt" style="font-weight:400;color:#4A6480">Có một dòng đề xuất đang ghim: <i>“Midori tuyển 25 kỹ sư QA — hỏi kế hoạch kiểm định”</i>. Hệ thống <b>không ghi đè</b> ô người gõ.</span>
+              <div class="trich">「品質管理エンジニア25名の採用を開始いたします」
+                <span class="src">Bản lưu 13/08 10:05 · bấm để mở đúng đoạn</span></div></td>
+          <td class="nguoi"><span class="lbl">Người gõ</span>
+              <span class="txt">Gọi bà Ishikawa xác nhận ngân sách quý IV</span>
+              <div style="margin-top:6px"><span class="flag"><span class="g">▲</span>Thiếu dấu hiệu ngân sách cho Stage Đủ điều kiện</span></div></td>
+          <td><span class="mc cothe"><span class="g">◐</span>Có thể</span><span class="sig">Tuyển dụng · 13/08</span></td>
+        </tr>
+
+        <tr>
+          <td><span class="hanh td">14/08<span class="d">Hôm nay</span></span></td>
+          <td><span class="acc">Tsubasa Mobility Inc.<span class="pin">◆ 3 Suggestion</span></span>
+              <span class="acc-jp">ツバサモビリティ株式会社 · Yokohama</span></td>
+          <td class="opp">Đội offshore 12 kỹ sư</td>
+          <td class="opp">Tiếp cận</td>
+          <td class="money">18.000.000</td>
+          <td class="may"><span class="lbl">Hệ thống đặt</span><span class="empty">— không có —</span></td>
+          <td class="nguoi"><span class="lbl">Người gõ</span>
+              <span class="txt">Chốt lịch demo kỹ thuật với đội của ông Andō</span></td>
+          <td><span class="sig mute">— không sinh từ Signal —</span></td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="panels">
+      <div class="panel">
+        <h3>Opportunity theo Stage</h3>
+        <div class="sub">Tổng giá trị ước tính (chưa nhân xác suất) · JPY</div>
+        <table class="mini">
+          <tr><td>Tiếp cận</td><td class="n">2</td><td class="v">27.500.000</td></tr>
+          <tr><td>Đủ điều kiện</td><td class="n">2</td><td class="v">41.500.000</td></tr>
+          <tr><td>Soạn đề xuất</td><td class="n">2</td><td class="v">53.000.000</td></tr>
+          <tr><td>Thương lượng</td><td class="n">1</td><td class="v">48.000.000</td></tr>
+          <tr><td>Tạm dừng</td><td class="n">1</td><td class="v">12.000.000</td></tr>
+          <tr class="closed"><td>Thắng</td><td class="n">2</td><td class="v">57.000.000</td></tr>
+          <tr class="closed"><td>Thua</td><td class="n">5</td><td class="v">88.500.000</td></tr>
+        </table>
+        <div class="note">8 Opportunity đang mở / 15 tổng cộng.</div>
+      </div>
+
+      <div class="panel">
+        <h3>Lý do thua</h3>
+        <div class="sub">4 Opportunity · 7 lượt lý do — một Opportunity đếm vào nhiều dòng</div>
+        <table class="mini">
+          <tr><td>Giá cao hơn đối thủ</td><td class="n">3</td></tr>
+          <tr><td>Ngân sách bị hoãn</td><td class="n">2</td></tr>
+          <tr><td>Chọn nhà cung cấp trong nước</td><td class="n">1</td></tr>
+          <tr><td>Thiếu chứng chỉ bảo mật</td><td class="n">1</td></tr>
+        </table>
+        <div class="note"><b>1 Opportunity Thua chưa có lý do</b> — đứng ngoài bảng này cho tới khi được bổ sung.</div>
+      </div>
+
+      <div class="panel">
+        <h3>Cần chú ý — không nằm trong danh sách việc</h3>
+        <div class="sub">Opportunity thiếu Next step thì mang cờ, và không đẩy vào việc hôm nay</div>
+        <div class="warnbox">
+          <div class="l"><span class="flag"><span class="g">▲</span>Thiếu Next step và ngày hạn</span><br>
+            <b>Công ty CP Thực phẩm Trường An</b> — Migration ERP lên cloud · Stage Đủ điều kiện · 15.000.000 JPY.
+            Vào để đặt Next step →</div>
+        </div>
+        <div class="note">
+          <b>Công ty TNHH Dệt may Phú Hòa</b> — Cổng ERP nhà cung cấp · Stage <b>Tạm dừng</b>: cũng thiếu Next step
+          nhưng cờ <b>im lặng có chủ đích</b>, và hệ thống không tự đặt cho tới khi Opportunity quay lại Stage đang chạy.
+        </div>
+      </div>
+    </div>
+
+    <div class="legend">
+      <span class="k"><span class="sw may"></span>Làn do hệ thống đặt — luôn kèm câu trích và nút Hoàn tác</span>
+      <span class="k"><span class="sw nguoi"></span>Làn do người gõ — gạch chân nét đứt như ô nhập</span>
+      <span class="k">Mức chắc chắn:
+        <span class="mc chac"><span class="g">●</span>Chắc</span>
+        <span class="mc cothe"><span class="g">◐</span>Có thể</span>
+        <span class="mc doan"><span class="g">○</span>Đoán</span>
+        — ký hiệu đi cùng màu, không dùng màu đơn độc</span>
+      <span class="k"><span class="pin">◆</span> Account đang có Suggestion chờ duyệt</span>
+    </div>
+
+  </div>
+</div>
+
+</body>
+</html>

@@ -1,0 +1,332 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<title>Hướng B — Phiếu nổi · S1 Today · Why Now</title>
+<style>
+/* =========================================================================
+   HƯỚNG B — "PHIẾU NỔI"
+   Bảng màu
+   --------------------------------------------------------------------
+   Nền ứng dụng      #F5F2ED
+   Nền phẳng (người) #EFEBE4  · gạch chân ô nhập #C0B9AC
+   Mực chính         #1C1B19  · mực phụ #6A665E
+   THẺ MÁY (nổi)     #FFFFFF  · viền #E3DED4 · bóng rgba(28,27,25,.14)
+   Nhấn máy          #0F5C4E  (nền nhạt #E4EFEB)
+   Chắc              #146B4A  (nền #E3F0E9)
+   Có thể            #97600F  (nền #FAEFD9)
+   Đoán              #5C6169  (nền #EBECEE)
+   Quá hạn           #A8342A  (nền #F8E7E4)
+   Cảnh báo          #A33223
+   Suggestion / nhấn #8A4A05  (nền #FBEEDA)
+   Dải AI tắt        #2B2A27  chữ #F3F0EA, vạch #C9A227
+   ========================================================================= */
+
+:root{
+  --app:#F5F2ED; --flat:#EFEBE4; --flatline:#C0B9AC;
+  --ink:#1C1B19; --ink2:#6A665E;
+  --card:#FFFFFF; --cardline:#E3DED4;
+  --may:#0F5C4E; --may-bg:#E4EFEB;
+  --chac:#146B4A; --chac-bg:#E3F0E9;
+  --cothe:#97600F; --cothe-bg:#FAEFD9;
+  --doan:#5C6169; --doan-bg:#EBECEE;
+  --od:#A8342A; --od-bg:#F8E7E4;
+  --warn:#A33223; --sug:#8A4A05; --sug-bg:#FBEEDA;
+}
+*{box-sizing:border-box}
+body{margin:0;padding:28px;background:#DEDAD2;
+  font-family:"Segoe UI",system-ui,-apple-system,"Helvetica Neue",Arial,sans-serif;
+  color:var(--ink)}
+
+.rationale{max-width:1440px;margin:0 auto 20px;background:#FFFFFF;border:1px solid #C8C2B7;
+  border-left:5px solid var(--may);padding:16px 20px;font-size:14.5px;line-height:1.62;color:#2C2A27}
+.rationale .h{font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:#6A665E;margin-bottom:6px}
+
+.browser{max-width:1440px;margin:0 auto;background:#fff;border:1px solid #B7B1A6;box-shadow:0 10px 34px rgba(0,0,0,.16)}
+.chrome{display:flex;align-items:center;gap:10px;height:38px;padding:0 12px;background:#DEDAD2;border-bottom:1px solid #B7B1A6}
+.dot{width:11px;height:11px;border-radius:50%}
+.urlbar{flex:1;height:22px;background:#FBFAF7;border:1px solid #C8C2B7;border-radius:3px;font-size:11.5px;color:#6A665E;display:flex;align-items:center;padding:0 9px}
+
+.app{background:var(--app);height:928px;overflow:hidden;display:flex;flex-direction:column}
+
+.top{display:flex;align-items:center;gap:20px;padding:16px 26px 14px}
+.brand{font-size:21px;font-weight:700;letter-spacing:-.015em}
+.brand span{font-weight:400;color:var(--ink2)}
+.who{font-size:13px;color:var(--ink2)}
+.spacer{flex:1}
+.unit{font-size:11.5px;color:var(--ink2);border:1px solid #CFC9BE;padding:3px 9px;border-radius:2px}
+
+/* ---- TRẠNG THÁI BIẾN THỂ: phần AI đang tắt (FR-46) ---- */
+.aioff{display:flex;align-items:center;gap:14px;margin:0 26px 16px;background:#2B2A27;color:#F3F0EA;
+  padding:11px 16px;border-left:5px solid #C9A227}
+.aioff .t{font-size:13.5px;font-weight:650}
+.aioff .s{font-size:12.5px;color:#CFCAC0;line-height:1.5}
+.aioff .badge{font-size:10.5px;letter-spacing:.12em;text-transform:uppercase;font-weight:800;
+  background:#C9A227;color:#221F17;padding:3px 8px}
+
+.body{display:grid;grid-template-columns:1fr 392px;gap:26px;padding:0 26px 20px;flex:1;min-height:0}
+
+.h1{font-size:15px;letter-spacing:.03em;font-weight:700;margin:0 0 3px}
+.h1sub{font-size:12.5px;color:var(--ink2);margin-bottom:14px}
+
+/* ---- HÀNG VIỆC ---- */
+.task{margin-bottom:16px}
+.taskhead{display:flex;align-items:baseline;gap:12px;margin-bottom:8px}
+.due{font-size:11px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;padding:3px 8px}
+.due.od{color:var(--od);background:var(--od-bg);border:1px solid #E4BDB6}
+.due.today{color:#2E3B33;background:#E6EAE5;border:1px solid #C7CFC6}
+.acc{font-size:17px;font-weight:700;letter-spacing:-.01em}
+.accjp{font-size:12.5px;color:var(--ink2)}
+.opp{font-size:12.5px;color:var(--ink2)}
+.opp b{color:#3A3833;font-weight:650}
+.pin{display:inline-flex;align-items:center;gap:4px;background:var(--sug-bg);border:1px solid #E0BA84;
+  color:var(--sug);font-size:10.5px;font-weight:700;padding:1px 6px}
+
+/* CƠ CHẾ: người gõ = mặt phẳng, không thẻ, không bóng */
+.human{background:var(--flat);padding:14px 18px 13px;border:1px solid #E1DCD3}
+.human .lab{font-size:10.5px;letter-spacing:.12em;text-transform:uppercase;color:#7C776D;font-weight:800;margin-bottom:6px}
+.human .txt{font-size:19px;line-height:1.42;font-weight:400;color:#26241F;
+  border-bottom:1.5px dashed var(--flatline);display:inline;padding-bottom:2px}
+.human .edit{font-size:12px;color:#7C776D;margin-top:10px}
+
+/* CƠ CHẾ: máy đặt = THẺ NỔI, nhô lên khỏi mặt phẳng, lệch phải, có bóng */
+.machine{position:relative;background:var(--card);border:1px solid var(--cardline);
+  border-top:3px solid var(--may);
+  box-shadow:0 10px 22px rgba(28,27,25,.14), 0 2px 4px rgba(28,27,25,.10);
+  padding:16px 20px 14px;margin-left:34px;margin-right:-6px}
+.machine .lab{display:inline-flex;align-items:center;gap:6px;font-size:10.5px;letter-spacing:.12em;
+  text-transform:uppercase;color:var(--may);font-weight:800;background:var(--may-bg);
+  border:1px solid #BBD6CE;padding:2px 8px;margin-bottom:9px}
+.machine .txt{font-size:21px;line-height:1.38;font-weight:600;color:#16241F;letter-spacing:-.01em}
+.machine .quote{margin-top:11px;padding:9px 13px;background:#F7F9F8;border-left:3px solid #7FAEA2;
+  font-size:13px;line-height:1.55;color:#33534A}
+.machine .quote .src{display:block;font-size:11.5px;color:#6E8A82;margin-top:4px}
+.machine .foot{display:flex;align-items:center;gap:12px;margin-top:12px;padding-top:11px;border-top:1px solid #EDE9E1}
+.undo{display:inline-flex;align-items:center;gap:7px;font-size:12.5px;font-weight:650;color:var(--may);
+  border:1px solid #9EC3B9;background:#F1F7F5;padding:5px 11px}
+.undo b{font-variant-numeric:tabular-nums}
+.foot .meta{font-size:12px;color:#7C776D}
+
+/* Mức chắc chắn — KÝ HIỆU + MÀU + CHỮ */
+.mc{display:inline-flex;align-items:center;gap:5px;font-size:11px;font-weight:800;padding:2px 8px;border:1px solid;letter-spacing:.02em}
+.mc .g{font-size:12px;line-height:1}
+.mc.chac{color:var(--chac);background:var(--chac-bg);border-color:#A6CDBB}
+.mc.cothe{color:var(--cothe);background:var(--cothe-bg);border-color:#DEC08A}
+.mc.doan{color:var(--doan);background:var(--doan-bg);border-color:#C7CACE}
+
+/* dải gập ---- */
+.fold{display:flex;align-items:center;gap:14px;background:#EAE6DE;border:1px dashed #C6BFB2;
+  padding:11px 18px;font-size:13px;color:#4E4A42}
+.fold b{color:#26241F}
+.fold .go{margin-left:auto;font-weight:700;color:#3A3833}
+
+/* cờ cảnh báo */
+.flagcard{background:#FBF1EF;border:1px solid #E4BDB6;border-left:4px solid var(--warn);padding:12px 16px;margin-top:14px}
+.flagcard .t{display:flex;align-items:center;gap:7px;font-size:12.5px;font-weight:800;color:var(--warn)}
+.flagcard .l{font-size:13px;color:#4E4A42;line-height:1.55;margin-top:5px}
+.flagcard .l b{color:#26241F}
+
+/* ---- rail phải ---- */
+.rail{display:flex;flex-direction:column;gap:16px;min-height:0}
+.queue{background:var(--sug-bg);border:1px solid #E0BA84;padding:16px 18px}
+.queue .n{font-size:40px;font-weight:800;line-height:1;color:var(--sug);font-variant-numeric:tabular-nums}
+.queue .t{font-size:14px;font-weight:700;color:#5E3403;margin-top:6px}
+.queue .s{font-size:12.5px;color:#7A5423;line-height:1.5;margin-top:5px}
+.queue .btn{display:block;text-align:center;margin-top:12px;background:#8A4A05;color:#FDF6EC;
+  font-size:13px;font-weight:700;padding:9px;text-decoration:none}
+
+.box{background:#FFFFFF;border:1px solid #E3DED4;padding:14px 16px}
+.box h3{margin:0 0 2px;font-size:12px;letter-spacing:.1em;text-transform:uppercase}
+.box .sub{font-size:11.5px;color:var(--ink2);margin-bottom:9px;line-height:1.45}
+.row{display:flex;align-items:baseline;gap:8px;padding:4px 0;border-bottom:1px dotted #E6E1D8;font-size:13px}
+.row:last-child{border-bottom:none}
+.row .nm{flex:1;color:#3A3833}
+.row .n{font-weight:700;font-variant-numeric:tabular-nums;width:26px;text-align:right}
+.row .v{font-variant-numeric:tabular-nums;color:#6A665E;width:100px;text-align:right;font-size:12.5px}
+.row.closed .nm,.row.closed .n,.row.closed .v{color:#8B867C}
+.note{font-size:11.5px;color:#6A665E;line-height:1.5;margin-top:8px}
+.note b{color:#3A3833}
+
+.legend{display:flex;align-items:center;gap:18px;padding:10px 26px;background:#EAE6DE;border-top:1px solid #D4CEC3;font-size:11.5px;color:#5E5A52}
+.legend .k{display:inline-flex;align-items:center;gap:6px}
+.chipmini{display:inline-block;width:26px;height:14px;background:#fff;border:1px solid var(--cardline);border-top:3px solid var(--may);box-shadow:0 3px 6px rgba(28,27,25,.18)}
+.chipflat{display:inline-block;width:26px;height:14px;background:var(--flat);border:1px solid #E1DCD3;border-bottom:1.5px dashed var(--flatline)}
+</style>
+</head>
+<body>
+
+<div class="rationale">
+  <div class="h">Hướng B · phiếu nổi</div>
+  <b>Tính cách: một buổi giao ban ngắn, mỗi lần một việc.</b> Chữ dẫn dắt — câu Next step in cỡ 21px là nhân vật chính của
+  màn hình, số liệu lùi ra rail phải. Chỉ ba việc nhìn thấy cùng lúc, phần còn lại gập thành một dải; đây là hướng
+  đắt chỗ nhất và cũng là hướng ít bắt người phải quét mắt nhất.
+  <br><br>
+  <b>Ranh giới máy-quyết / người-quyết giải bằng ĐỘ NỔI CỦA MẶT.</b> Thứ hệ thống đặt là một <i>thẻ nổi</i> — nền trắng,
+  đổ bóng, viền trên xanh, thụt vào và nhô lên khỏi mặt nền, mang theo câu trích lẫn đồng hồ Hoàn tác. Thứ người gõ nằm
+  <i>phẳng lì</i> trên nền ngà, không bóng, không thẻ, chỉ một gạch chân nét đứt như ô nhập đang chờ. Máy làm thì có vật thể;
+  người làm thì chỉ có mặt giấy.
+</div>
+
+<div class="browser">
+  <div class="chrome">
+    <span class="dot" style="background:#E0685E"></span>
+    <span class="dot" style="background:#E4B75B"></span>
+    <span class="dot" style="background:#7FBF6B"></span>
+    <div class="urlbar">whynow.hblab.local/today</div>
+  </div>
+
+  <div class="app">
+
+    <div class="top">
+      <div class="brand">Why&nbsp;Now <span>· Today</span></div>
+      <div class="who">Linh Trần — Sales / BD, thị trường JP · Thứ Sáu, 14/08/2026</div>
+      <div class="spacer"></div>
+      <div class="unit">Đơn vị tiền: JPY</div>
+    </div>
+
+    <!-- TRẠNG THÁI BIẾN THỂ 1: phần AI đang tắt -->
+    <div class="aioff">
+      <span class="badge">AI đang tắt</span>
+      <div>
+        <div class="t">Phần AI tạm dừng từ 09:12 hôm nay — Quản trị đã bấm phanh.</div>
+        <div class="s">Vòng quét ngừng, không sinh Suggestion mới. Thứ hệ thống đã đặt trước đó <b>giữ nguyên</b> và vẫn hoàn tác được.
+          Toàn bộ việc bán hàng bên dưới làm tay bình thường.</div>
+      </div>
+    </div>
+
+    <div class="body">
+      <div>
+        <div class="h1">Việc hôm nay</div>
+        <div class="h1sub">6 việc — 2 quá hạn, 4 đến hạn hôm nay · trên tổng 8 Opportunity đang mở</div>
+
+        <!-- VIỆC 1 — máy đặt, quá hạn -->
+        <div class="task">
+          <div class="taskhead">
+            <span class="due od">Quá hạn 1 ngày · 13/08</span>
+            <span class="acc">Hoshino Retail Systems</span>
+            <span class="accjp">星野リテールシステムズ · Ōsaka</span>
+            <span class="opp"><b>Cổng đối tác B2B</b> · Stage Soạn đề xuất · 21.000.000</span>
+          </div>
+          <div class="machine">
+            <span class="lab">⚙ Next step do hệ thống đặt</span>
+            <div class="txt">Hoshino mở trung tâm phát triển thứ hai tại Ōsaka — hỏi lại phạm vi giai đoạn 2 ngay hôm nay.</div>
+            <div class="quote">「大阪に第二開発拠点を開設し、2026年内に80名体制とする計画です」
+              <span class="src">Bản lưu 11/08 09:41 — bấm để mở đúng đoạn có đánh dấu</span></div>
+            <div class="foot">
+              <span class="mc chac"><span class="g">●</span>Chắc</span>
+              <span class="meta">Signal: Mở rộng · sự kiện 11/08</span>
+              <span class="undo">↩ Hoàn tác — còn <b>5 ngày 22 giờ</b></span>
+            </div>
+          </div>
+        </div>
+
+        <!-- VIỆC 2 — máy đặt, hôm nay -->
+        <div class="task">
+          <div class="taskhead">
+            <span class="due today">Đến hạn hôm nay · 14/08</span>
+            <span class="acc">Kaisei Denshi K.K.</span>
+            <span class="accjp">株式会社カイセイ電子 · Nagoya</span>
+            <span class="pin">◆ 1 Suggestion đang chờ</span>
+            <span class="opp"><b>MES giai đoạn 1</b> · Stage Thương lượng · 48.000.000</span>
+          </div>
+          <div class="machine">
+            <span class="lab">⚙ Next step do hệ thống đặt</span>
+            <div class="txt">Kaisei Denshi vừa công bố vòng Series B 3,2 tỷ yên — liên hệ trong ngày.</div>
+            <div class="quote">「シリーズBラウンドにて総額32億円の資金調達を完了いたしました」
+              <span class="src">Bản lưu 14/08 08:12 — bấm để mở đúng đoạn có đánh dấu</span></div>
+            <div class="foot">
+              <span class="mc chac"><span class="g">●</span>Chắc</span>
+              <span class="meta">Signal: Gọi vốn · sự kiện 13/08 · hạn tính theo độ gấp: 1 ngày làm việc</span>
+              <span class="undo">↩ Hoàn tác — còn <b>6 ngày 21 giờ</b></span>
+            </div>
+          </div>
+        </div>
+
+        <!-- VIỆC 3 — người gõ, hôm nay -->
+        <div class="task">
+          <div class="taskhead">
+            <span class="due today">Đến hạn hôm nay · 14/08</span>
+            <span class="acc">Midori Pharma K.K.</span>
+            <span class="accjp">株式会社ミドリ製薬 · Kyōto</span>
+            <span class="pin">◆ 1 Suggestion đang chờ</span>
+            <span class="opp"><b>Hệ thống truy xuất lô</b> · Stage Đủ điều kiện · 26.500.000</span>
+          </div>
+          <div class="human">
+            <div class="lab">✎ Next step do bạn gõ — 12/08 lúc 17:04</div>
+            <span class="txt">Gọi bà Ishikawa xác nhận ngân sách quý IV</span>
+            <div class="edit">Không có câu trích, không có Hoàn tác — đây là câu của bạn, sửa trực tiếp.</div>
+          </div>
+          <!-- TRẠNG THÁI BIẾN THỂ 2: cờ cảnh báo -->
+          <div class="flagcard">
+            <div class="t"><span>▲</span> Thiếu dấu hiệu ngân sách cho Stage Đủ điều kiện</div>
+            <div class="l">Opportunity vẫn ở Stage này, nhưng mang cờ tới khi bổ sung. <b>Bổ sung ngay →</b></div>
+          </div>
+        </div>
+
+        <div class="fold">
+          <span>Còn <b>3 việc nữa</b> hôm nay — 1 do hệ thống đặt, 2 do bạn gõ</span>
+          <span class="go">Mở hết ↓</span>
+        </div>
+      </div>
+
+      <!-- rail phải -->
+      <div class="rail">
+        <div class="queue">
+          <div class="n">7</div>
+          <div class="t">Suggestion đang chờ duyệt</div>
+          <div class="s">Trên 4 Account · 19 Suggestion đã sinh trong 24 giờ qua.
+            Hàng đợi <b>dừng sinh mới</b> trong lúc phần AI tắt, những gợi ý đang chờ vẫn quyết được.</div>
+          <a class="btn" href="#">Mở Suggestion queue →</a>
+        </div>
+
+        <div class="box">
+          <h3>Opportunity theo Stage</h3>
+          <div class="sub">Tổng giá trị ước tính (chưa nhân xác suất) · JPY</div>
+          <div class="row"><span class="nm">Tiếp cận</span><span class="n">2</span><span class="v">27.500.000</span></div>
+          <div class="row"><span class="nm">Đủ điều kiện</span><span class="n">2</span><span class="v">41.500.000</span></div>
+          <div class="row"><span class="nm">Soạn đề xuất</span><span class="n">2</span><span class="v">53.000.000</span></div>
+          <div class="row"><span class="nm">Thương lượng</span><span class="n">1</span><span class="v">48.000.000</span></div>
+          <div class="row"><span class="nm">Tạm dừng</span><span class="n">1</span><span class="v">12.000.000</span></div>
+          <div class="row closed"><span class="nm">Thắng</span><span class="n">2</span><span class="v">57.000.000</span></div>
+          <div class="row closed"><span class="nm">Thua</span><span class="n">5</span><span class="v">88.500.000</span></div>
+          <div class="note">8 Opportunity đang mở / 15 tổng cộng.</div>
+        </div>
+
+        <div class="box">
+          <h3>Lý do thua</h3>
+          <div class="sub">4 Opportunity · 7 lượt lý do — một Opportunity đếm vào nhiều dòng</div>
+          <div class="row"><span class="nm">Giá cao hơn đối thủ</span><span class="n">3</span></div>
+          <div class="row"><span class="nm">Ngân sách bị hoãn</span><span class="n">2</span></div>
+          <div class="row"><span class="nm">Chọn nhà cung cấp trong nước</span><span class="n">1</span></div>
+          <div class="row"><span class="nm">Thiếu chứng chỉ bảo mật</span><span class="n">1</span></div>
+          <div class="note"><b>1 Opportunity Thua chưa có lý do</b> — đứng ngoài bảng cho tới khi được bổ sung.</div>
+        </div>
+
+        <div class="box" style="background:#FBF1EF;border-color:#E4BDB6">
+          <h3 style="color:#A33223">▲ Thiếu Next step</h3>
+          <div class="sub">Không đẩy vào danh sách việc cho tới khi điền đủ</div>
+          <div class="note" style="font-size:12.5px">
+            <b>Công ty CP Thực phẩm Trường An</b> — Migration ERP lên cloud · Đủ điều kiện · 15.000.000.<br><br>
+            <b>Công ty TNHH Dệt may Phú Hòa</b> — Cổng ERP nhà cung cấp · <b>Tạm dừng</b>: cờ im lặng có chủ đích,
+            hệ thống cũng không tự đặt cho tới khi Opportunity quay lại Stage đang chạy.
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="legend">
+      <span class="k"><span class="chipmini"></span>Thẻ nổi = hệ thống đặt (kèm câu trích + Hoàn tác)</span>
+      <span class="k"><span class="chipflat"></span>Mặt phẳng, gạch chân nét đứt = người gõ</span>
+      <span class="k">Mức chắc chắn:
+        <span class="mc chac"><span class="g">●</span>Chắc</span>
+        <span class="mc cothe"><span class="g">◐</span>Có thể</span>
+        <span class="mc doan"><span class="g">○</span>Đoán</span>
+        — ký hiệu đi cùng màu</span>
+      <span class="k"><span class="pin">◆</span> Account đang có Suggestion chờ duyệt</span>
+    </div>
+
+  </div>
+</div>
+
+</body>
+</html>

@@ -1,0 +1,41 @@
+/* Khoảng cách — nhịp của bản tin: đặc, không đều theo lưới 8px.
+   Giá trị lẻ (7px, 9px, 11px) là nguyên văn từ hướng C, giữ nguyên. */
+:root{
+  --sp-1:1px;
+  --sp-2:2px;
+  --sp-3:3px;
+  --sp-5:5px;
+  --sp-6:6px;
+  --sp-7:7px;
+  --sp-8:8px;
+  --sp-9:9px;
+  --sp-10:10px;
+  --sp-11:11px;
+  --sp-12:12px;
+  --sp-13:13px;
+  --sp-14:14px;
+  --sp-15:15px;
+  --sp-16:16px;
+  --sp-18:18px;
+  --sp-20:20px;
+  --sp-24:24px;
+  --sp-28:28px;
+
+  /* Đệm hợp thành */
+  --pad-row:11px 24px 12px;        /* dòng việc trên giấy */
+  --pad-row-machine-left:20px;     /* dòng máy: 24 − 4px ray */
+  --pad-kicker:11px 24px 6px;
+  --pad-masthead:14px 24px 12px;
+  --pad-box:12px 14px;
+  --pad-qbox:13px 15px;
+  --pad-quote:8px 12px;
+  --pad-legend:9px 24px;
+
+  /* Lưới */
+  --col-when:104px;                /* cột thời hạn của dòng việc */
+  --col-side:168px;                /* cột số tiền + Stage */
+  --col-rail:400px;                /* rail phải của S1 */
+  --gap-row:16px;
+  --w-app:1440px;                  /* khổ thiết kế: web màn hình rộng */
+  --h-app:928px;
+}

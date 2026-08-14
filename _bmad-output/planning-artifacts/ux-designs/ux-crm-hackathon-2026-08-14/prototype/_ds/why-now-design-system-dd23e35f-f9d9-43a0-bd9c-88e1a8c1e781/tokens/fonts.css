@@ -1,0 +1,7 @@
+/* Chữ Georgia và Times New Roman KHÔNG có glyph Việt dựng sẵn — dấu bị tách
+   rời khỏi chữ ("gọi vốn" thành "gọi vô ́n"). Vì serif mang đúng phần copy quan
+   trọng nhất của sản phẩm (câu Next step 19px, măng-sét, câu trạng thái rỗng)
+   trong một giao diện tiếng Việt, hệ này nạp Noto Serif làm họ serif đầu tiên.
+   Đây là MỘT SỰ THAY THẾ so với direction-ban-tin.html — nguồn không kèm tệp
+   webfont nào. Có tệp chữ của công ty thì thay @import này bằng @font-face thật. */
+@import url("https://fonts.googleapis.com/css2?family=Noto+Serif:ital,wght@0,400;0,600;0,700;1,400&display=swap");
