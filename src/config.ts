@@ -44,3 +44,30 @@ export function getScanIntervalMinutesSeed(): number {
   const n = raw ? Number(raw) : 1;
   return Number.isFinite(n) && n > 0 ? n : 1;
 }
+
+/// `AD-15` — tham số HẠ TẦNG của tầng ②, đọc từ môi trường.
+///
+/// Chúng ở đây chứ không ở bảng `settings` vì chúng không phải tham số nghiệp
+/// vụ: Quản trị không chỉnh model id giữa buổi chấm, và một model id sai trong
+/// `settings` làm vòng quét chết lúc chạy chứ không lúc khởi động. Ngưỡng và
+/// trần nghiệp vụ vẫn ở `settings` (`D38`).
+///
+/// ⚠ `maxBudgetUsd` ở đây là trần cho MỘT lời gọi `query()`, KHÔNG phải trần cả
+/// vòng quét. Trần vòng quét là bộ đếm `cost_used_usd` trên hàng `ScanLog`
+/// (`AD-11`). Nhầm hai thứ này làm phanh ngân sách không bao giờ chạm.
+export function getAgentConfig(): {
+  modelId: string;
+  maxTurns: number;
+  maxBudgetUsd: number;
+} {
+  return {
+    modelId: process.env.AGENT_MODEL_ID || "claude-sonnet-5",
+    maxTurns: soDuong(process.env.AGENT_MAX_TURNS, 8),
+    maxBudgetUsd: soDuong(process.env.AGENT_MAX_BUDGET_USD, 0.5),
+  };
+}
+
+function soDuong(raw: string | undefined, macDinh: number): number {
+  const n = raw ? Number(raw) : macDinh;
+  return Number.isFinite(n) && n > 0 ? n : macDinh;
+}

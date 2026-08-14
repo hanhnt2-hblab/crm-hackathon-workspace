@@ -43,6 +43,8 @@ const CORE_FUNCTIONS_ALLOWED = new Set([
   "createSuggestion", "decideSuggestion",
   "setNextAction", "fillNextActionIfUnchanged", "undoSystemNextAction",
   "setQualificationSignals", "searchCompanies", "readTimeline",
+  // `AD-CP-6` hạng đọc-chung — tập phơi lên MCP
+  "readArticle", "readAccountType", "listEnums",
   // hạ tầng vòng quét
   "openScanLog", "closeScanLog", "addScanUsage", "recordScanEntry",
   "acquireAccountLock", "releaseAccountLock",
@@ -231,15 +233,35 @@ describe("T-10b — tác nhân MÁY không cầm được mục nào của vùng
   });
 
   it("bốn danh sách của `AD-CP-1` khớp nội dung sổ", () => {
-    // Đường ĐỌC của máy: ba mục hạ tầng cộng hai mục dựng `actor` trước khi có
-    // `actor` (`AD-4` liệt chúng trong sáu mục `selfLimiting`).
+    // Đường ĐỌC của máy, BẢY mục và mỗi mục có lý do riêng:
+    //   · năm mục hạng đọc-chung mà `AD-CP-6` phơi lên MCP — `readArticle`,
+    //     `readAccountType`, `listEnums`, `readAccountList`, `readSetting`
+    //   · hai mục dựng `actor` TRƯỚC KHI có `actor`, nên phải đi bằng `system`
+    //     và mang `selfLimiting` (`AD-4`): `readUserForAuth`, `readLoginCandidates`
+    //
+    // Một mục thứ tám ở đây là một đường đọc mới của máy — đọc bằng mắt trước.
     expect(registry.CAP_MACHINE_ALLOWED_DOC.slice().sort()).toEqual([
-      "readAccountList", "readLoginCandidates", "readSetting", "readUserForAuth",
+      "listEnums", "readAccountList", "readAccountType", "readArticle",
+      "readLoginCandidates", "readSetting", "readUserForAuth",
     ]);
     const chiNguoi = ALL_ENTRIES.filter((e) => !e.allowedActors.includes("system"));
     expect([...registry.CAP_HUMAN_ONLY].sort()).toEqual(
       chiNguoi.map((e) => e.name).sort(),
     );
+  });
+
+  it("`AD-CP-6` — phơi lên MCP ĐÚNG NĂM mục, và KHÔNG mục ghi nào", () => {
+    // *"Không mục ghi nào"* là vế chịu lực. Một mục ghi phơi lên MCP là đưa cho
+    // agent đúng thứ `AD-AG-3` nói nó không được có, và phép đối chứng phá hoại
+    // của `AD-1` khi đó đo trên một bề mặt đã rộng hơn thiết kế.
+    //
+    // Đã từng sai đúng chiều đó: `appendTimelineEntry` (một mục GHI) để
+    // `exposeToMcp: true` cho tới 14/8.
+    const phoi = ALL_ENTRIES.filter((e) => e.exposeToMcp);
+    expect(phoi.map((e) => e.name).sort()).toEqual([
+      "listEnums", "readAccountList", "readAccountType", "readArticle", "readSetting",
+    ]);
+    expect(phoi.filter((e) => e.kind !== "read").map((e) => e.name)).toEqual([]);
   });
 
   it("sổ không rỗng — một sổ rỗng làm MỌI khẳng định vắng mặt ở trên thành vô nghĩa", () => {

@@ -298,7 +298,11 @@ export const readAccountListCap = defineCap({
     country: z.string().optional(),
   }),
   dirtyFlags: [],
-  exposeToMcp: false,
+  /// `AD-CP-6` — MỘT trong đúng năm mục hạng đọc-chung phơi lên MCP. Phơi rỗng
+  /// đã bị loại: glob `mcp__crm__*` khớp rỗng thì phép đo nghiệm thu của `AD-1`
+  /// mất đối tượng, và triệu chứng đo được là agent *trông như* gọi capability,
+  /// handler chạy 0 lần, $1,607 một lượt.
+  exposeToMcp: true,
   fn: async (actor, p) => searchCompanies(actor, p),
   /// `null` vì `kind: 'read'` — không có ảnh chụp trước-ghi cho một lượt đọc.
   snapshot: null,
@@ -320,7 +324,11 @@ export const readSettingCap = defineCap({
   kind: "read",
   params: z.object({ key: z.enum(SETTING_KEYS) }),
   dirtyFlags: [],
-  exposeToMcp: false,
+  /// `AD-CP-6` — MỘT trong đúng năm mục hạng đọc-chung phơi lên MCP. Phơi rỗng
+  /// đã bị loại: glob `mcp__crm__*` khớp rỗng thì phép đo nghiệm thu của `AD-1`
+  /// mất đối tượng, và triệu chứng đo được là agent *trông như* gọi capability,
+  /// handler chạy 0 lần, $1,607 một lượt.
+  exposeToMcp: true,
   /// Trả CHUỖI THÔ, không ép kiểu. Ép ở đây thì `budget_stop_ratio` và
   /// `ai_enabled` cần hai kiểu trả về khác nhau trên cùng một capability, và
   /// bên gọi mất đường phân biệt *"chưa đặt"* với *"đặt bằng chuỗi rỗng"*.

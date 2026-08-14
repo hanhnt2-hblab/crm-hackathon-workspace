@@ -19,6 +19,15 @@ import { createAuditSink } from "@/core/audit";
 import { runScanCycle, type ExtractFn } from "./loop";
 import { callCap, parseSettingValue } from "./_contract";
 import { consoleJournal, type JournalSink } from "./journal";
+import { createCrmMcpServer } from "@/capability/mcp-server";
+import { extractSignals, type SignalEnums, type ExtractionResult } from "@/agent/types";
+import { getAgentConfig } from "@/config";
+import type { Registry } from "@/capability/registry";
+import type { Actor } from "@/core/actor";
+
+/// Tác nhân của nhánh máy. Khai MỘT LẦN: mỗi chỗ tự dựng `{ kind: "system" }`
+/// là mỗi chỗ một cơ hội gõ nhầm thành một `ActorKind` khác.
+const SYSTEM_ACTOR: Actor = { kind: "system" };
 
 /// `AD-12` — `process_id` phải ỔN ĐỊNH QUA MỘT LẦN KHỞI ĐỘNG LẠI, vì bước ②
 /// là *"dọn khoá mang `process_id` **cũ của chính nó**"*. Một `process.pid`
@@ -59,24 +68,15 @@ export type ScanRuntime = {
   stop: () => Promise<void>;
 };
 
-/// ⚠ HÀM RÚT PHÁT HIỆN CHƯA NỐI, và nó cố ý KHÔNG nối bằng cách nhập thẳng
-/// `extractSignals` của `@/agent/types`.
+/// ĐƯỜNG LUI, giữ lại cho `tests/` và cho ca hạ tầng AI chưa sẵn sàng.
 ///
-/// `AgentDeps` (`AD-AG-1`) đòi `crmMcpServer`, `modelId`, `maxTurns`,
-/// `maxBudgetUsd`. Ba trong bốn thứ đó là **cấu hình**, mà `AD-15` chốt đúng
-/// BA tệp toàn repo được đọc `process.env` và tệp này không nằm trong ba tệp
-/// đó. Dựng chúng ở đây là hoặc bịa ba con số, hoặc phá `AD-15` — và
-/// `maxBudgetUsd` bịa sai đúng là thứ `AD-11` cảnh báo: nhầm trần-một-lượt với
-/// trần-một-vòng làm phanh ngân sách không bao giờ chạm.
+/// Nó KHÔNG còn là mặc định — `createScanRuntime` nay dựng bộ nối thật. Giữ nó
+/// vì `tests/` cần một `ExtractFn` không gọi mạng và không tốn tiền, và vì nó
+/// là hình dạng đúng của *"tầng ② chưa lên"*: một thất bại CÓ MÃ, không phải
+/// một lần ném.
 ///
-/// Nối đúng cách, khi chủ tầng ② và `src/config.ts` sẵn sàng: thay thân hàm
-/// này bằng `extractSignals({ accountId, articleText }, deps)` với `deps` dựng
-/// từ `src/config.ts`. Vòng quét KHÔNG phải đổi một dòng nào — nó nhận hàm này
-/// qua tham số (`ExtractFn`).
-///
-/// Trả về một thất bại có mã thay vì ném: `AD-AG-9` chốt bên gọi phải ghi
-/// `ScanLogEntry` cho **mọi** lượt, kể cả lượt hỏng. Ném ở đây làm vòng quét
-/// mất dòng kế toán của Công ty đó.
+/// `AD-AG-9` chốt bên gọi phải ghi `ScanLogEntry` cho MỌI lượt kể cả lượt hỏng.
+/// Ném ở đây làm vòng quét mất dòng kế toán của Công ty đó.
 export const unwiredExtract: ExtractFn = async () => ({
   ok: false,
   kind: "transport",
@@ -84,6 +84,63 @@ export const unwiredExtract: ExtractFn = async () => ({
   modelCalls: 0,
   costUsd: 0,
 });
+
+/// BỘ NỐI THẬT — `bootstrap.ts` là composition root, và là chỗ DUY NHẤT trong
+/// nhánh máy được đọc `src/config.ts` (`AD-15`).
+///
+/// Nó khớp hai chữ ký không khớp nhau:
+///   `ExtractFn`       nhận `{ accountId, articleText }`  — thứ `loop.ts` có
+///   `extractSignals`  nhận thêm `accountType` và `enums` — thứ `AD-7` đòi
+///
+/// Hai trường thiếu lấy qua CAPABILITY, không đọc thẳng cơ sở dữ liệu: `AD-1`
+/// chốt `src/scan` đi xuống qua `loadCapability`, và cả hai đã có mặt trong tập
+/// năm mục hạng đọc-chung mà `AD-CP-6` phơi.
+///
+/// ⚠ `enums` lấy MỘT LẦN và giữ lại. Nó là hằng số của tiến trình (`AD-AG-6`
+/// gọi nó là *"enum vào bằng dữ liệu"*, không phải dữ liệu thay đổi), và gọi
+/// lại mỗi Công ty là một lượt Cổng thừa trên đường nóng của vòng quét.
+///
+/// ⚠ Trả THẤT BẠI CÓ MÃ thay vì ném, ở mọi nhánh. `AD-AG-9` chốt bên gọi phải
+/// ghi `ScanLogEntry` cho **mọi** lượt kể cả lượt hỏng; ném ở đây làm vòng quét
+/// mất dòng kế toán của đúng Công ty vừa hỏng — và đó là Công ty đáng đọc nhất.
+export function createExtract(registry: Registry): ExtractFn {
+  const mcpServer = createCrmMcpServer(registry);
+  const cfg = getAgentConfig();
+  let enumsCache: SignalEnums | null = null;
+
+  return async ({ accountId, articleText }) => {
+    const thatBai = (subtype: string): ExtractionResult => ({
+      ok: false,
+      kind: "transport",
+      subtype,
+      modelCalls: 0,
+      costUsd: 0,
+    });
+
+    if (!enumsCache) {
+      const r = await callCap(registry, SYSTEM_ACTOR, "listEnums", {});
+      if (r.status !== "ok") return thatBai(`listEnums_${r.status}`);
+      enumsCache = r.value as SignalEnums;
+    }
+
+    const at = await callCap(registry, SYSTEM_ACTOR, "readAccountType", { accountId });
+    if (at.status !== "ok") return thatBai(`readAccountType_${at.status}`);
+    // `null` là hợp lệ: `accountType` nullable ở lược đồ, và Gợi ý sinh ra
+    // chính để điền nó. `FR-13` khi đó mất một nửa đầu vào, và lời nhắc phải
+    // nói rõ *"chưa biết"* thay vì bịa một loại.
+    const accountType = (at.value as string | null) ?? "chua_biet";
+
+    return extractSignals(
+      { accountId, articleText, accountType, enums: enumsCache },
+      {
+        crmMcpServer: mcpServer,
+        modelId: cfg.modelId,
+        maxTurns: cfg.maxTurns,
+        maxBudgetUsd: cfg.maxBudgetUsd,
+      },
+    );
+  };
+}
 
 /// Bước 1 + 2 + 5. Tách khỏi `start()` để `tests/` dựng được runtime mà không
 /// khởi động vòng lặp — `AD-UI-1` nói thẳng lý do: `tests/` không nạp được tệp
@@ -102,7 +159,9 @@ export async function createScanRuntime(opts?: {
   const runtime: ScanRuntime = {
     registry,
     journal: opts?.journal ?? consoleJournal,
-    extract: opts?.extract ?? unwiredExtract,
+    // `unwiredExtract` chỉ còn là đường lui cho `tests/`: nó vẫn xuất, nhưng
+    // mặc định của nhánh chạy thật nay là bộ nối thật.
+    extract: opts?.extract ?? createExtract(registry),
     stop: async () => {
       // ⑤ nhả MỌI khoá của tiến trình này. `releaseAccountLock` mang cờ
       //    `selfLimiting`, nên nó chạy được cả khi trần đã chạm (`AD-4`) —

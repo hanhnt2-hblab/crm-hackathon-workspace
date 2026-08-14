@@ -212,7 +212,11 @@ export const appendTimelineEntryCap = defineCap({
     sourceSignalId: z.uuid().nullable().optional(),
   }),
   dirtyFlags: [],
-  exposeToMcp: true,
+  /// ⚠ `false`. Bản trước để `true`, và `AD-CP-6` cấm thẳng: tập phơi lên MCP là
+  /// **đúng năm mục hạng đọc-chung**, *"không mục ghi nào"*. Một mục ghi phơi ra
+  /// đó là đưa cho agent đúng thứ `AD-AG-3` nói nó không được có — và phép đối
+  /// chứng phá hoại của `AD-1` khi đó đo trên một bề mặt đã rộng hơn thiết kế.
+  exposeToMcp: false,
   fn: async (actor, p, ctx) =>
     appendTimelineEntry(
       actor,
