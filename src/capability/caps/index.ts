@@ -8,10 +8,41 @@
 // ⚠ Danh sách vắng mặt chỉ có nghĩa khi nó phủ đủ. Thêm một tệp caps mà quên
 // thêm một dòng ở đây làm `T-10b` xanh trên một sổ không đầy đủ — tức nó khẳng
 // định *"không mục nào xoá dữ liệu"* trong khi có một mục như thế đang chạy.
+//
+// ⚠ TÊN CAPABILITY LÀ KHOÁ TOÀN CỤC. `registry.ts` dựng một `Map` theo `name`,
+// nên hai tệp khai trùng tên thì mục nạp SAU lặng lẽ thắng — không lỗi, không
+// cảnh báo, và bên thua biến mất. Chuyện này đã suýt xảy ra một lần: hai tệp
+// cùng khai `readAccountList` với hai tập `allowedActors` khác nhau, và bản
+// chỉ-cho-người thắng thì vòng quét chết ở lời gọi đầu tiên. Phép kiểm chống
+// trùng nằm ngay dưới.
 
 import type { RegistryEntry } from "../types";
 import { entries as accountEntries } from "./account";
+import { entries as scanEntries } from "./scan";
+import { entries as suggestionEntries } from "./suggestion";
+import { entries as uiEntries } from "./ui";
 
-export const ALL_ENTRIES: readonly RegistryEntry[] = [
+const GOP: readonly RegistryEntry[] = [
   ...accountEntries,
+  ...scanEntries,
+  ...suggestionEntries,
+  ...uiEntries,
 ];
+
+/// Chống trùng tên, kiểm LÚC NẠP MODULE.
+///
+/// Đặt ở đây chứ không ở `tests/` là có chủ đích: một tên trùng làm sổ đăng ký
+/// SAI ngay lúc chạy, và `npm start` chết ồn ào tốt hơn nhiều so với một
+/// capability biến mất giữa buổi chấm. Phép kiểm ở `tests/` vẫn có, nhưng nó
+/// chỉ chạy khi ai đó chạy nó.
+const dem = new Map<string, number>();
+for (const e of GOP) dem.set(e.name, (dem.get(e.name) ?? 0) + 1);
+const trung = [...dem.entries()].filter(([, n]) => n > 1).map(([k]) => k);
+if (trung.length > 0) {
+  throw new Error(
+    `Sổ đăng ký có tên trùng: ${trung.join(", ")}. ` +
+      "Tên capability là khoá toàn cục — mục nạp sau sẽ lặng lẽ thắng.",
+  );
+}
+
+export const ALL_ENTRIES = GOP;

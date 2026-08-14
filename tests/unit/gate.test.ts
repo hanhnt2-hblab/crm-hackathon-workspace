@@ -115,6 +115,52 @@ describe("AD-4 — bảy bước, dừng ở lần từ chối đầu tiên", ()
     expect(decide(e, sales, ok({ aiEnabled: false }))).toEqual({ allowed: true });
   });
 
+  it("⑥⑦ BỎ QUA với `selfLimiting` — hết trần vẫn cho qua", () => {
+    // Cờ này từng được KHAI mà không được ĐỌC, và nó không làm gì suốt nhiều
+    // giờ. Bốn ca dưới là hình dạng lỗi mà `AD-4` phát biểu, không phải bốn ca
+    // rời rạc: một capability chạy TẠI hoặc SAU thời điểm trần chạm không được
+    // để chính trần đó chặn.
+    const hatang = entry({ allowedActors: ["system"], selfLimiting: true });
+    const canhtranh = entry({ allowedActors: ["system"], selfLimiting: false });
+
+    const hetTran = ok({ modelCallsUsed: 99, modelCallsLimit: 20 });
+    expect(decide(hatang, machine, hetTran)).toEqual({ allowed: true });
+    expect(decide(canhtranh, machine, hetTran)).toEqual({ allowed: false, reason: "limit" });
+
+    const tatAi = ok({ aiEnabled: false });
+    expect(decide(hatang, machine, tatAi)).toEqual({ allowed: true });
+    expect(decide(canhtranh, machine, tatAi)).toEqual({ allowed: false, reason: "brake" });
+
+    const canNgan = ok({ budgetUsedRatio: 1, budgetStopRatio: 1 });
+    expect(decide(hatang, machine, canNgan)).toEqual({ allowed: true });
+
+    // Ngân sách bằng 0 → `NaN`. `selfLimiting` phải qua được cả ca này, nếu
+    // không thì một cấu hình hỏng cũng khoá luôn đường tự dọn.
+    expect(decide(hatang, machine, ok({ budgetUsedRatio: Number.NaN }))).toEqual({
+      allowed: true,
+    });
+  });
+
+  it("`selfLimiting` KHÔNG nới bước ①–⑤ — nó chỉ bỏ ⑥ và ⑦", () => {
+    // Vế đối chứng. Nếu cờ này nới cả ranh giới thì nó thành một cửa hậu, và
+    // `T-10` mất nghĩa. Ba bước dưới phải vẫn chặn.
+    const camMay = entry({ allowedActors: ["human"], selfLimiting: true });
+    expect(decide(camMay, machine, ok())).toEqual({
+      allowed: false, reason: "actor_not_allowed",
+    });
+
+    const chamRanhGioi = entry({
+      allowedActors: ["human", "system"], touches: ["NFR-17"], selfLimiting: true,
+    });
+    expect(decide(chamRanhGioi, machine, ok())).toEqual({
+      allowed: false, reason: "boundary", boundary: "NFR-17",
+    });
+
+    expect(decide(undefined, machine, ok())).toEqual({
+      allowed: false, reason: "unknown_capability",
+    });
+  });
+
   it("đường xanh: người, không ranh giới, còn trần", () => {
     expect(decide(entry(), sales, ok())).toEqual({ allowed: true });
   });

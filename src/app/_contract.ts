@@ -13,6 +13,7 @@
 
 import type { BusinessRuleCode } from "@/core/errors";
 import type { GateDenyReason } from "@/autonomy/gate";
+import { failureFromError } from "./_errors";
 
 /// Union PHÂN BIỆT ĐƯỢC: thành công, hoặc thất bại mang **mã** và **chữ hiển thị**.
 ///
@@ -49,8 +50,29 @@ export type ServerAction = (prev: ActionState, form: FormData) => Promise<Action
 /// Bắt `GateDenied` (từ `@/capability/errors`) và `BusinessRuleError` — hai lỗi
 /// **mong đợi** — rồi TRẢ VỀ. Chỉ lỗi **bất ngờ** mới được ném tiếp, và khi đó
 /// nó đúng là việc của error boundary.
+/// ⚠ `prev` bị BỎ QUA có chủ đích. React 19 truyền trạng thái của lượt trước
+/// vào, nhưng mọi bề mặt của tầng này đọc lại dữ liệu từ server sau khi ghi
+/// (`AD-UI-9`), nên trạng thái cũ không tham gia quyết định nào. Nhận nó vào
+/// chữ ký mà không dùng là đúng `AD-UI-6`: chữ ký là hợp đồng với
+/// `useActionState`, không phải danh sách phụ thuộc.
 export function action(
-  _fn: (form: FormData) => Promise<ActionState>,
+  fn: (form: FormData) => Promise<ActionState>,
 ): ServerAction {
-  throw new Error("chưa hiện thực");
+  return async function runAction(
+    _prev: ActionState,
+    form: FormData,
+  ): Promise<ActionState> {
+    try {
+      return await fn(form);
+    } catch (error) {
+      // `failureFromError` là chặng 1 + chặng 2 của `AD-UI-7`, và là nơi DUY
+      // NHẤT trong repo biết một mã lỗi đọc thành câu tiếng Việt nào.
+      const failure = failureFromError(error);
+      // `null` = lỗi BẤT NGỜ. `AD-UI-6` bắt ném tiếp: đó đúng là việc của
+      // error boundary, và nuốt nó ở đây là biến một sự cố hạ tầng thành một
+      // câu trấn an trên màn hình Sales.
+      if (failure === null) throw error;
+      return failure;
+    }
+  };
 }

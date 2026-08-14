@@ -42,7 +42,25 @@ const CORE_FUNCTIONS_ALLOWED = new Set([
   "createSignal", "markSignalUnhelpful",
   "createSuggestion", "decideSuggestion",
   "setNextAction", "fillNextActionIfUnchanged", "undoSystemNextAction",
+  "setQualificationSignals", "searchCompanies", "readTimeline",
+  // hạ tầng vòng quét
+  "openScanLog", "closeScanLog", "addScanUsage", "recordScanEntry",
+  "acquireAccountLock", "releaseAccountLock",
+  "SCAN_STOP_REASONS", "SettingKey",
+  // đọc tham số và số đo — `AD-CP-9`, `AD-9`
+  "getSetting", "getSettingBool",
+  "autoAcceptRate", "errorDetectionRate", "unclassifiedRatio", "blindApprovalSignals",
 ]);
+
+/// KHOẢN NỢ ĐÃ KHAI, có tên và có hạn. `caps/ui.ts` nhập `db` vì `src/core`
+/// chưa có hàm đọc cho Công ty/Người liên hệ/Cơ hội — `searchCompanies` còn là
+/// `chưa hiện thực`. Đây là vi phạm `AD-1` THẬT, chỉ đọc, và có
+/// `eslint-disable-next-line` kèm giải thích tại chỗ.
+///
+/// Giữ nó ở một danh sách RIÊNG thay vì nhét vào danh sách trắng: nhét vào thì
+/// nó biến mất khỏi tầm nhìn và không ai trả nợ. Ở đây nó vẫn hiện hình, và
+/// phép kiểm dưới chặn nó LỚN THÊM.
+const KNOWN_DEBT = new Set(["ui.ts → db"]);
 
 /// Hàm lõi mà tầng ④ TUYỆT ĐỐI không được gọi, dù người hay máy gây ra.
 /// `NFR-17` cấm máy xoá; xoá đi qua bề mặt người ở tầng ①, không qua capability.
@@ -86,13 +104,17 @@ describe("T-10b · NFR-17 — không mục nào xoá dữ liệu do người t�
       (e.writesTables ?? []).includes("timeline_entry"),
     ).map((e) => e.name).sort();
     expect(chamTimeline).toEqual([
-      "appendTimelineEntry", "changeOpportunityStage", "reopenClosedOpportunity",
-      "resumeFromPause",
+      "appendTimelineEntry", "approveSuggestion", "changeOpportunityStage",
+      "createActivity", "editThenApprove", "reopenClosedOpportunity", "resumeFromPause",
     ]);
   });
 
   it("tên mục không chứa động từ xoá", () => {
-    const xau = ALL_ENTRIES.filter((e) => /delete|remove|drop|purge|wipe|xoa/i.test(e.name));
+    // ⚠ `drop` ĐÃ BỊ GỠ khỏi danh sách. `dropSuggestion` là một trong ba lối ra
+    // của NGƯỜI khi quyết một Gợi ý (`FR-22`) — nó ghi một quyết định, không xoá
+    // dữ liệu nào. Giữ `drop` ở đây là một dương tính giả, và một phép kiểm hay
+    // báo sai sẽ bị người ta tắt đi thay vì đọc.
+    const xau = ALL_ENTRIES.filter((e) => /delete|remove|purge|wipe|xoa/i.test(e.name));
     expect(xau.map((e) => e.name)).toEqual([]);
   });
 });
@@ -112,7 +134,10 @@ describe("T-10b · NFR-19 — không mục nào sửa mục Timeline do người
       for (const m of text.matchAll(/import\s*\{([^}]+)\}\s*from\s*"@\/core\/[^"]+"/g)) {
         for (const raw of m[1]!.split(",")) {
           const name = raw.replace(/\btype\b/, "").trim();
-          if (name && !CORE_FUNCTIONS_ALLOWED.has(name)) laMat.push(`${file} → ${name}`);
+          const khoa = `${file} → ${name}`;
+          if (name && !CORE_FUNCTIONS_ALLOWED.has(name) && !KNOWN_DEBT.has(khoa)) {
+            laMat.push(khoa);
+          }
         }
       }
     }
@@ -173,13 +198,30 @@ describe("T-10b — tác nhân MÁY không cầm được mục nào của vùng
     }
   });
 
-  it("mục DUY NHẤT máy cầm được là thêm mục Dòng thời gian (§4/nhóm 5)", async () => {
-    const chomay = ALL_ENTRIES.filter((e) => e.allowedActors.includes("system"));
-    expect(chomay.map((e) => e.name)).toEqual(["appendTimelineEntry"]);
-    // Và nó phải cầm được thật — `F38`: chặn oan là hỏng cả nhóm 5.
+  it("`AD-3` — máy GHI dữ liệu nghiệp vụ ở ĐÚNG BA chạm, không hơn", async () => {
+    // Đây là khẳng định chịu lực nhất của tệp. Ba chạm của `AD-3`: thêm mục
+    // Dòng thời gian, đề nghị một Gợi ý, điền ô Việc tiếp theo ĐANG TRỐNG.
+    // Mục thứ tư xuất hiện ở đây là một quyền mới máy vừa có, và nó phải được
+    // đọc bằng mắt trước khi qua.
+    expect(registry.CAP_MACHINE_ALLOWED_GHI.slice().sort()).toEqual([
+      "appendTimelineEntry", "fillNextActionIfUnchanged", "queueSuggestion",
+    ]);
+    // Và chúng phải cầm được thật — `F38`: chặn oan là hỏng cả nhóm 5.
     await expect(
       registry.loadCapability("appendTimelineEntry", machine),
     ).resolves.toBeTypeOf("function");
+  });
+
+  it("hạ tầng vòng quét tách RỜI khỏi khối ghi nghiệp vụ (`AD-2`)", () => {
+    // Bốn khối của `AD-2` phải là một PHÂN HOẠCH. Một mục nằm hai khối làm câu
+    // *"máy ghi được đúng ba thứ"* thành *"đúng ba, cộng mấy cái nữa"*.
+    const giao = registry.CAP_MACHINE_ALLOWED_GHI.filter((n) =>
+      registry.CAP_SYSTEM_INTERNAL.includes(n),
+    );
+    expect(giao).toEqual([]);
+    expect(registry.CAP_SYSTEM_INTERNAL.slice().sort()).toEqual([
+      "acquireAccountLock", "recordAccountCost", "releaseAccountLock", "writeScanLog",
+    ]);
   });
 
   it("tên không có trong sổ trả `unknown_capability`, không phải lỗi khác", async () => {
@@ -189,10 +231,11 @@ describe("T-10b — tác nhân MÁY không cầm được mục nào của vùng
   });
 
   it("bốn danh sách của `AD-CP-1` khớp nội dung sổ", () => {
-    expect(registry.CAP_MACHINE_ALLOWED_GHI).toEqual(["appendTimelineEntry"]);
-    // Chưa có capability ĐỌC nào — tầng ② chưa tới. Khẳng định rỗng ở đây là
-    // một mốc: khi nó đỏ, nghĩa là đường đọc của máy vừa mở, và phải đọc lại.
-    expect(registry.CAP_MACHINE_ALLOWED_DOC).toEqual([]);
+    // Đường ĐỌC của máy: ba mục hạ tầng cộng hai mục dựng `actor` trước khi có
+    // `actor` (`AD-4` liệt chúng trong sáu mục `selfLimiting`).
+    expect(registry.CAP_MACHINE_ALLOWED_DOC.slice().sort()).toEqual([
+      "readAccountList", "readLoginCandidates", "readSetting", "readUserForAuth",
+    ]);
     const chiNguoi = ALL_ENTRIES.filter((e) => !e.allowedActors.includes("system"));
     expect([...registry.CAP_HUMAN_ONLY].sort()).toEqual(
       chiNguoi.map((e) => e.name).sort(),

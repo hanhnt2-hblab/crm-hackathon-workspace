@@ -1,49 +1,407 @@
+/* `DESIGN.md` — lớp token Fluent 2. Chỉ giữ những token mà bố cục của tầng ①
+   dùng thật; phần còn lại đã nằm trong `webLightTheme` của Fluent và không
+   chép lại ở đây (hai nguồn cho một giá trị là hai chỗ trôi khỏi nhau).
+
+   ⚠ KHÔNG có khối `prefers-color-scheme: dark`. `DESIGN.md` (14/08) đã bỏ nền
+   tối khỏi hệ, và `EXPERIENCE.md` (*Nhãn Mức chắc chắn*) nói thẳng: **một** bộ
+   màu duy nhất. Giữ lại khối tối của scaffold thì chữ trên nhãn nhạt tụt dưới
+   ngưỡng 4.5:1 của *Sàn khả năng tiếp cận* mà không ai thấy lúc dựng.
+
+   Phông lấy từ hệ thống — `next/font/google` bị cấm (`§7` nghiệm thu trên clone
+   sạch, và nó cần mạng). */
+
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
+  --paper: #ffffff;
+  --paper-tint: #fafafa;
+  --app: #f5f5f5;
+  --app-2: #f0f0f0;
+  --app-3: #ebebeb;
+  --ink: #242424;
+  --ink-2: #424242;
+  --ink-3: #616161;
+  --ink-4: #707070;
+  --rule: #e0e0e0;
+  --rule-strong: #d1d1d1;
+  --brand: #0f6cbd;
+  --brand-hover: #115ea3;
+  --machine-bg: #ebf3fc;
+  --machine-border: #0f6cbd;
+  --warn-bg: #fdf3f4;
+  --warn-border: #eeacb2;
+  --warn-ink: #b10e1c;
+  --chac-bg: #f1faf1;
+  --chac-border: #9fd89f;
+  --chac-ink: #0e700e;
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
-}
+  --radius: 4px;
+  --radius-l: 6px;
+  --s: 8px;
+  --m: 12px;
+  --l: 16px;
+  --xl: 20px;
+  --xxl: 24px;
 
-html {
-  height: 100%;
-}
-
-html,
-body {
-  max-width: 100vw;
-  overflow-x: hidden;
-}
-
-body {
-  min-height: 100%;
-  display: flex;
-  flex-direction: column;
-  color: var(--foreground);
-  background: var(--background);
-  font-family: Arial, Helvetica, sans-serif;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
+  --font-base: "Segoe UI", "Segoe UI Web (West European)", -apple-system,
+    BlinkMacSystemFont, Roboto, "Helvetica Neue", sans-serif;
 }
 
 * {
   box-sizing: border-box;
-  padding: 0;
   margin: 0;
+  padding: 0;
+}
+
+html {
+  height: 100%;
+  color-scheme: light;
+}
+
+body {
+  min-height: 100%;
+  color: var(--ink);
+  background: var(--app);
+  font-family: var(--font-base);
+  font-size: 14px;
+  line-height: 20px;
+  -webkit-font-smoothing: antialiased;
 }
 
 a {
-  color: inherit;
+  color: var(--brand);
   text-decoration: none;
 }
 
-@media (prefers-color-scheme: dark) {
-  html {
-    color-scheme: dark;
-  }
+a:hover {
+  text-decoration: underline;
+}
+
+/* `EXPERIENCE.md` — *Sàn khả năng tiếp cận*: viền tiêu điểm không bị
+   `outline: none` ở bất kỳ đâu. Dòng này là vế khẳng định của luật đó. */
+:focus-visible {
+  outline: 2px solid var(--brand);
+  outline-offset: 2px;
+}
+
+/* ───────────────────────────── Khung `S0` ───────────────────────────── */
+
+.shell {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+.masthead {
+  display: flex;
+  align-items: center;
+  gap: var(--xxl);
+  padding: var(--m) var(--xl);
+  background: var(--paper);
+  border-bottom: 1px solid var(--rule);
+}
+
+.masthead-brand {
+  font-size: 20px;
+  line-height: 28px;
+  font-weight: 600;
+  color: var(--ink);
+}
+
+.masthead-nav {
+  display: flex;
+  gap: var(--l);
+}
+
+.masthead-nav a {
+  color: var(--ink-2);
+  padding: 4px 2px;
+  border-bottom: 2px solid transparent;
+}
+
+.masthead-nav a:hover {
+  color: var(--brand);
+  text-decoration: none;
+  border-bottom-color: var(--rule-strong);
+}
+
+.masthead-who {
+  margin-left: auto;
+  color: var(--ink-3);
+  font-size: 12px;
+}
+
+.banner {
+  display: flex;
+  align-items: center;
+  gap: var(--s);
+  padding: var(--s) var(--xl);
+  background: var(--machine-bg);
+  border-bottom: 1px solid var(--machine-border);
+  color: var(--ink);
+}
+
+.banner strong {
+  font-weight: 600;
+}
+
+.main {
+  flex: 1;
+  width: 100%;
+  max-width: 1440px;
+  margin: 0 auto;
+  padding: var(--xl);
+  display: flex;
+  flex-direction: column;
+  gap: var(--l);
+}
+
+/* ───────────────────────────── Khối nội dung ──────────────────────────── */
+
+.card {
+  background: var(--paper);
+  border: 1px solid var(--rule);
+  border-radius: var(--radius-l);
+  padding: var(--l);
+  display: flex;
+  flex-direction: column;
+  gap: var(--m);
+}
+
+.card-title {
+  font-size: 16px;
+  line-height: 22px;
+  font-weight: 600;
+}
+
+.page-title {
+  font-size: 24px;
+  line-height: 32px;
+  font-weight: 600;
+}
+
+.muted {
+  color: var(--ink-3);
+}
+
+.row {
+  display: flex;
+  gap: var(--m);
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.grid-2 {
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  gap: var(--l);
+  align-items: start;
+}
+
+.grid-4 {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: var(--m);
+}
+
+.stat {
+  background: var(--paper);
+  border: 1px solid var(--rule);
+  border-radius: var(--radius-l);
+  padding: var(--m) var(--l);
+}
+
+.stat-num {
+  font-size: 24px;
+  line-height: 32px;
+  font-weight: 600;
+}
+
+.stat-label {
+  color: var(--ink-3);
+  font-size: 12px;
+}
+
+/* ───────────────────── Trạng thái rỗng / lỗi (`AD-UI-8`) ───────────────── */
+
+/* ⚠ Rỗng và đang tải KHÔNG dùng chung component (`AD-UI-8`). Hai lớp riêng ở
+   đây là vế cưỡng chế rẻ nhất của luật đó. */
+.empty {
+  padding: var(--xl);
+  text-align: center;
+  color: var(--ink-3);
+  border: 1px dashed var(--rule-strong);
+  border-radius: var(--radius-l);
+}
+
+.failed {
+  padding: var(--m) var(--l);
+  border: 1px solid var(--warn-border);
+  background: var(--warn-bg);
+  color: var(--warn-ink);
+  border-radius: var(--radius);
+}
+
+.skeleton-row {
+  height: 44px;
+  border-radius: var(--radius);
+  background: linear-gradient(90deg, var(--app-2), var(--app-3), var(--app-2));
+  margin-bottom: 6px;
+}
+
+/* ─────────────────────────────── Bảng ─────────────────────────────────── */
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.table th,
+.table td {
+  text-align: left;
+  padding: 10px 12px;
+  border-bottom: 1px solid var(--rule);
+  vertical-align: top;
+}
+
+.table th {
+  font-size: 10px;
+  line-height: 14px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+}
+
+/* ──────────────────────────── Nhãn và cờ ──────────────────────────────── */
+
+/* `EXPERIENCE.md` — nhãn dùng mẫu BA thành phần: nền gần trắng + viền màu +
+   chữ đậm. Không bao giờ truyền tin bằng màu đơn độc, nên mỗi nhãn có chữ. */
+.tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 1px 8px;
+  border-radius: 10000px;
+  font-size: 12px;
+  font-weight: 600;
+  border: 1px solid var(--rule-strong);
+  background: var(--paper-tint);
+  color: var(--ink-2);
+}
+
+.tag-warn {
+  border-color: var(--warn-border);
+  background: var(--warn-bg);
+  color: var(--warn-ink);
+}
+
+.tag-ok {
+  border-color: var(--chac-border);
+  background: var(--chac-bg);
+  color: var(--chac-ink);
+}
+
+.tag-machine {
+  border-color: var(--machine-border);
+  background: var(--machine-bg);
+  color: var(--brand-hover, #115ea3);
+}
+
+/* ─────────────────────────── Bảng Giai đoạn `S4` ──────────────────────── */
+
+.board {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(180px, 1fr));
+  gap: var(--m);
+  align-items: start;
+  overflow-x: auto;
+}
+
+.board-col {
+  background: var(--app-2);
+  border: 1px solid var(--rule);
+  border-radius: var(--radius-l);
+  padding: var(--s);
+  min-height: 220px;
+  display: flex;
+  flex-direction: column;
+  gap: var(--s);
+}
+
+/* Đích thả đang được kéo qua — phản hồi thị giác ≤ 200 ms của `UX-4`. */
+.board-col.over {
+  border-color: var(--brand);
+  background: var(--machine-bg);
+}
+
+.board-col-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  font-weight: 600;
+}
+
+.board-col-count {
+  color: var(--ink-3);
+  font-size: 12px;
+  font-weight: 400;
+}
+
+.board-card {
+  background: var(--paper);
+  border: 1px solid var(--rule-strong);
+  border-radius: var(--radius);
+  padding: var(--s) var(--m);
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  cursor: grab;
+}
+
+.board-card:active {
+  cursor: grabbing;
+}
+
+.board-card.dragging {
+  opacity: 0.5;
+}
+
+.board-card-name {
+  font-weight: 600;
+}
+
+/* Cột rỗng vẫn hiện TÊN cột, không hiện khoảng trắng (`EXPERIENCE.md`, `S4`). */
+.board-empty {
+  color: var(--ink-4);
+  font-size: 12px;
+  padding: var(--s) 0;
+}
+
+/* ──────────────────────────── Biểu mẫu ────────────────────────────────── */
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--m);
+}
+
+.form-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(160px, 1fr));
+  gap: var(--m);
+}
+
+.form-actions {
+  display: flex;
+  gap: var(--s);
+  align-items: center;
+}
+
+.field-note {
+  font-size: 12px;
+  color: var(--ink-3);
+}
+
+.ok-note {
+  color: var(--chac-ink);
+  font-size: 12px;
 }

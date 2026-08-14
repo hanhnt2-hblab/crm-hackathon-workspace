@@ -122,15 +122,38 @@ export function createRegistry(deps: {
   const namesWhere = (p: (e: RegistryEntry) => boolean): readonly CapName[] =>
     entries.filter(p).map((e) => e.name);
 
+  // `AD-2` đòi BỐN khối RỜI NHAU. Bản trước cắt khối một bằng
+  // `includes("system") && kind === "write"`, nên mọi mục hạ tầng — `writeScanLog`,
+  // `recordAccountCost`, `acquireAccountLock`, `releaseAccountLock` — rơi vào
+  // CẢ khối một LẪN khối ba. Một mục nằm hai khối làm `T-10b` khẳng định trên
+  // một phân hoạch không phải phân hoạch, và câu *"máy ghi được đúng sáu thứ"*
+  // trở thành *"đúng sáu, cộng bốn cái nữa cũng đúng sáu"*.
+  //
+  // Bộ phân biệt đúng là `writesTables`: mục hạ tầng chỉ chạm bảng hạ tầng,
+  // không chạm bảng nghiệp vụ. Nó đã được khai sẵn trên mọi mục ghi (`AD-CP-10`
+  // bắt buộc), nên phép cắt này không đòi thêm dữ liệu nào.
+  const BANG_HA_TANG = new Set(["scan_log", "scan_log_entry", "account_lock", "setting"]);
+  const chiChamHaTang = (e: RegistryEntry): boolean =>
+    (e.writesTables ?? []).length > 0 &&
+    (e.writesTables ?? []).every((t) => BANG_HA_TANG.has(t));
+
   return {
     loadCapability,
+    /// Khối một — máy GHI dữ liệu NGHIỆP VỤ. Đây là khối `T-10b` soi kỹ nhất.
     CAP_MACHINE_ALLOWED_GHI: namesWhere(
-      (e) => e.allowedActors.includes("system") && e.kind === "write",
+      (e) =>
+        e.allowedActors.includes("system") && e.kind === "write" && !chiChamHaTang(e),
     ),
+    /// Khối hai — máy ĐỌC.
     CAP_MACHINE_ALLOWED_DOC: namesWhere(
       (e) => e.allowedActors.includes("system") && e.kind === "read",
     ),
+    /// Khối ba — hạ tầng của chính vòng quét. Tách khỏi khối một vì chúng không
+    /// chạm dữ liệu người dùng, và vì phần lớn mang `selfLimiting`.
+    CAP_SYSTEM_INTERNAL: namesWhere(
+      (e) => e.allowedActors.includes("system") && chiChamHaTang(e),
+    ),
+    /// Khối bốn — người làm được, máy thì không.
     CAP_HUMAN_ONLY: namesWhere((e) => !e.allowedActors.includes("system")),
-    CAP_SYSTEM_INTERNAL: namesWhere((e) => !e.allowedActors.includes("human")),
   };
 }

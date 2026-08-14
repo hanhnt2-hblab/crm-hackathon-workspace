@@ -122,7 +122,27 @@ export function decide(
   //    ⚠ `limit` TRƯỚC `brake`, đúng thứ tự ⑥ rồi ⑦ của `AD-4`. Đảo hai bước
   //    này không đổi việc CÓ chặn hay không, nhưng đổi MÃ LÝ DO khi cả hai cùng
   //    vi phạm — và mã lý do là thứ đi vào dòng ghi vết mà `T-5`/`T-10` đọc.
-  if (actor.kind === "system") {
+  //
+  //    ⚠⚠ `selfLimiting` BỎ QUA CẢ HAI BƯỚC. Bản trước khai trường này ở
+  //    `GateEntry` rồi KHÔNG ĐỌC NÓ — tức cờ tồn tại, mọi mục khai đúng, và nó
+  //    không làm gì cả. Hình dạng lỗi mà `AD-4` phát biểu:
+  //
+  //      *một capability chạy TẠI hoặc SAU thời điểm trần chạm, hoặc phải sống
+  //      khi phanh tắt, không được để chính trần đó chặn — nếu không, hệ mất
+  //      đúng cái van nó vừa dựng.*
+  //
+  //    Cụ thể, và cả bốn đều đo được: `disableAi` bị chặn ở 100% ngân sách thì
+  //    điều kiện dừng 4 của `AD-11` KHÔNG BAO GIỜ chạy được — AI không tự tắt.
+  //    `writeScanLog` bị chặn thì không dòng Nhật ký nào để `T-8` truy vấn.
+  //    `releaseAccountLock` bị chặn thì **khoá không nhả**, và vì `AD-12` suy
+  //    *"vòng đang chạy"* từ khoá với lease 10 phút, ở nhịp 60 giây là **mười
+  //    vòng liên tiếp bị bỏ** — bật lại AI xong mười phút không có gì xảy ra.
+  //    `readUserForAuth` bị chặn thì bấm Tắt AI xong **không ai đăng nhập
+  //    được**, và `T-9` với `T-1` đỏ cùng lúc.
+  //
+  //    Cờ này KHÔNG nới ranh giới nào: các mục mang nó chỉ chạm bảng hạ tầng
+  //    hoặc chỉ đọc, và chúng vẫn đi qua đủ bước ①–⑤.
+  if (actor.kind === "system" && !entry.selfLimiting) {
     if (ctx.modelCallsUsed >= ctx.modelCallsLimit) return deny("limit");
     // ⚠ Tỉ lệ có thể là `NaN` khi ngân sách bằng 0, và `NaN >= x` luôn `false` —
     //    tức phanh ngân sách KHÔNG BAO GIỜ chạm trong khi tiền vẫn tiêu. Bắt

@@ -112,18 +112,108 @@ export function softDeleteOpportunity(_actor: Actor, _id: string, _ctx: CoreCont
 }
 
 /// `C5-5` · `BR-B2` — hai ô dấu hiệu. `false` là ĐÃ TRẢ LỜI, khác `null` chưa hỏi.
-export function setQualificationSignals(_actor: Actor, _id: string, _v: {
-  needSignal: boolean | null; budgetSignal: boolean | null;
-}, _ctx: CoreContext): Promise<void> {
-  throw new Error(CHUA);
+export async function setQualificationSignals(
+  actor: Actor,
+  id: string,
+  v: { needSignal: boolean | null; budgetSignal: boolean | null },
+  ctx: CoreContext,
+): Promise<void> {
+  await tx(async (t) => {
+    const before = await t.opportunity.findUnique({
+      where: { id },
+      select: { needSignal: true, budgetSignal: true, accountId: true },
+    });
+    if (!before) throw new Error("Cơ hội không tồn tại.");
+
+    const after = await t.opportunity.update({
+      where: { id },
+      data: { needSignal: v.needSignal, budgetSignal: v.budgetSignal },
+      select: { needSignal: true, budgetSignal: true },
+    });
+
+    // §5.1 — mọi lần ghi để lại một mục Dòng thời gian. Ở đây nội dung nói rõ
+    // ô nào vừa được điền, vì `BR-B2` là luật HÀNH VI: Cơ hội vẫn sang được
+    // `du_dieu_kien` khi thiếu, chỉ mang cờ, nên người đọc lại cần biết cờ tắt
+    // lúc nào và nhờ ai.
+    await appendEntryWithin(t, actor, {
+      accountId: before.accountId,
+      content: `Dấu hiệu Đủ điều kiện: nhu cầu ${moTa(after.needSignal)}, ngân sách ${moTa(after.budgetSignal)}`,
+      occurredAt: new Date(),
+    });
+    await ctx.audit.complete(t, ctx.auditId, "ok", { before, after });
+  });
+}
+
+/// `BR-B2` — ba trạng thái, không phải hai. `null` là CHƯA HỎI; `false` là ĐÃ
+/// TRẢ LỜI *"không"*. Gộp chúng làm Cơ hội trả lời *"không"* vẫn treo cờ cảnh
+/// báo suốt vòng đời — và người dùng không có cách nào tắt nó.
+function moTa(v: boolean | null): string {
+  return v === null ? "chưa hỏi" : v ? "có" : "không";
+}
+
+/// `BR-B2` — cờ cảnh báo tính LÚC ĐỌC, không lưu thành cột.
+///
+/// Và nó tính theo GIAI ĐOẠN HIỆN TẠI (`>= du_dieu_kien`), KHÔNG theo sự kiện
+/// *vừa sang `du_dieu_kien`*: `FR-4` cho nhảy cóc, nên một Cơ hội kéo thẳng
+/// `tiep_can` → `soan_de_xuat` chưa bao giờ *"sang du_dieu_kien"* mà vẫn phải
+/// mang cờ. Gắn vào sự kiện là để cả một nhánh đi qua phễu không cờ.
+const THU_TU_GIAI_DOAN: readonly Stage[] = [
+  "tiep_can", "du_dieu_kien", "soan_de_xuat", "thuong_luong",
+];
+
+export function needsQualificationFlag(o: {
+  stage: Stage;
+  needSignal: boolean | null;
+  budgetSignal: boolean | null;
+}): boolean {
+  const i = THU_TU_GIAI_DOAN.indexOf(o.stage);
+  // Đã đóng hoặc `tam_dung` → `indexOf` trả `-1`, không mang cờ.
+  if (i < 1) return false;
+  return o.needSignal === null || o.budgetSignal === null;
 }
 
 /// `C5-8` · `BR-B3` · `D27` — enum dạng MẢNG cộng một ô ghi chú, không phải câu tự do.
-export function setLossReasons(_actor: Actor, _id: string, _v: {
-  reasons: readonly string[]; note: string | null;
-}, _ctx: CoreContext): Promise<void> {
-  throw new Error(CHUA);
+export async function setLossReasons(
+  actor: Actor,
+  id: string,
+  v: { reasons: readonly string[]; note: string | null },
+  ctx: CoreContext,
+): Promise<void> {
+  // `D27` — enum dạng MẢNG, không phải câu tự do. Cột là `TEXT[]` nên CSDL
+  // không canh giá trị; lõi là lớp duy nhất có thể.
+  const laMat = v.reasons.filter((r) => !(LOSS_REASONS as readonly string[]).includes(r));
+  if (laMat.length > 0) {
+    throw new BusinessRuleError(
+      "BR-D10",
+      `Lý do thua ngoài danh sách: ${laMat.join(", ")}.`,
+    );
+  }
+  await tx(async (t) => {
+    const before = await t.opportunity.findUnique({
+      where: { id },
+      select: { lossReasons: true, lossNote: true, accountId: true },
+    });
+    if (!before) throw new Error("Cơ hội không tồn tại.");
+    const after = await t.opportunity.update({
+      where: { id },
+      data: { lossReasons: [...v.reasons], lossNote: v.note },
+      select: { lossReasons: true, lossNote: true },
+    });
+    await appendEntryWithin(t, actor, {
+      accountId: before.accountId,
+      content: `Lý do thua: ${v.reasons.join(", ") || "(chưa nêu)"}`,
+      occurredAt: new Date(),
+    });
+    await ctx.audit.complete(t, ctx.auditId, "ok", { before, after });
+  });
 }
+
+/// `D27` — từ vựng ĐÓNG của lý do thua. Cột là `TEXT[]`, không phải enum CSDL,
+/// nên đây là lớp canh DUY NHẤT. Thiếu nó thì bảng thống kê lý do thua vỡ thành
+/// nhiều nhóm một phần tử, và `E1-S11` hiện một danh sách không đọc được.
+export const LOSS_REASONS = [
+  "gia", "doi_thu", "khong_ngan_sach", "sai_thoi_diem", "khong_phan_hoi", "khac",
+] as const;
 
 /// `C5-4` · `AD-CR-1` · `AD-CR-7` — đổi Giai đoạn, sáu bước trong MỘT giao dịch.
 ///

@@ -47,10 +47,68 @@ export async function createContact(
   });
 }
 
-/// Đặt người mới thì người cũ tự mất nhãn — trong CÙNG giao dịch, và chỉ mục
-/// một phần là thứ bảo đảm không bao giờ có hai.
-export function setPrimaryContact(_actor: Actor, _contactId: string, _ctx: CoreContext): Promise<void> {
-  throw new Error(CHUA);
+/// `BR-D4` · `AD-CR-7` — Đặt người mới thì người cũ tự mất nhãn, trong CÙNG
+/// giao dịch, và chỉ mục một phần là thứ bảo đảm không bao giờ có hai.
+///
+/// Hai thứ khác nhau, và trộn chúng là chỗ luật này hay hỏng:
+///   · GIAO DỊCH cho tính NGUYÊN TỬ — không có khoảnh khắc Công ty mất đầu mối
+///   · CHỈ MỤC `contact_one_primary` cho tính DUY NHẤT — hai giao dịch cùng đọc
+///     *"chưa có ai"* rồi cùng ghi thì một cái ăn lỗi, thay vì cả hai qua
+///
+/// THỨ TỰ HAI CÂU LỆNH LÀ QUYẾT ĐỊNH: gỡ nhãn cũ TRƯỚC, gắn nhãn mới SAU. Đảo
+/// lại thì có một khoảnh khắc hai hàng cùng `is_primary = true` trên một Công
+/// ty, và `contact_one_primary` ném ngay tại câu thứ nhất — luật đúng, nhưng
+/// hỏng vì thứ tự chứ không vì dữ liệu.
+///
+/// ⚠ Lõi KHÔNG chặn theo `actor.kind` ở đây: `§5` không có ranh giới nào về
+/// Đầu mối chính, và `errors.ts` là từ vựng ĐÓNG — bịa một mã để chặn máy là
+/// dựng nguồn sự thật thứ hai. Chặn máy nằm ở `allowedActors` của mục sổ đăng
+/// ký (`caps/account.ts` khai `["human", "seed"]`).
+export async function setPrimaryContact(
+  actor: Actor,
+  contactId: string,
+  ctx: CoreContext,
+): Promise<void> {
+  await tx(async (t) => {
+    const target = await t.contact.findUnique({
+      where: { id: contactId },
+      select: { accountId: true, isPrimary: true },
+    });
+    // ⚠ `Error` thường, KHÔNG phải `BusinessRuleError`: *không tìm thấy bản
+    // ghi* không có mã nào ở thượng nguồn. Tầng ① xếp nó vào nhánh `unexpected`.
+    if (!target) throw new Error("Người liên hệ không tồn tại.");
+
+    // Đặt lại đúng người đang mang nhãn là KHÔNG có gì để ghi. Trả `no_op` chứ
+    // không `ok`: `AD-CR-8` dùng nhánh này để chứng minh *"dòng ghi vết không
+    // bao giờ khai một thao tác chưa xảy ra"*.
+    if (target.isPrimary) {
+      await ctx.audit.complete(t, ctx.auditId, "no_op", {
+        before: { primaryContactId: contactId },
+        after: { primaryContactId: contactId },
+      });
+      return;
+    }
+
+    const previous = await t.contact.findFirst({
+      where: { accountId: target.accountId, isPrimary: true, deletedAt: null },
+      select: { id: true },
+    });
+
+    // ⚠ `deletedAt: null` viết TAY. Extension của `AD-CR-6` chỉ lọc thao tác
+    // ĐỌC; `updateMany` không đi qua nó, nên thiếu vế này là gỡ nhãn cả những
+    // Người liên hệ đã xoá mềm — vô hại hôm nay, sai lịch sử mãi mãi.
+    await t.contact.updateMany({
+      where: { accountId: target.accountId, isPrimary: true, deletedAt: null },
+      data: { isPrimary: false },
+    });
+    await t.contact.update({ where: { id: contactId }, data: { isPrimary: true } });
+
+    // `AD-CR-7` bước ⑥ — cuối cùng, vì nó là bên duy nhất thấy đủ cũ lẫn mới.
+    await ctx.audit.complete(t, ctx.auditId, "ok", {
+      before: { primaryContactId: previous?.id ?? null },
+      after: { primaryContactId: contactId },
+    });
+  });
 }
 
 /// Xoá Đầu mối chính để lại Công ty 0 đầu mối — KHÔNG lỗi, không tự chọn người khác.
