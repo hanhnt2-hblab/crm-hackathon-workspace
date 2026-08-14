@@ -7,6 +7,8 @@
 
 import type { Actor } from "@/core/actor";
 import type { GateContext } from "@/autonomy/gate";
+import { getSettingBool, getSettingNumber } from "@/core/settings";
+import { readActiveScanUsage } from "@/core/scanlog";
 
 /// Chạy MỖI LỜI GỌI capability, trước `decide` (`AD-CP-5` bước ②).
 ///
@@ -21,9 +23,48 @@ import type { GateContext } from "@/autonomy/gate";
 ///
 /// `seedMode` truyền vào chứ không tự đọc: nó là tham số dựng của
 /// `createRegistry` (`AD-4`), và đây là chuyền tham số, không phải rẽ nhánh.
-export function collectGateContext(
-  _actor: Actor,
-  _seedMode: boolean,
+export async function collectGateContext(
+  actor: Actor,
+  seedMode: boolean,
 ): Promise<GateContext> {
-  throw new Error("chưa hiện thực");
+  // Đường tắt cho tác nhân KHÔNG phải máy. Bước ⑥ và ⑦ của `AD-4` chỉ áp cho
+  // `system`, nên đọc bốn con số về lượt gọi và ngân sách cho một cú bấm của
+  // Sales là bốn truy vấn không ai dùng — trên đường nóng của mọi thao tác.
+  //
+  // Không phải tối ưu sớm: nó còn sửa một lỗ thật. Người bấm nút thì KHÔNG có
+  // lượt quét nào đang chạy, nên `ScanLog` không có hàng để đọc — và hàm sẽ
+  // phải đoán một giá trị, rồi giá trị đoán đó đi vào một quyết định.
+  if (actor.kind !== "system") {
+    return {
+      seedMode,
+      aiEnabled: true,
+      modelCallsUsed: 0,
+      modelCallsLimit: Number.POSITIVE_INFINITY,
+      budgetUsedRatio: 0,
+      budgetStopRatio: 1,
+    };
+  }
+
+  const [aiEnabled, modelCallsLimit, budgetStopRatio, scanBudgetUsd] = await Promise.all([
+    getSettingBool("ai_enabled"),
+    getSettingNumber("model_calls_per_scan"),
+    getSettingNumber("budget_stop_ratio"),
+    getSettingNumber("scan_budget_usd"),
+  ]);
+
+  // Tầng ④ KHÔNG cầm `db` (`AD-1`). Lõi đọc hộ, và nó cũng là bên duy nhất
+  // biết hình dạng bảng `ScanLog`.
+  const scan = await readActiveScanUsage();
+  const used = scan?.costUsedUsd ?? 0;
+  return {
+    seedMode,
+    aiEnabled,
+    modelCallsUsed: scan?.modelCallsUsed ?? 0,
+    modelCallsLimit,
+    // ⚠ `scanBudgetUsd` bằng 0 cho `Infinity` hoặc `NaN`. Cổng bắt cả hai ở
+    // bước ⑥ (`Number.isFinite`), nên ở đây KHÔNG được lặng lẽ thay bằng 0 —
+    // thay là biến một cấu hình hỏng thành *"còn nguyên ngân sách"*.
+    budgetUsedRatio: scanBudgetUsd > 0 ? used / scanBudgetUsd : Number.NaN,
+    budgetStopRatio,
+  };
 }

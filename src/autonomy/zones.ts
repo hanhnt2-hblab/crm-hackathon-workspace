@@ -39,8 +39,19 @@ export type BoundaryCode = (typeof BOUNDARY_CODES)[number];
 /// tự `BOUNDARY_CODES`, để hai lần chạy trên cùng đầu vào cho cùng một mã —
 /// không có luật này thì thứ tự phụ thuộc thứ tự khai trong `touches`.
 export function crossesBoundary(
-  _entry: GateEntry,
-  _actor: Actor,
+  entry: GateEntry,
+  actor: Actor,
 ): BoundaryCode | null {
-  throw new Error("chưa hiện thực");
+  // Năm ranh giới `§5` nói về việc MÁY không được tự làm. Người làm những việc
+  // đó là bình thường — đó là toàn bộ nhóm 1 của đề bài.
+  if (actor.kind !== "system") return null;
+  if (entry.touches.length === 0) return null;
+
+  // Trả mã ĐẦU TIÊN theo thứ tự `BOUNDARY_CODES`, không theo thứ tự khai trong
+  // `touches`. Không có luật này thì cùng một capability, hai người khai
+  // `touches` theo hai thứ tự, cho hai mã lý do khác nhau trong ghi vết.
+  for (const code of BOUNDARY_CODES) {
+    if (entry.touches.includes(code)) return code;
+  }
+  return null;
 }

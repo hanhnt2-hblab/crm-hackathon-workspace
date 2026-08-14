@@ -6,10 +6,9 @@
 // hai Đầu mối chính mà không bên nào lỗi.
 
 import type { Actor } from "@/core/actor";
-/// `AD-1`: `src/core` KHÔNG được nhập `src/capability` — chiều phụ thuộc là
-/// ④ → ⑤, không ngược lại. `Tx` có sẵn ngay trong lõi; nhập `PrismaTx` từ
-/// tầng ④ là đi vòng qua chính ranh giới mình thuộc về.
-import type { Tx } from "@/core/db";
+/// `AD-CR-7`: lõi TỰ mở giao dịch, nên không nhận `tx` từ ngoài.
+import { tx } from "@/core/db";
+import type { CoreContext } from "@/core/context";
 
 const CHUA = "chưa hiện thực";
 
@@ -18,19 +17,43 @@ export type CreateContactInput = {
   name: string;
   title?: string | null;
   email?: string | null;
+  /// Đặt thẳng lúc tạo. `contact_one_primary` là thứ canh *tối đa một*, nên
+  /// hai lời gọi đồng thời cùng đặt `true` thì một cái ăn lỗi duy nhất — đúng
+  /// hành vi muốn có, hơn hẳn việc cả hai cùng thành công.
+  isPrimary?: boolean;
+  /// Khoá tự nhiên cho bộ gieo (`AD-UI-17`).
+  sourceRef?: string | null;
 };
 
-export function createContact(_tx: Tx, _actor: Actor, _input: CreateContactInput): Promise<{ id: string }> {
-  throw new Error(CHUA);
+export async function createContact(
+  actor: Actor,
+  input: CreateContactInput,
+  ctx: CoreContext,
+): Promise<{ id: string }> {
+  return tx(async (t) => {
+    const c = await t.contact.create({
+    data: {
+      accountId: input.accountId,
+      name: input.name,
+      title: input.title ?? null,
+      email: input.email ?? null,
+      isPrimary: input.isPrimary ?? false,
+      sourceRef: input.sourceRef ?? null,
+    },
+      select: { id: true },
+    });
+    await ctx.audit.complete(t, ctx.auditId, "ok", { after: { id: c.id } });
+    return { id: c.id };
+  });
 }
 
 /// Đặt người mới thì người cũ tự mất nhãn — trong CÙNG giao dịch, và chỉ mục
 /// một phần là thứ bảo đảm không bao giờ có hai.
-export function setPrimaryContact(_tx: Tx, _actor: Actor, _contactId: string): Promise<void> {
+export function setPrimaryContact(_actor: Actor, _contactId: string, _ctx: CoreContext): Promise<void> {
   throw new Error(CHUA);
 }
 
 /// Xoá Đầu mối chính để lại Công ty 0 đầu mối — KHÔNG lỗi, không tự chọn người khác.
-export function softDeleteContact(_tx: Tx, _actor: Actor, _id: string): Promise<void> {
+export function softDeleteContact(_actor: Actor, _id: string, _ctx: CoreContext): Promise<void> {
   throw new Error(CHUA);
 }

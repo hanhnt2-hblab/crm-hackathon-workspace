@@ -8,6 +8,7 @@ import type { z } from "zod";
 import type { Actor } from "@/core/actor";
 import type { GateEntry } from "@/autonomy/gate";
 import type { Tx } from "@/core/db";
+import type { CoreContext } from "@/core/context";
 
 /// Vùng nghiệp vụ và mức rủi ro — `AD-2`. `risk` KHÔNG tham gia quyết định của
 /// Cổng; nó chỉ vào dòng ghi vết, để đọc lại sau còn xếp được mức độ.
@@ -43,10 +44,15 @@ export type PrismaTx = Tx;
 /// ⚠ KHÔNG mang `tx`. `AD-CR-7` đặt giao dịch trong LÕI; tầng ④ mở thêm một
 /// giao dịch nữa là lồng giao dịch vào giao dịch chính và phá bất biến *"pha 2
 /// nằm trong tx"* của `AD-CR-8`.
-export type CapContext = {
-  auditId: string;
-  causedBy: string | null;
-};
+/// LÀ CHÍNH `CoreContext` của tầng ⑤, không phải một bản sao gần giống. Hai
+/// khai báo cho cùng một hình dạng là hai chỗ trôi khỏi nhau, và chỗ trôi đó
+/// nằm đúng trên đường lõi hoàn tất ghi vết.
+///
+/// `auditId` là `string | null`, KHÔNG phải `string`: `AuditSink.begin()` trả
+/// `null` khi sink câm (chế-độ-gieo không kèm `--keep-audit`), nên khai `string`
+/// làm đường gieo không dựng nổi một `CapContext` hợp lệ — đúng đường mà
+/// `createRegistry({ seedMode: true })` sinh ra để phục vụ.
+export type CapContext = CoreContext;
 
 /// `AD-CP-3` — mục sổ đăng ký: `GateEntry` cộng ĐÚNG năm nhóm trường của tầng ④.
 export interface RegistryEntry<
@@ -102,8 +108,16 @@ export type BoundCapability<P = unknown, R = unknown> = (params: P) => Promise<R
 
 /// `AD-CP-3` — hàm dựng một mục. Ràng buộc `S extends z.ZodObject<…>` ở đây là
 /// chỗ duy nhất chặn được `z.ZodType` lọt vào, vì mọi mục đều đi qua nó.
+/// Thân là hàm đồng nhất, và đó KHÔNG phải một chỗ chưa làm xong: toàn bộ giá
+/// trị của hàm này nằm ở RÀNG BUỘC KIỂU trên `S`. Nó là chỗ duy nhất chặn được
+/// `z.ZodType` lọt vào `params` — mà `z.ZodType` lọt vào là `TS2339` ở
+/// `mcp-server.ts` lúc dựng, tức `npm start` chết trước khi giám khảo bấm gì.
+///
+/// Nó chạy lúc NẠP MODULE, nên đừng thêm I/O hay xác thực lúc chạy vào đây:
+/// một lời gọi hỏng ở đây làm cả tiến trình không khởi động được, và thông điệp
+/// lỗi sẽ trỏ vào một tệp không ai nghĩ là thủ phạm.
 export function defineCap<S extends z.ZodObject<z.ZodRawShape>, R>(
-  _entry: RegistryEntry<S, R>,
+  entry: RegistryEntry<S, R>,
 ): RegistryEntry<S, R> {
-  throw new Error("chưa hiện thực");
+  return entry;
 }

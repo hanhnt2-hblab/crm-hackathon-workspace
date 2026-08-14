@@ -5,10 +5,9 @@
 // `FR-51`) — không ai quyết gì cả.
 
 import type { Actor } from "@/core/actor";
-/// `AD-1`: `src/core` KHÔNG được nhập `src/capability` — chiều phụ thuộc là
-/// ④ → ⑤, không ngược lại. `Tx` có sẵn ngay trong lõi; nhập `PrismaTx` từ
-/// tầng ④ là đi vòng qua chính ranh giới mình thuộc về.
-import type { Tx } from "@/core/db";
+/// `AD-CR-7`: lõi TỰ mở giao dịch, nên không nhận `tx` từ ngoài.
+import { tx } from "@/core/db";
+import type { CoreContext } from "@/core/context";
 
 const CHUA = "chưa hiện thực";
 
@@ -27,7 +26,7 @@ export type DecideInput = {
 
 /// Ghi CÓ ĐIỀU KIỆN `where status='cho'` — nếu không, người có thể đè lên một
 /// quyết định mà hệ thống vừa ghi trong lúc màn hình đang mở.
-export function decideSuggestion(_tx: Tx, _actor: Actor, _input: DecideInput): Promise<void> {
+export function decideSuggestion(_actor: Actor, _input: DecideInput, _ctx: CoreContext): Promise<void> {
   throw new Error(CHUA);
 }
 
@@ -35,9 +34,9 @@ export function decideSuggestion(_tx: Tx, _actor: Actor, _input: DecideInput): P
 /// cũ bằng `dong_he_thong` + `co_goi_y_moi_hon` TRONG CÙNG giao dịch rồi mới
 /// chèn; không làm thế thì vi phạm `suggestion_one_pending_per_slot` và hỏng cả
 /// vòng quét.
-export function createSuggestion(_tx: Tx, _actor: Actor, _input: {
+export function createSuggestion(_actor: Actor, _input: {
   accountId: string; signalId: string; targetField: string | null;
   currentValue: string | null; proposedValue: string;
-}): Promise<{ id: string }> {
+}, _ctx: CoreContext): Promise<{ id: string }> {
   throw new Error(CHUA);
 }

@@ -17,7 +17,11 @@
 
 import type { Actor } from "@/core/actor";
 import type { AuditSink } from "@/core/audit";
-import type { BoundCapability, CapName } from "./types";
+import type { BoundCapability, CapName, RegistryEntry } from "./types";
+import { decide } from "@/autonomy/gate";
+import { collectGateContext } from "./gate-context";
+import { GateDenied } from "./errors";
+import { entries } from "./caps/account";
 
 export type Registry = {
   /// `AD-CP-1` — trả CLOSURE đã gắn `actor`, không trả `entry.fn` trần.
@@ -56,9 +60,77 @@ export type Registry = {
 ///
 /// ⚠ Tầng ④ **không bao giờ** gọi `completeAuditRow`. Đó là bước ⑥ của
 /// `AD-CR-7` và lõi là bên gọi, vì chỉ lõi mới ở trong giao dịch.
-export function createRegistry(_deps: {
+export function createRegistry(deps: {
   seedMode: boolean;
   auditSink: AuditSink;
 }): Registry {
-  throw new Error("chưa hiện thực");
+  const byName = new Map<CapName, RegistryEntry>(entries.map((e) => [e.name, e]));
+
+  async function loadCapability(name: CapName, actor: Actor): Promise<BoundCapability> {
+    // ① tra sổ
+    const entry = byName.get(name);
+
+    // ② gom ngữ cảnh — NÉM XUYÊN nếu hỏng (`AD-GT-2`). Cơ sở dữ liệu chết là
+    //    sự cố hạ tầng, không phải một chính sách chặn; biến nó thành từ chối
+    //    là nói dối trong dòng ghi vết.
+    const ctx = await collectGateContext(actor, deps.seedMode);
+
+    // ③ quyết định — hàm THUẦN của tầng ③
+    const decision = decide(entry, actor, ctx);
+
+    // ④ ghi vết PHA 1 — cho MỌI quyết định, cho phép lẫn từ chối (`AD-CP-2`).
+    //    Chạy TRƯỚC khi lõi mở giao dịch, và bằng `db` autocommit, để lời gọi
+    //    bị bác vẫn để lại vết (`AD-4` bất biến ①).
+    const auditId = await deps.auditSink.begin({
+      actor,
+      capability: name,
+      zone: entry?.zone ?? "unknown",
+      risk: entry?.risk ?? "unknown",
+      allowed: decision.allowed,
+      denyReason: decision.allowed ? null : decision.reason,
+      causedBy: null,
+    });
+
+    if (!decision.allowed) {
+      await deps.auditSink.completeDetached(auditId, "no_op");
+      throw new GateDenied(
+        decision.reason,
+        name,
+        "boundary" in decision ? decision.boundary : undefined,
+      );
+    }
+
+    // `entry` chắc chắn tồn tại: `decide` trả `unknown_capability` khi không.
+    const found = entry as RegistryEntry;
+
+    // ⑤ kiểm tham số — SAU `decide`, không phải trước (`AD-CP-5`). Tham số sai
+    //    trên một capability mà tác nhân vốn không được gọi phải trả
+    //    `actor_not_allowed`; nếu không, thông điệp lỗi tự nó rò rỉ sự tồn tại
+    //    của capability đó.
+    return async (params: unknown) => {
+      const parsed = found.params.parse(params);
+      // ⑥ gọi thân. KHÔNG mở giao dịch ở đây — `AD-CR-7` đặt `BEGIN` trong lõi,
+      //    và lõi là bên duy nhất thấy đủ giá trị cũ lẫn mới để hoàn tất ghi vết.
+      return found.fn(actor, parsed, {
+        auditId,
+        causedBy: null,
+        audit: deps.auditSink,
+      });
+    };
+  }
+
+  const namesWhere = (p: (e: RegistryEntry) => boolean): readonly CapName[] =>
+    entries.filter(p).map((e) => e.name);
+
+  return {
+    loadCapability,
+    CAP_MACHINE_ALLOWED_GHI: namesWhere(
+      (e) => e.allowedActors.includes("system") && e.kind === "write",
+    ),
+    CAP_MACHINE_ALLOWED_DOC: namesWhere(
+      (e) => e.allowedActors.includes("system") && e.kind === "read",
+    ),
+    CAP_HUMAN_ONLY: namesWhere((e) => !e.allowedActors.includes("system")),
+    CAP_SYSTEM_INTERNAL: namesWhere((e) => !e.allowedActors.includes("human")),
+  };
 }

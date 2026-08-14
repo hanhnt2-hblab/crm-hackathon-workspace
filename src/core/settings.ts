@@ -9,7 +9,13 @@ import { getScanIntervalMinutesSeed } from "@/config";
 
 /// Từ vựng ĐÓNG. Thêm khoá mà quên khai ở đây là lỗi biên dịch, không phải
 /// một `undefined` im lặng lúc chạy.
+/// ⚠ `ai_enabled` là NƠI DUY NHẤT lưu trạng thái nút Tắt AI (`T-9`, `C3-5`).
+/// Nó ở bảng `settings` chứ không phải một biến trong tiến trình vì `T-9` đòi
+/// trạng thái sống qua lần khởi động lại, và vì vòng quét chạy ở tiến trình
+/// khác với tiến trình phục vụ web — một biến trong bộ nhớ thì hai bên thấy
+/// hai giá trị.
 export type SettingKey =
+  | "ai_enabled"
   | "model_calls_per_scan"
   | "budget_warn_ratio"
   | "budget_stop_ratio"
@@ -23,6 +29,7 @@ export type SettingKey =
   | "metrics_min_sample";
 
 export const SETTING_DEFAULTS: Record<SettingKey, string> = {
+  ai_enabled: "true",                            // T-9 — mặc định BẬT
   model_calls_per_scan: "20",                    // NFR-2
   budget_warn_ratio: "0.80",                     // NFR-3
   budget_stop_ratio: "1.00",                     // NFR-3

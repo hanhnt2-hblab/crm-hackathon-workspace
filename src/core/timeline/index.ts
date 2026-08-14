@@ -15,10 +15,9 @@
 // Công ty mới gieo sẽ ăn lỗi khoá ngoại — đúng đường `T-8`.
 
 import type { Actor } from "@/core/actor";
-/// `AD-1`: `src/core` KHÔNG được nhập `src/capability` — chiều phụ thuộc là
-/// ④ → ⑤, không ngược lại. `Tx` có sẵn ngay trong lõi; nhập `PrismaTx` từ
-/// tầng ④ là đi vòng qua chính ranh giới mình thuộc về.
-import type { Tx } from "@/core/db";
+/// `AD-CR-7`: lõi TỰ mở giao dịch, nên không nhận `tx` từ ngoài.
+import { tx } from "@/core/db";
+import type { CoreContext } from "@/core/context";
 
 const CHUA = "chưa hiện thực";
 
@@ -43,9 +42,9 @@ export type AppendEntryInput = {
 /// `added_by` KHÔNG phải tham số: nó suy từ `actor` (`AD-5`). Người gọi không
 /// khai được *"mục này do máy thêm"* trong khi tác nhân là người.
 export function appendTimelineEntry(
-  _tx: Tx,
   _actor: Actor,
   _input: AppendEntryInput,
+  _ctx: CoreContext,
 ): Promise<{ id: string }> {
   throw new Error(CHUA);
 }
@@ -56,9 +55,9 @@ export function appendTimelineEntry(
 /// `string` đứng liền nhau, và gọi ngược thì ghi nội dung vào mệnh đề `where` —
 /// `updateMany` chạm 0 hàng, không lỗi, mất bản sửa mà không ai biết.
 export function updateTimelineEntry(
-  _tx: Tx,
   _actor: Actor,
   _input: { id: string; content: string },
+  _ctx: CoreContext,
 ): Promise<void> {
   throw new Error(CHUA);
 }

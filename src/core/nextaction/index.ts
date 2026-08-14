@@ -5,10 +5,9 @@
 // mục một phần `next_action_one_active`.
 
 import type { Actor } from "@/core/actor";
-/// `AD-1`: `src/core` KHÔNG được nhập `src/capability` — chiều phụ thuộc là
-/// ④ → ⑤, không ngược lại. `Tx` có sẵn ngay trong lõi; nhập `PrismaTx` từ
-/// tầng ④ là đi vòng qua chính ranh giới mình thuộc về.
-import type { Tx } from "@/core/db";
+/// `AD-CR-7`: lõi TỰ mở giao dịch, nên không nhận `tx` từ ngoài.
+import { tx } from "@/core/db";
+import type { CoreContext } from "@/core/context";
 
 const CHUA = "chưa hiện thực";
 
@@ -18,7 +17,7 @@ export type SetNextActionInput = {
   dueDate: Date | null;
 };
 
-export function setNextAction(_tx: Tx, _actor: Actor, _input: SetNextActionInput): Promise<void> {
+export function setNextAction(_actor: Actor, _input: SetNextActionInput, _ctx: CoreContext): Promise<void> {
   throw new Error(CHUA);
 }
 
@@ -28,13 +27,13 @@ export function setNextAction(_tx: Tx, _actor: Actor, _input: SetNextActionInput
 /// Thiếu hàm này thì: vòng quét đọc lúc 10:00:30, người lưu lúc 10:00:31, máy
 /// đè lúc 10:00:32 — vi phạm `D12`, đúng thứ nhóm 4 hứa tuyệt đối không làm.
 /// Trả `true` khi đã ghi, `false` khi bỏ lượt.
-export function fillNextActionIfUnchanged(_tx: Tx, _actor: Actor, _input: {
+export function fillNextActionIfUnchanged(_actor: Actor, _input: {
   opportunityId: string;
   expectedContent: string | null;
   content: string;
   dueDate: Date;
   sourceSignalId: string;
-}): Promise<boolean> {
+}, _ctx: CoreContext): Promise<boolean> {
   throw new Error(CHUA);
 }
 
@@ -46,6 +45,6 @@ export function fillNextActionIfUnchanged(_tx: Tx, _actor: Actor, _input: {
 ///
 /// Bấm lần hai là no-op. Người đã sửa tay thì Hoàn tác không ghi đè: ghi có
 /// điều kiện `where set_by='he_thong' AND undo_deadline_at > now()`.
-export function undoSystemNextAction(_tx: Tx, _actor: Actor, _opportunityId: string): Promise<boolean> {
+export function undoSystemNextAction(_actor: Actor, _opportunityId: string, _ctx: CoreContext): Promise<boolean> {
   throw new Error(CHUA);
 }

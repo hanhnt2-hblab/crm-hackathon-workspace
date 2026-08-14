@@ -5,10 +5,9 @@
 // A gắn được người của Công ty B.
 
 import type { Actor } from "@/core/actor";
-/// `AD-1`: `src/core` KHÔNG được nhập `src/capability` — chiều phụ thuộc là
-/// ④ → ⑤, không ngược lại. `Tx` có sẵn ngay trong lõi; nhập `PrismaTx` từ
-/// tầng ④ là đi vòng qua chính ranh giới mình thuộc về.
-import type { Tx } from "@/core/db";
+/// `AD-CR-7`: lõi TỰ mở giao dịch, nên không nhận `tx` từ ngoài.
+import { tx } from "@/core/db";
+import type { CoreContext } from "@/core/context";
 
 const CHUA = "chưa hiện thực";
 
@@ -22,11 +21,11 @@ export type CreateActivityInput = {
   description?: string | null;
 };
 
-export function createActivity(_tx: Tx, _actor: Actor, _input: CreateActivityInput): Promise<{ id: string }> {
+export function createActivity(_actor: Actor, _input: CreateActivityInput, _ctx: CoreContext): Promise<{ id: string }> {
   throw new Error(CHUA);
 }
 
 /// `NFR-19` — máy KHÔNG sửa được Hoạt động do người tạo.
-export function updateActivity(_tx: Tx, _actor: Actor, _id: string, _patch: Partial<CreateActivityInput>): Promise<void> {
+export function updateActivity(_actor: Actor, _id: string, _patch: Partial<CreateActivityInput>, _ctx: CoreContext): Promise<void> {
   throw new Error(CHUA);
 }

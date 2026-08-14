@@ -5,10 +5,11 @@
 // chuẩn hoá; không khớp thì LOẠI và ghi nhật ký, không lưu kèm cảnh báo.
 
 import type { Actor } from "@/core/actor";
-/// `AD-1`: `src/core` KHÔNG được nhập `src/capability` — chiều phụ thuộc là
-/// ④ → ⑤, không ngược lại. `Tx` có sẵn ngay trong lõi; nhập `PrismaTx` từ
-/// tầng ④ là đi vòng qua chính ranh giới mình thuộc về.
-import type { Tx } from "@/core/db";
+/// `AD-CR-7`: lõi TỰ mở giao dịch, nên không nhận `tx` từ ngoài.
+import { tx } from "@/core/db";
+import type { CoreContext } from "@/core/context";
+import { BusinessRuleError } from "@/core/errors";
+import { findQuote } from "@/core/normalize";
 
 const CHUA = "chưa hiện thực";
 
@@ -51,11 +52,87 @@ export type CreateSignalInput = {
   eventDate: Date | null;
 };
 
-export function createSignal(_tx: Tx, _actor: Actor, _input: CreateSignalInput): Promise<{ id: string }> {
-  throw new Error(CHUA);
+/// `BR-D1` · `BR-D2` · `T-2` — hai lớp chặn, và cả hai ở TẦNG NGHIỆP VỤ.
+///
+/// `T-2` nói nguyên văn *"Thử ghi thẳng, phải bị từ chối"*. Nghĩa là chặn phải
+/// nằm ở đây, không ở lược đồ Zod của tầng ④ và không ở giao diện — một lời gọi
+/// bỏ qua cả hai vẫn phải hỏng.
+///
+/// Lớp ① `BR-D1`: không có câu trích thì Phát hiện KHÔNG TỒN TẠI. Chuỗi rỗng và
+/// chuỗi chỉ có khoảng trắng đều tính là không có — `NOT NULL` của cột không
+/// bắt được hai thứ đó.
+///
+/// Lớp ② `BR-D2`: câu trích phải KHỚP NGUYÊN VĂN một đoạn của Bản lưu. So trên
+/// bản đã chuẩn hoá, vì đó là bản mà `quote_start`/`quote_end` đánh chỉ số vào
+/// (`AD-18`). Không khớp thì LOẠI, không lưu kèm cờ cảnh báo: một Phát hiện có
+/// câu trích không tra được là thứ `T-3` sẽ mở ra một khoảng trống.
+export async function createSignal(
+  _actor: Actor,
+  input: CreateSignalInput,
+  ctx: CoreContext,
+): Promise<{ id: string }> {
+  // `BR-D1` — trước cả khi chạm cơ sở dữ liệu.
+  if (input.quote.trim().length === 0) {
+    throw new BusinessRuleError(
+      "BR-D1",
+      "Phát hiện không có câu trích thì không tồn tại.",
+    );
+  }
+
+  return tx(async (t) => {
+    const article = await t.article.findUnique({
+      where: { id: input.articleId },
+      select: { accountId: true, normalizedText: true, normalizerVersion: true },
+    });
+    if (!article) {
+      throw new BusinessRuleError("BR-D2", "Bản lưu không tồn tại.");
+    }
+
+    // `BR-D3` — Phát hiện thừa kế Công ty TỪ Bản lưu. Bên gọi vẫn phải nêu rõ
+    // `accountId`, và lõi đối chiếu: hai giá trị lệch nhau nghĩa là bên gọi
+    // đang gán một Phát hiện sang Công ty khác, và đó là chuyện phải hỏng ồn ào.
+    if (article.accountId !== input.accountId) {
+      throw new BusinessRuleError(
+        "BR-D3",
+        "Phát hiện phải thuộc đúng Công ty của Bản lưu sinh ra nó.",
+      );
+    }
+
+    // `BR-D2` — khớp nguyên văn. `findQuote` tự chuẩn hoá câu trích trước khi
+    // tìm, nên khác biệt về khoảng trắng không làm hỏng một câu trích đúng.
+    const at = findQuote(article.normalizedText, input.quote);
+    if (!at) {
+      throw new BusinessRuleError(
+        "BR-D2",
+        "Câu trích không khớp nguyên văn một đoạn nào của Bản lưu.",
+      );
+    }
+
+    // ⚠ Bỏ qua `input.quoteStart`/`quoteEnd` do bên gọi đưa, dùng giá trị VỪA
+    // TÍNH. Tin bên gọi ở đây là mở một đường để `T-3` mở sai đoạn: mô hình có
+    // thể trả offset đúng định dạng mà lệch vị trí, và không lớp nào bắt được.
+    const s = await t.signal.create({
+      data: {
+        accountId: input.accountId,
+        articleId: input.articleId,
+        claim: input.claim,
+        quote: input.quote,
+        quoteStart: at.start,
+        quoteEnd: at.end,
+        signalType: input.signalType,
+        signalSubtype: input.signalSubtype,
+        confidence: input.confidence,
+        relevance: input.relevance,
+        eventDate: input.eventDate,
+      },
+      select: { id: true },
+    });
+    await ctx.audit.complete(t, ctx.auditId, "ok", { after: { id: s.id } });
+    return { id: s.id };
+  });
 }
 
 /// `FR-42` — nút *không hữu ích*, một trong hai đường vào `errorDetectionRate`.
-export function markSignalUnhelpful(_tx: Tx, _actor: Actor, _id: string): Promise<void> {
+export function markSignalUnhelpful(_actor: Actor, _id: string, _ctx: CoreContext): Promise<void> {
   throw new Error(CHUA);
 }
