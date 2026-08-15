@@ -24,11 +24,11 @@ const seeder: Actor = { kind: "seed" };
 /// Không có nó thì `npm run seed` lần hai nhân đôi dữ liệu, và `T-8` đếm sai.
 /// Ở lát cắt này chưa có đường upsert; `sourceRef` là chỗ để cắm nó vào sau.
 const COMPANIES = [
-  { sourceRef: "seed:acc:1", name: "Tomahawk Systems", market: "JP" as const,
+  { sourceRef: "seed-acc-1", name: "Tomahawk Systems", market: "JP" as const,
     industry: "IT Services", accountType: "it_solution" as const, country: "Japan" },
-  { sourceRef: "seed:acc:2", name: "Kitagawa Manufacturing", market: "JP" as const,
+  { sourceRef: "seed-acc-2", name: "Kitagawa Manufacturing", market: "JP" as const,
     industry: "Manufacturing", accountType: "traditional" as const, country: "Japan" },
-  { sourceRef: "seed:acc:3", name: "Blue Harbor Logistics", market: "Global" as const,
+  { sourceRef: "seed-acc-3", name: "Blue Harbor Logistics", market: "Global" as const,
     industry: "Logistics", accountType: "tech_based" as const, country: "Singapore" },
 ];
 
@@ -55,7 +55,13 @@ async function wipeSeedData(): Promise<void> {
   if (!url) throw new Error("Thiếu `DATABASE_URL`.");
   const c = new PrismaClient({ adapter: new PrismaPg({ connectionString: url }) });
   try {
-    const like = { startsWith: "seed:" };
+    // ⚠ `"seed"` không có dấu hai chấm — bộ gieo dùng CẢ HAI dạng khoá.
+    //
+    // Công ty đổi sang `seed-acc-1` vì `readSnapshotDataset` lấy **tên thư mục
+    // làm `source_ref`**, và `:` là ký tự KHÔNG HỢP LỆ trong tên thư mục trên
+    // Windows — `seed:acc:1` không tạo được thư mục nào. Tài khoản người dùng
+    // giữ `seed:user:sales` vì chúng không có Bản chụp nào.
+    const like = { startsWith: "seed" };
     const accounts = await c.account.findMany({
       where: { sourceRef: like },
       select: { id: true },

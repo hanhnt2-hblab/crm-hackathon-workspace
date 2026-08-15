@@ -5,10 +5,16 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
-    "start": "docker compose up -d --wait && next start",
+    "start": "docker compose up -d --wait && next build && next start",
+    "up": "npm ci && npm start",
     "lint": "eslint",
     "test": "docker compose up -d --wait db_test && vitest run",
+    "verify": "node e2e/verify.mjs",
+    "e2e": "playwright test",
+    "e2e:xem": "node e2e/headed.mjs",
+    "e2e:report": "playwright show-report",
     "seed": "docker compose up -d --wait && prisma generate && prisma migrate deploy && tsx --env-file=.env prisma/seed.ts",
+    "ingest": "tsx --env-file=.env scripts/ingest.ts",
     "postinstall": "prisma generate",
     "stop": "docker compose down"
   },
@@ -23,6 +29,7 @@
     "zod": "4.4.3"
   },
   "devDependencies": {
+    "@playwright/test": "^1.62.1",
     "@testing-library/dom": "10.4.1",
     "@testing-library/react": "16.3.2",
     "@types/node": "^20",
