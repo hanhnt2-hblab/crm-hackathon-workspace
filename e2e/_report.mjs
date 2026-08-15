@@ -126,8 +126,15 @@ export function vietTrangDan({ bang, tCount, giay, thuMuc, doTong, trongTong }) 
       ? '<p class="verdict pass">✓ ĐẠT — cả mười điểm nghiệm thu đều xanh.</p>'
       : `<p class="verdict fail">✗ KHÔNG ĐẠT — ${doTong} điểm ĐỎ, ${trongTong} điểm chưa có phép kiểm nào.</p>`,
     ...the,
-    "<footer>Vết chạy, ảnh chụp và nhật ký từng ca: ",
-    '<a href="../playwright-report/index.html">playwright-report/index.html</a>',
+    // ⚠ ĐƯỜNG DẪN DẠNG CHỮ, KHÔNG PHẢI THẺ `<a>`.
+    //
+    // Trang này được thiết kế để NỘP RIÊNG một tệp — nó tự chứa, 8 KB, không
+    // tham chiếu mạng. Nhưng một `<a href="../playwright-report/…">` chỉ giải
+    // được khi tệp còn nằm cạnh thư mục kia; tải riêng lên đâu đó thì nó thành
+    // một liên kết hỏng ngay trước mặt người chấm — tệ hơn hẳn một dòng chữ.
+    "<footer>Vết chạy, ảnh chụp và nhật ký từng ca nằm ở ",
+    "<code>playwright-report/index.html</code> trong thư mục dự án ",
+    "(mở bằng <code>npm run e2e:report</code>).",
     "<br>Ba luồng <code>T-2</code>, <code>T-10</code> và phần hệ quả của <code>T-9</code> ",
     "không phải thao tác trình duyệt — chính §6 viết như vậy; xem dòng <em>bản chất</em> của mỗi thẻ.",
     "</footer></div></body></html>",
