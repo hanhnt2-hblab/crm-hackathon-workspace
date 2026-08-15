@@ -106,6 +106,13 @@ export const createSignalCap = defineCap({
     /// Chuỗi ISO, không `z.date()`. `AD-CP-5` chốt tầng ④ không nhận `Date` qua
     /// biên: tham số tới đây đã đi qua JSON, và `z.date()` bác mọi chuỗi.
     eventDate: z.string().nullable(),
+    /// `BR-D2` — hai số công cụ `verifyQuote` trả về, mô hình chép lại. Lõi đối
+    /// chiếu với giá trị nó tự tính; KHÔNG BAO GIỜ lưu. `.optional()` vì bộ gieo
+    /// và `src/ingest` không có mô hình nào để gọi công cụ.
+    modelQuoteRange: z
+      .object({ start: z.number().int().nonnegative(), end: z.number().int().nonnegative() })
+      .nullable()
+      .optional(),
   }),
   fn: async (actor, p, ctx) =>
     createSignal(

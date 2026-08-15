@@ -238,6 +238,16 @@ export type CreateSignalInput = {
   /// vì thiếu hai số mà không tầng nào trên nó sinh ra được.
   quoteStart?: number;
   quoteEnd?: number;
+  /// `BR-D2` — HAI SỐ MÔ HÌNH KHAI, do công cụ `verifyQuote` trả về.
+  ///
+  /// ⚠ KHÔNG BAO GIỜ được lưu. Nó tồn tại để ĐỐI CHIẾU với giá trị lõi tự tính,
+  /// và độ lệch đi vào ghi vết. Cùng hình dạng với `relevance` sau chốt 14/8:
+  /// giá trị mô hình là thứ để ĐO, giá trị lõi là thứ để LƯU.
+  ///
+  /// `null` khi mô hình không gọi công cụ — hợp lệ, và khi đó không có gì để đối
+  /// chiếu. Trường này thêm một lớp kiểm, không thay lớp nào: `findQuote` vẫn là
+  /// bên quyết định Phát hiện có sống hay không.
+  modelQuoteRange?: { start: number; end: number } | null;
   /// Enum ĐÓNG, khớp từng chữ `enum SignalType`/`Confidence`/`Relevance`.
   signalType: SignalTypeValue;
   /// `CHECK signal_subtype_only_other` — CHỈ khác `null` khi `signalType` là
@@ -336,6 +346,19 @@ export async function createSignal(
       modelReason: input.relevanceReason ?? null,
     });
 
+    // `BR-D2` — ĐỐI CHIẾU hai số mô hình khai với hai số lõi vừa tính.
+    //
+    // Ba kết cục, và cả ba đều đi vào ghi vết chứ không chặn Phát hiện: mô hình
+    // KHÔNG gọi công cụ (`null`), gọi và khai ĐÚNG, gọi mà khai LỆCH. Cái thứ ba
+    // là thứ đáng đo nhất — nó phân biệt *"mô hình diễn đạt lại"* (câu trích
+    // không khớp, đã bị `findQuote` bác ở trên) với *"mô hình chép đúng nhưng
+    // khai bừa vị trí"*, hai lỗi rất khác nhau mà trước đây cùng biến mất.
+    const quoteToolUsed = input.modelQuoteRange != null;
+    const quoteRangeMatches =
+      quoteToolUsed
+      && input.modelQuoteRange!.start === at.start
+      && input.modelQuoteRange!.end === at.end;
+
     // ⚠ Bỏ qua `input.quoteStart`/`quoteEnd` do bên gọi đưa, dùng giá trị VỪA
     // TÍNH. Tin bên gọi ở đây là mở một đường để `T-3` mở sai đoạn: mô hình có
     // thể trả offset đúng định dạng mà lệch vị trí, và không lớp nào bắt được.
@@ -370,8 +393,22 @@ export async function createSignal(
     // tục lệch cùng một chiều trên cùng một loại tin nghĩa là bảng sai, không
     // phải mô hình sai.
     await ctx.audit.complete(t, ctx.auditId, "ok", {
+      accountId: input.accountId,
       after: {
         id: s.id,
+        // `BR-D2` — ba trạng thái của công cụ `verifyQuote`, đếm được từ ghi vết:
+        //   `khong_goi`   mô hình bỏ qua công cụ
+        //   `khop`        gọi và khai đúng vị trí
+        //   `khai_lech`   gọi, câu trích ĐÚNG, nhưng vị trí khai SAI
+        //
+        // Trạng thái thứ ba là thứ đáng đo nhất và trước đây không thấy được:
+        // nó tách *"mô hình diễn đạt lại"* (đã bị `findQuote` bác trước khi tới
+        // đây) khỏi *"mô hình chép đúng nhưng khai bừa"* — hai lỗi khác nhau về
+        // bản chất, mà cùng biến mất vào một con số.
+        quoteTool: !quoteToolUsed ? "khong_goi" : quoteRangeMatches ? "khop" : "khai_lech",
+        ...(quoteToolUsed && !quoteRangeMatches
+          ? { quoteRangeModel: input.modelQuoteRange, quoteRangeCore: { start: at.start, end: at.end } }
+          : {}),
         relevance: relevance.relevance,
         ...(relevance.deviation === 0
           ? {}

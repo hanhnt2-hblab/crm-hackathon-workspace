@@ -10,13 +10,14 @@
 
 import type { Actor } from "@/core/actor";
 /// `AD-CR-7`: lõi TỰ mở giao dịch, nên không nhận `tx` từ ngoài.
-import { tx } from "@/core/db";
+import { db, tx } from "@/core/db";
 /// ⚠ Câu nhập RIÊNG cho kiểu — `no-import-type-side-effects` chặn dạng nội dòng.
 import type { Tx } from "@/core/db";
 import type { CoreContext } from "@/core/context";
 import { isHuman } from "@/core/actor";
 import { appendEntryWithin } from "@/core/timeline";
 import { BusinessRuleError } from "@/core/errors";
+import { deriveProposal } from "./propose";
 
 /// Tám ô đích của `AD-CR-11`, khớp TỪNG CHỮ `enum TargetField`. `market` KHÔNG
 /// nằm trong đây — nó là đầu vào lịch ngày làm việc của `BR-D7`, và gộp nó vào
@@ -174,6 +175,7 @@ export async function createSuggestion(
     });
 
     await ctx.audit.complete(t, ctx.auditId, "ok", {
+      accountId: input.accountId,
       after: { id: row.id, supersededPending: closed },
     });
     return { id: row.id };
@@ -187,9 +189,13 @@ export async function createSuggestion(
 /// `loadCapability` — nên hàm này cố ý nhận `t` và KHÔNG mở giao dịch: nó chạy
 /// bên trong giao dịch của thao tác đã gây ra nó, cùng actor.
 ///
-/// ⚠ Hiện `softDeleteCompany` chưa gọi nó — cascade ở đó liệt kê bốn bảng và
-/// chưa có `suggestion`. Đó là tệp của cục khác; hàm này là chỗ để nối vào, và
-/// khoảng trống đã báo.
+/// ✅ ĐÃ NỐI 15/8: `softDeleteCompany` gọi hàm này trong cùng giao dịch, sau bảy
+/// nhóm cascade và trước lượt cập nhật `account`. Bản trước của chú thích này
+/// ghi *"hiện `softDeleteCompany` chưa gọi nó"* — không còn đúng.
+///
+/// ⚠ Hàng Gợi ý VẪN SỐNG, chỉ trạng thái đổi. Xoá mềm nó ở đây là làm mất dữ
+/// liệu đo của `D30`, và `autoAcceptRate` đã có sẵn cách đứng ngoài đúng đắn:
+/// `DECIDED_STATUSES` của `src/core/metrics.ts` không chứa `dong_he_thong`.
 export async function closeSuggestionsBySystem(
   t: Tx,
   accountId: string,
@@ -290,6 +296,7 @@ export async function decideSuggestion(
       // Gợi ý đã được quyết, hoặc hệ thống đã đóng nó bằng `co_goi_y_moi_hon`.
       // `no_op` là kết cục, không phải lỗi — người bấm không làm gì sai.
       await ctx.audit.complete(t, ctx.auditId, "no_op", {
+        accountId: before.accountId,
         before: { status: before.status },
         after: { status: before.status },
       });
@@ -299,6 +306,7 @@ export async function decideSuggestion(
     // `bo` dừng ở đây: `FR-21` — không duyệt thì hồ sơ giữ nguyên VÔ THỜI HẠN.
     if (input.outcome === "bo") {
       await ctx.audit.complete(t, ctx.auditId, "ok", {
+        accountId: before.accountId,
         before: { status: "cho" },
         after: { status: "bo", dropReason: input.dropReason },
       });
@@ -320,6 +328,7 @@ export async function decideSuggestion(
         applied,
       );
       await ctx.audit.complete(t, ctx.auditId, "ok", {
+        accountId: before.accountId,
         before: { status: "cho", [before.targetField]: before.currentValue },
         after: { status: input.outcome, [before.targetField]: applied },
       });
@@ -341,6 +350,7 @@ export async function decideSuggestion(
       sourceSignalId: before.signalId,
     });
     await ctx.audit.complete(t, ctx.auditId, "ok", {
+      accountId: before.accountId,
       before: { status: "cho" },
       after: { status: input.outcome, timelineText: content },
     });
@@ -387,4 +397,67 @@ async function applyToAccount(
   }
 
   await t.account.update({ where: { id: accountId }, data: { [column]: value } as never });
+}
+
+/// `FR-19` · ontology §6 (*"chạy ngầm: xếp Gợi ý vào hàng đợi"*) — đường máy
+/// sinh Gợi ý, và là bên gọi duy nhất của `deriveProposal`.
+///
+/// ⚠ HAI THAM SỐ, cùng lý do với `fillNextActionIfUnchanged`. Vòng quét là tầng
+/// ① và không đọc được ô hồ sơ nào để dựng `currentValue`, cũng không được nhập
+/// `@/core` để tự suy đề nghị (`AD-1`). Bắt nó nộp `targetField` và
+/// `proposedValue` là bắt nó biết thứ nó không được biết — nên bản trước không
+/// có bên gọi nào, và hàng đợi Gợi ý RỖNG suốt.
+///
+/// Trả `null` khi không rút được gì. Đó là kết cục BÌNH THƯỜNG, không phải lỗi:
+/// phần lớn Bản lưu không nói địa chỉ web hay năm thành lập, và `FR-21` chốt
+/// không có Gợi ý thì hồ sơ giữ nguyên.
+export async function proposeFromSignal(
+  actor: Actor,
+  input: { accountId: string; signalId: string },
+  ctx: CoreContext,
+): Promise<{ id: string } | { skipped: true; reason: string }> {
+  const signal = await db.signal.findUnique({
+    where: { id: input.signalId },
+    select: {
+      accountId: true,
+      article: { select: { normalizedText: true } },
+    },
+  });
+  if (!signal) return { skipped: true, reason: "Phát hiện không tồn tại." };
+  if (signal.accountId !== input.accountId) {
+    return { skipped: true, reason: "Phát hiện không thuộc Công ty đã nêu." };
+  }
+
+  const account = await db.account.findUnique({
+    where: { id: input.accountId },
+    select: { website: true, country: true, foundedYear: true },
+  });
+  if (!account) return { skipped: true, reason: "Công ty không tồn tại." };
+
+  const draft = deriveProposal(signal.article.normalizedText, account);
+  if (!draft) {
+    return { skipped: true, reason: "Bản lưu không có ô nào rút được bằng luật." };
+  }
+
+  // ⚠ Đọc NGOÀI giao dịch rồi gọi `createSuggestion`, vốn tự mở giao dịch của
+  // nó (`AD-CR-7`). Gọi lồng là `TypeError` lúc chạy trên ITX client.
+  //
+  // Cửa sổ đua giữa lượt đọc và lượt ghi là có thật, và `FR-51` đóng nó ở chỗ
+  // đúng: ràng buộc *một Gợi ý chờ mỗi ô* nằm TRONG giao dịch của
+  // `createSuggestion`, nên hai lượt sinh cùng ô thì cái sau đóng cái trước
+  // thay vì cả hai cùng nằm trong hàng đợi.
+  return createSuggestion(
+    actor,
+    {
+      kind: "fill_field",
+      accountId: input.accountId,
+      signalId: input.signalId,
+      targetField: draft.targetField,
+      /// `FR-19` vế *"hiện tại"*: giá trị SỐNG lúc sinh. Bên đọc vẫn đọc lại lúc
+      /// mở — `FR-51` nói rõ đây không phải ảnh chụp có thẩm quyền.
+      currentValue: null,
+      proposedValue: draft.proposedValue,
+    },
+    ctx,
+  );
 }

@@ -49,6 +49,19 @@ export function buildSignalSchema(enums: SignalEnums): {
     /// `z.iso.datetime()`, KHÔNG `z.date()`. `null` khi Bản lưu không nói ngày
     /// — `BR-D7` khi đó lấy ngày của Bản lưu, và đó là việc của lõi.
     eventDate: z.iso.datetime().nullable(),
+    /// `BR-D2` — HAI SỐ DO CÔNG CỤ `verifyQuote` TRẢ VỀ, mô hình chép lại.
+    ///
+    /// ⚠ Đây là trường KIỂM ĐƯỢC, không phải một lời hứa. Một cờ `quoteChecked:
+    /// boolean` thì mô hình khai `true` là xong và không lớp nào bác được. Hai số
+    /// này thì lõi TỰ TÍNH lại bằng `findQuote` và đối chiếu — khai bừa là lệch,
+    /// và lệch thì đếm được.
+    ///
+    /// `null` là hợp lệ: mô hình không gọi công cụ, hoặc gọi mà không khớp. Khi đó
+    /// lõi vẫn kiểm câu trích như cũ; trường này chỉ thêm một lớp, không thay lớp
+    /// nào.
+    quoteRange: z
+      .object({ start: z.number().int().nonnegative(), end: z.number().int().nonnegative() })
+      .nullable(),
   });
 
   /// `AD-AG-5` — gốc là ĐỐI TƯỢNG BỌC, không phải mảng trần: mảng trần không

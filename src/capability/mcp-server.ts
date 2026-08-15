@@ -29,6 +29,10 @@ export const MCP_SERVER_KEY = "crm";
 /// mặt agent lớn thêm mà không ai duyệt. Ở đây, mở rộng bề mặt là một dòng
 /// nhìn thấy được trong diff.
 export const MCP_TOOL_NAMES = [
+  /// ⚠ MỤC THỨ SÁU, và là mục duy nhất tầng ② được KỲ VỌNG gọi. Năm mục dưới là
+  /// lớp phòng thủ (`AD-AG-3`: handler chạy 0 lần, đã đo). `verifyQuote` kiểm
+  /// ĐẦU RA chứ không lấy đầu vào — xem lý do đầy đủ ở `caps/read-shared.ts`.
+  "verifyQuote",
   "readArticle",
   "readAccountType",
   "listEnums",

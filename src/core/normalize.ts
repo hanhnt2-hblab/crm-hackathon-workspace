@@ -71,6 +71,28 @@ export function isIdempotent(raw: string): boolean {
 /// nằm ở đúng khoảng ấy. Lưu bản thô mà bên gọi đưa thì hai cột nói hai chuyện
 /// ngay khi mô hình trả câu trích có dấu cách kép — và triệu chứng là màn hình
 /// tô sáng một đoạn khác với chữ nó hiển thị.
+///
+/// ⚠ TÀI LIỆU LỆCH MÃ — ĐỪNG SỬA MÃ CHO KHỚP `epics.md`.
+///
+/// `epics.md` mô tả `C5-10` là *"`findQuote` trả khoảng vị trí trên **văn bản
+/// gốc**, không trên bản đã chuẩn hoá"*. Câu đó NGƯỢC với ba nguồn cùng nói một
+/// điều, và mã ở đây theo ba nguồn ấy:
+///   · `AD-18` — chuẩn hoá là mốc neo; đổi hàm chuẩn hoá thì phải TÍNH LẠI
+///     offset của Phát hiện thuộc phiên bản cũ. Câu đó chỉ có nghĩa nếu offset
+///     đo trên bản CHUẨN HOÁ — offset trên bản thô không đổi khi hàm này đổi.
+///   · `prisma/schema.prisma`, chú thích cột `signal.quote_start`:
+///     *"Offset trên bản CHUẨN HOÁ (`AD-18`)"*.
+///   · `createSignal` của `src/core/signal` gọi `findQuote(article.normalizedText, …)`.
+///
+/// Chuỗi phân xử của `AD-13` KHÔNG liệt `epics.md` ở bậc nào, nên nó không phân
+/// xử được tranh chấp này; ba bên còn lại đồng ý với nhau và `tests/T3.test.ts`
+/// bám theo đó. Chỗ cần sửa là CÂU CỦA `C5-10` ở thượng nguồn, không phải hàm
+/// này. Đã báo, chưa sửa — `epics.md` ngoài quyền của lượt sửa mã.
+///
+/// Hậu quả nếu ai đó *"sửa cho khớp tài liệu"*: `BR-D2` so khớp trên bản chuẩn
+/// hoá, nên offset đo trên bản thô sẽ trỏ lệch mọi lúc `raw_text` khác
+/// `normalized_text` (CRLF, dấu cách kép, thụt đầu dòng) — và triệu chứng trông
+/// y hệt *"mô hình bịa câu trích"*, tức chẩn đoán sẽ đi sai hướng.
 export function findQuote(
   normalizedText: string,
   quote: string,

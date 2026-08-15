@@ -11,6 +11,10 @@ import { db, tx } from "@/core/db";
 import type { CoreContext } from "@/core/context";
 import { isHuman } from "@/core/actor";
 import { BusinessRuleError } from "@/core/errors";
+/// `AD-21` — hệ quả dây chuyền của *xoá Công ty*, hàm NỘI BỘ lõi. Nó nhận `t` và
+/// KHÔNG mở giao dịch, nên nhập nó ở đây không mở đường lồng giao dịch nào.
+/// Một chiều: `src/core/suggestion` không nhập ngược lại tệp này.
+import { closeSuggestionsBySystem } from "@/core/suggestion";
 
 const BT = "`";
 
@@ -220,8 +224,37 @@ export async function softDeleteCompany(
     // `unexpected` của `ActionState`.
     if (!before) throw new Error("Công ty không tồn tại.");
 
-    // `D26` — cascade nêu ĐÍCH DANH. Phát hiện và Dòng thời gian KHÔNG có mặt:
-    // chúng là bằng chứng, và `NFR-17` cấm xoá bằng chứng kể cả khi người bấm.
+    // `D26` — cascade nêu ĐÍCH DANH **BẢY** nhóm: Người liên hệ · Cơ hội ·
+    // Hoạt động · Việc tiếp theo · Bản chụp · Bản lưu · Thông báo. Cộng một hệ
+    // quả không phải xoá: Gợi ý còn chờ chuyển `dong_he_thong`.
+    //
+    // ⚠ PHÁT HIỆN (`signal`) và DÒNG THỜI GIAN (`timeline`, `timeline_entry`)
+    // ĐỨNG NGOÀI, có chủ đích. `C5-1` viết hoa câu đó — *"Phát hiện và Dòng thời
+    // gian GIỮ NGUYÊN — chúng là bằng chứng"* — và `AD-14` là mã chịu lực: chú
+    // thích cột `signal.deleted_at` của lược đồ nói thẳng *"Phát hiện KHÔNG xoá
+    // được, KỂ CẢ BỞI NGƯỜI — nó là bằng chứng (`AD-14`)"*. Thêm hai nhóm ấy vào
+    // đây là xoá đúng thứ `T-3` đem ra đo.
+    //
+    // ⚠ KHÔNG viện `NFR-17` cho đoạn này. `NFR-17` ràng buộc MÁY (*"Hệ thống
+    // không tự xoá dữ liệu do người tạo"*), và nó đã dùng đúng chỗ ở chốt
+    // `isHuman` phía trên; kéo nó xuống đây để cấm cả người là trích sai chỗ.
+    //
+    // ⚠ BA BẢNG HẠ TẦNG cũng mang `account_id` và CỐ Ý đứng ngoài, vì chúng
+    // không phải *dữ liệu phụ thuộc* của Công ty: `account_lock` (khoá vòng
+    // quét, hết hạn là coi như không có — `AD-14`), `scan_log_entry` (nhật ký
+    // vòng quét) và `audit_record` (ghi vết, tức bằng chứng). Nói ra ở đây vì
+    // đoạn trên khẳng định một danh sách ĐỦ, và một danh sách đủ phải nêu cả
+    // thứ nó bỏ.
+    //
+    // ⚠ MỌI VẾ DÙNG `updateMany` THẲNG, không gọi `softDeleteContact` /
+    // `softDeleteOpportunity`. Hai hàm đó TỰ mở giao dịch (`AD-CR-7` đặt giao
+    // dịch TRONG lõi), nên gọi từ đây là lồng giao dịch, và lồng trên ITX client
+    // là `TypeError` lúc chạy — không phải một lỗi biên dịch.
+    //
+    // ⚠ Vế `deletedAt: null` viết TAY, không thừa. Extension của `AD-CR-6` chỉ
+    // chèn nó vào `where` của thao tác ĐỌC; `updateMany` không đi qua đó. Thiếu
+    // vế này thì một hàng người đã xoá từ hôm trước bị dập lại mốc xoá của hôm
+    // nay — mốc `deleted_at` khi đó nói sai *lúc nào* và *do lượt nào*.
     await t.opportunity.updateMany({ where: { accountId: id, deletedAt: null }, data: { deletedAt: now } });
     // Việc tiếp theo — `D26` liệt nó ĐÍCH DANH trong cascade. Đi qua
     // `opportunity` vì `next_action` không có `account_id`. Thiếu dòng này thì
@@ -234,6 +267,56 @@ export async function softDeleteCompany(
     });
     await t.contact.updateMany({ where: { accountId: id, deletedAt: null }, data: { deletedAt: now } });
     await t.activity.updateMany({ where: { accountId: id, deletedAt: null }, data: { deletedAt: now } });
+
+    // BA NHÓM DƯỚI ĐÂY LÀ PHẦN CÒN THIẾU của cascade `D26`. `deferred-work.md`
+    // nêu *"`C5-1` liệt cascade đích danh bảy nhóm. Mã hôm nay chạm bốn"* — bốn
+    // đó là `opportunity`, `next_action`, `contact`, `activity` ở trên.
+    //
+    // `C5-1` liệt Bản chụp và Bản lưu ĐÍCH DANH trong cascade, và không nguồn
+    // nào ở thượng nguồn nói ngược lại — `D26` chỉ nói *"kéo theo toàn bộ dữ
+    // liệu phụ thuộc"*, danh sách bảy nhóm là của `C5-1`.
+    //
+    // ⚠ HỆ QUẢ PHẢI NÓI THẲNG, đừng để người sau phát hiện bằng một màn hình
+    // trắng: hàng `signal` SỐNG SÓT, nhưng `quote_start`/`quote_end` của nó là
+    // chỉ số vào `article.normalized_text` (`AD-18`), và extension của
+    // `AD-CR-6` giấu Bản lưu đã xoá khỏi MỌI lượt đọc. Sau lượt xoá này, tô
+    // sáng câu trích của Công ty đó không dựng lại được qua `db`; muốn dựng lại
+    // thì phải đi `dbIncludingDeleted` — đường thoát ① của `src/core/db.ts`,
+    // đúng hạng *"báo cáo đối soát `TR-3` phải thấy cả bản ghi đã xoá mềm"*.
+    //
+    // Điều đó KHÔNG mâu thuẫn với `T-3`: `T-3` đo trên hồ sơ một Công ty còn
+    // sống. Cái `AD-14` cấm là XOÁ MẤT bằng chứng, và không hàng nào ở đây bị
+    // xoá cứng — `deleted_at` là mốc, không phải `DELETE`.
+    await t.snapshot.updateMany({ where: { accountId: id, deletedAt: null }, data: { deletedAt: now } });
+    await t.article.updateMany({ where: { accountId: id, deletedAt: null }, data: { deletedAt: now } });
+    // Thông báo trỏ về Công ty qua `account_id`, và về Cơ hội qua
+    // `opportunity_id` NULLABLE — nên lọc theo `accountId` là đủ, không cần đi
+    // vòng qua quan hệ như `next_action`. Thiếu dòng này thì sau khi xoá Công ty
+    // vẫn còn thông báo SỐNG mời người bấm vào một hồ sơ không còn đọc được.
+    await t.notification.updateMany({ where: { accountId: id, deletedAt: null }, data: { deletedAt: now } });
+
+    // HỆ QUẢ DÂY CHUYỀN, KHÔNG PHẢI XOÁ. `C5-1` tách nó khỏi bảy nhóm trên và
+    // nói rõ hình dạng: Gợi ý còn chờ chuyển `dong_he_thong` kèm
+    // `cong_ty_da_xoa`. Mã của LÝ DO ấy là `D26`, không phải `FR-51` — PRD §7.1,
+    // hàng `ly_do_dong_he_thong`, gán rành mạch *"có gợi ý mới hơn"* cho `FR-51`
+    // và *"công ty đã xoá"* cho `D26`.
+    //
+    // Hàng Gợi ý VẪN SỐNG, chỉ trạng thái đổi. Xoá mềm nó ở đây là làm mất dữ
+    // liệu đo mà `D30` đòi giữ (*"mục bị xoá vẫn còn làm dữ liệu đo"*).
+    //
+    // `AD-21` khai hệ quả dây chuyền là hàm NỘI BỘ `src/core`, không đi qua
+    // `loadCapability`; `closeSuggestionsBySystem` vì thế nhận `t` và KHÔNG mở
+    // giao dịch, nên gọi ở đây KHÔNG lồng giao dịch. Đây là ngoại lệ duy nhất
+    // của luật *"dùng `updateMany` thẳng"* ở trên, và nó hợp lệ đúng vì lý do đó.
+    //
+    // ✅ Rủi ro mà `deferred-work.md` nêu — *"chạm bất biến đếm của
+    // `autoAcceptRate`"* — đã ĐÓNG SẴN, không phải giả định: `DECIDED_STATUSES`
+    // của `src/core/metrics.ts` là `["duyet", "sua_roi_duyet", "bo"]`, không có
+    // `dong_he_thong`. Gợi ý đóng theo đường hệ thống đứng ngoài mẫu số vì không
+    // ai quyết gì cả — PRD §7.1 nói đúng câu đó cho cả `auto-accept rate` lẫn
+    // `error-detection rate`.
+    await closeSuggestionsBySystem(t, id, "cong_ty_da_xoa");
+
     await t.account.update({ where: { id }, data: { deletedAt: now } });
 
     await ctx.audit.complete(t, ctx.auditId, "ok", {
@@ -370,7 +453,12 @@ export async function searchCompanies(
     take: Math.min(q.limit ?? SEARCH_DEFAULT_LIMIT, SEARCH_MAX_LIMIT),
     select: {
       id: true, name: true, industry: true, accountType: true, market: true,
-      country: true, website: true, watching: true, updatedAt: true,
+      // ⚠ `sourceRef` LÀ TRƯỜNG CHỊU LỰC của `src/ingest`, không phải dữ liệu
+      // trang trí. `readAccountIndex` dựng bảng tra `source_ref → accountId` từ
+      // chính lượt đọc này; thiếu nó thì mọi Bản chụp rơi vào nhánh *"chưa có
+      // Công ty"* và lệnh nạp báo `tạo mới=0` — đúng như đã đo: ba Công ty tồn
+      // tại, ba Bản chụp bị bỏ, không lỗi nào được nêu.
+      country: true, website: true, watching: true, sourceRef: true, updatedAt: true,
       // ⚠ Vế `where` viết TAY, không thừa. Extension của `AD-CR-6` chỉ chèn
       // `deletedAt: null` vào `where` của model đang truy vấn; nó KHÔNG đi
       // xuống `_count`. Thiếu hai vế này thì sau khi giám khảo xoá một Người
@@ -388,6 +476,7 @@ export async function searchCompanies(
   return rows.map((r) => ({
     id: r.id,
     name: r.name,
+    sourceRef: r.sourceRef,
     industry: r.industry,
     accountType: r.accountType,
     market: r.market,

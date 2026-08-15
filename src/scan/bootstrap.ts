@@ -164,8 +164,11 @@ export async function createScanRuntime(opts?: {
     extract: opts?.extract ?? createExtract(registry),
     stop: async () => {
       // ⑤ nhả MỌI khoá của tiến trình này. `releaseAccountLock` mang cờ
-      //    `selfLimiting`, nên nó chạy được cả khi trần đã chạm (`AD-4`) —
-      //    xem cảnh báo ở đầu `loop.ts` về việc Cổng chưa đọc cờ đó.
+      //    `selfLimiting`, nên nó chạy được cả khi trần đã chạm hoặc phanh đang
+      //    tắt (`AD-4`). Cổng ĐÃ đọc cờ đó — `src/autonomy/gate.ts`, vế
+      //    `actor.kind === "system" && !entry.selfLimiting`. Bản trước của dòng này
+      //    trỏ tới một cảnh báo ở đầu `loop.ts` nói NGƯỢC LẠI; cảnh báo đó đã
+      //    được sửa 14/08, và con trỏ chéo này sửa theo trong cùng lượt.
       await callCap(registry, { kind: "system" }, "releaseAccountLock", {
         accountId: null,
         processId: SCAN_PROCESS_ID,

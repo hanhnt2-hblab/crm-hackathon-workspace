@@ -1,26 +1,34 @@
 // `AD-11` · `AD-12` · `FR-36` · `FR-38` · `FR-39` · `D19` — vòng quét khép kín.
 //
 // Một vòng: đọc lại nguồn → so với Bản lưu gần nhất → có nội dung mới thì rút
-// Phát hiện → tự thêm MỘT mục Dòng thời gian CHO MỖI Phát hiện mới → quay lại
-// đầu vòng. Vòng **không dừng chờ ai duyệt** ở bất kỳ bước nào (`§4/nhóm 5`).
+// Phát hiện → tự thêm MỘT mục Dòng thời gian CHO MỖI Phát hiện mới (`§4/nhóm 3`)
+// → thử TỰ ĐẶT VIỆC TIẾP THEO từ chính Phát hiện đó (`§4/nhóm 4`, `T-6`) → quay
+// lại đầu vòng. Vòng **không dừng chờ ai duyệt** ở bất kỳ bước nào (`§4/nhóm 5`).
+//
+// Nhóm 4 nối ở `writeSignals`, ngay sau `createSignal`; toàn bộ lý do chọn chỗ
+// đó — và lý do phần QUYẾT ĐỊNH (`BR-D5`, `BR-D7`, `BR-D8`, ba nhánh `AD-3`)
+// nằm ở lõi chứ không ở đây — viết trong `src/scan/next-action.ts`.
 //
 // ⚠ TẦNG ①: không `db`, không `tx`, không `@prisma/client`. Mọi lần chạm dữ
 // liệu đi qua `loadCapability()`.
 //
 // ⚠ PHANH VÀ MỤC TỰ-GIỚI-HẠN — đọc trước khi sửa gì trong tệp này.
-// `decide()` của tầng ③ áp bước ⑥ (`limit`) và ⑦ (`brake`) cho **mọi** lời gọi
-// của tác nhân `system`, và nó **KHÔNG đọc `entry.selfLimiting`**. Hệ quả đo
-// được, không phải suy đoán: khi `ai_enabled = false` hoặc trần đã chạm thì
-// `readSetting`, `writeScanLog(close)` và `releaseAccountLock` đều bị từ chối
-// mã `brake`/`limit` — tức vòng quét mất cả đường đọc phanh lẫn đường tự dọn.
-// `AD-4` nói mục tự-giới-hạn phải chạy được trong đúng hai ca đó, và spine gọi
-// tên hậu quả: *"khoá không nhả … mười phút không có gì xảy ra"*.
+// `decide()` của tầng ③ NAY ĐÃ đọc `entry.selfLimiting` (`src/autonomy/gate.ts`,
+// vế `actor.kind === "system" && !entry.selfLimiting`), nên `writeScanLog`,
+// `recordAccountCost` và `releaseAccountLock` vẫn chạy được khi phanh tắt hoặc
+// trần đã chạm — đúng thứ `AD-4` đòi. Khối cảnh báo bản trước nói ngược lại;
+// nó viết cho trạng thái mã CŨ và đã được xác minh là lỗi thời ngày 14/08.
 //
-// Tệp này KHÔNG vá lỗi đó — `src/autonomy/gate.ts` là chỗ sửa, một dòng: bỏ qua
-// bước ⑥/⑦ khi `entry.selfLimiting`. Nó CHỊU ĐỰNG lỗi đó: mọi lời gọi đi qua
-// `callCap` vốn không ném, từ chối được đọc thành trạng thái, và dòng nhật ký
-// vẫn ra được qua sink. Khi Cổng sửa xong, tệp này không phải đổi một dòng nào
-// — chỉ có thêm dòng nhật ký vào bảng `scan_log` thay vì chỉ ra stdout.
+// Hai hệ quả còn nguyên giá trị và ĐỪNG gỡ:
+//   · `readSetting` KHÔNG mang `selfLimiting`, nên khi `ai_enabled = false` thì
+//     chính lượt đọc phanh bị bác mã `brake`. Bước 1 đọc `denied + brake` như
+//     một CÂU TRẢ LỜI, không như một sự cố — đó là đường `T-9` đi qua.
+//   · `acquireAccountLock` và `readAccountList` cũng KHÔNG mang `selfLimiting`, nên
+//     chúng bị bác cùng lúc. Ca nguy hiểm nhất là `acquireAccountLock`: nó biến
+//     thành `khoa_ban` — một kết cục BÌNH THƯỜNG — nên một vòng bị trần chặn
+//     trông hệt một vòng đang bị tiến trình khác giữ khóa.
+//   · Mọi lời gọi đi qua `callCap` vốn không ném; từ chối là một giá trị. Đừng
+//     đổi nó thành một lần ném để "cho gọn".
 
 import type { Actor } from "@/core/actor";
 import type { Registry } from "@/capability/registry";
@@ -36,6 +44,7 @@ import {
   parseOpenScanLog,
   parseSettingValue,
   type AccountRef,
+  type CallFn,
   type CapOutcome,
 } from "./_contract";
 import {
@@ -44,6 +53,7 @@ import {
   renderSkippedLine,
   type JournalSink,
 } from "./journal";
+import { autoSetNextAction } from "./next-action";
 
 /// `AD-AG-1` — tầng ② nhận phụ thuộc qua tham số. Vòng quét cũng vậy: nó nhận
 /// hàm rút Phát hiện thay vì tự dựng `AgentDeps`.
@@ -113,9 +123,9 @@ export async function runScanCycle(deps: ScanLoopDeps): Promise<ScanCycleOutcome
     return { ran: false, reason: "phanh_ai_tat" };
   }
 
-  const budgetUsd = await readNumberSetting(call, "scan_budget_usd", 3);
-  const callLimit = await readNumberSetting(call, "model_calls_per_scan", 20);
-  const maxDenials = await readNumberSetting(call, "max_consecutive_denials", 3);
+  const budgetUsd = await readNumberSetting(deps, call, "scan_budget_usd", 3);
+  const callLimit = await readNumberSetting(deps, call, "model_calls_per_scan", 20);
+  const maxDenials = await readNumberSetting(deps, call, "max_consecutive_denials", 3);
 
   // ── Bước 2: mở vòng — `D19` không chồng vòng, cộng hạn thuê ──────────────
   const opened = await call("writeScanLog", {
@@ -148,12 +158,38 @@ export async function runScanCycle(deps: ScanLoopDeps): Promise<ScanCycleOutcome
   // kết quả, và `T-8` hết lặp lại được.
   const listed = await call("readAccountList", { watching: true });
   if (listed.status !== "ok") {
+    // ⚠ PHẢI NÓI RA LÝ DO. Bản trước lặng lẽ đi thẳng vào `finish`, và dòng
+    // `FR-39` khi đó đọc là *"quét 0/0 Công ty"* — trông y hệt *"không Công ty
+    // nào Đang theo dõi"*, tức một trạng thái BÌNH THƯỜNG. Đã mất một lượt
+    // chẩn đoán vì đúng chỗ này: nguyên nhân thật là `searchCompanies` của lõi
+    // ném `chưa hiện thực`, và không một dòng nhật ký nào nhắc tới nó.
+    deps.journal(
+      `[vòng quét] ${now().toISOString()} · KHÔNG ĐỌC ĐƯỢC DANH SÁCH CÔNG TY — `
+      + (listed.status === "denied"
+        ? `Cổng từ chối \`readAccountList\`: ${listed.reason}`
+        : `lỗi: ${describe(listed.error)}`),
+    );
     return finish(deps, call, {
       scanLogId, startedAt: open.startedAt, accountsPlanned: 0,
       stopReason: "loi_khong_phuc_hoi", resumeCursor: null, lockedOut: 0,
     });
   }
-  const accounts = parseAccountList(listed.value);
+  // ⚠ `parseAccountList` NÉM khi hợp đồng tầng ④ lệch. Vòng đã MỞ ở bước 2, nên
+  // một lần ném lọt ra ngoài `runScanCycle` sẽ bỏ hàng `ScanLog` ở trạng thái
+  // `finished_at IS NULL` — và `D19` bỏ MỌI vòng sau cho tới hết `SCAN_LEASE_MINUTES`
+  // (30 phút). Ở nhịp 60 giây đó là ba mươi vòng chết vì một lỗi phân giải.
+  let accounts: AccountRef[];
+  try {
+    accounts = parseAccountList(listed.value);
+  } catch (e) {
+    deps.journal(
+      `[vòng quét] ${now().toISOString()} · HỢP ĐỒNG \`readAccountList\` LỆCH — ${describe(e)}`,
+    );
+    return finish(deps, call, {
+      scanLogId, startedAt: open.startedAt, accountsPlanned: 0,
+      stopReason: "loi_khong_phuc_hoi", resumeCursor: null, lockedOut: 0,
+    });
+  }
 
   // ── Bước 4: chạy từng Công ty ───────────────────────────────────────────
   const state = {
@@ -176,64 +212,90 @@ export async function runScanCycle(deps: ScanLoopDeps): Promise<ScanCycleOutcome
   let stopReason = "hoan_tat";
   let resumeCursor: string | null = null;
 
-  for (const account of accounts) {
-    // ⓐ phanh, kiểm ở RANH GIỚI Công ty (`AD-11` điều kiện dừng 2) —
-    //    *"cắt sạch, giữ nguyên dữ liệu đã sinh"*.
-    const brake = await call("readSetting", { key: "ai_enabled" });
-    const braked =
-      (brake.status === "denied" && brake.reason === "brake")
-      || (brake.status === "ok" && parseSettingValue(brake.value) !== "true");
-    if (braked) {
-      stopReason = "phanh_ai_tat";
-      resumeCursor = account.id;
-      break;
-    }
+  // ⚠ Mọi `parse*` trong thân vòng ĐỀU NÉM khi hợp đồng tầng ④ lệch
+  // (`parseLatestArticle`, `parseLockResult`, `parseSettingValue`). Chúng phải
+  // ném — im lặng đọc `undefined` tệ hơn nhiều — nhưng lần ném KHÔNG được phép
+  // thoát khỏi `runScanCycle`: vòng đã mở ở bước 2, và bỏ nó lại với
+  // `finished_at IS NULL` làm `D19` bỏ mọi vòng sau suốt 30 phút hạn thuê.
+  // `bootstrap.ts` có bắt lần ném, nhưng nó không đóng được vòng — chỉ có chỗ này mới
+  // cầm `scanLogId`. Khóa từng Công ty vẫn được nhả bởi `finally` của
+  // `scanOneAccount`, nên ở đây chỉ còn việc đóng vòng cho đúng.
+  try {
+    for (const account of accounts) {
+      // ⓐ phanh, kiểm ở RANH GIỚI Công ty (`AD-11` điều kiện dừng 2) —
+      //    *"cắt sạch, giữ nguyên dữ liệu đã sinh"*.
+      const brake = await call("readSetting", { key: "ai_enabled" });
+      const braked =
+        (brake.status === "denied" && brake.reason === "brake")
+        || (brake.status === "ok" && parseSettingValue(brake.value) !== "true");
+      if (braked) {
+        stopReason = "phanh_ai_tat";
+        resumeCursor = account.id;
+        break;
+      }
 
-    // ⓑ trần lượt gọi (điều kiện dừng 3) — lưu con trỏ, vòng sau resume
-    if (state.modelCalls >= callLimit) {
-      stopReason = "cham_tran_luot_goi";
-      resumeCursor = account.id;
-      break;
-    }
+      // ⓑ trần lượt gọi (điều kiện dừng 3) — lưu con trỏ, vòng sau resume
+      if (state.modelCalls >= callLimit) {
+        stopReason = "cham_tran_luot_goi";
+        resumeCursor = account.id;
+        break;
+      }
 
-    // ⓒ trần ngân sách (điều kiện dừng 4) — tự tắt AI, MỘT CHIỀU
-    if (state.costUsd >= budgetUsd) {
-      stopReason = "cham_tran_ngan_sach";
-      resumeCursor = account.id;
-      await call("disableAi", { reason: "cham_tran_ngan_sach", scanLogId });
-      break;
-    }
+      // ⓒ trần ngân sách (điều kiện dừng 4) — tự tắt AI, MỘT CHIỀU
+      if (state.costUsd >= budgetUsd) {
+        stopReason = "cham_tran_ngan_sach";
+        resumeCursor = account.id;
+        await tuTatAi(deps, call, scanLogId);
+        break;
+      }
 
-    // ⓓ đơn vị công việc là MỘT CÔNG TY TRỌN VẸN. Không đủ chỗ cho một Công ty
-    //    nữa thì dừng SẠCH tại ranh giới, không cắt giữa chừng.
-    if (state.maxAccountCost > 0 && state.costUsd + state.maxAccountCost > budgetUsd) {
-      stopReason = "cham_tran_ngan_sach";
-      resumeCursor = account.id;
-      await call("disableAi", { reason: "cham_tran_ngan_sach", scanLogId });
-      break;
-    }
+      // ⓓ đơn vị công việc là MỘT CÔNG TY TRỌN VẸN. Không đủ chỗ cho một Công ty
+      //    nữa thì dừng SẠCH tại ranh giới, không cắt giữa chừng.
+      if (state.maxAccountCost > 0 && state.costUsd + state.maxAccountCost > budgetUsd) {
+        stopReason = "cham_tran_ngan_sach";
+        resumeCursor = account.id;
+        await tuTatAi(deps, call, scanLogId);
+        break;
+      }
 
-    const outcome = await scanOneAccount(deps, call, scanLogId, account, state);
-    if (outcome === "khoa_ban") {
-      state.lockedOut += 1;
-      continue;
-    }
-    if (outcome === "loi_khong_phuc_hoi") {
-      stopReason = "loi_khong_phuc_hoi";
-      resumeCursor = account.id;
-      break;
-    }
-    state.scanned += 1;
+      const outcome = await scanOneAccount(deps, call, scanLogId, account, state);
+      if (outcome === "loi_khong_phuc_hoi") {
+        stopReason = "loi_khong_phuc_hoi";
+        resumeCursor = account.id;
+        break;
+      }
+      if (outcome === "khoa_ban") state.lockedOut += 1;
+      else state.scanned += 1;
 
-    // `AD-11` — `max_consecutive_denials` lần từ chối LIÊN TIẾP trên cùng một
-    // capability thì kết thúc vòng. Con số này là tín hiệu chẩn đoán đáng giá
-    // hơn con số 20: nó nói *"Cổng và vòng quét đang bất đồng"*, không nói
-    // *"đã tiêu hết"*.
-    if (state.consecutiveDenials >= maxDenials) {
-      stopReason = "loi_khong_phuc_hoi";
-      resumeCursor = account.id;
-      break;
+      // `AD-11` — `max_consecutive_denials` lần từ chối LIÊN TIẾP trên cùng một
+      // capability thì kết thúc vòng. Con số này là tín hiệu chẩn đoán đáng giá
+      // hơn con số 20: nó nói *"Cổng và vòng quét đang bất đồng"*, không nói
+      // *"đã tiêu hết"*.
+      //
+      // ⚠ KIỂM SAU MỌI KẾT CỤC, kể cả `khoa_ban`. Bản trước đặt `continue` ở
+      // nhánh `khoa_ban` NGAY TRƯỚC phép kiểm này, trong khi chính nhánh đó là
+      // nơi `noteDenial` đếm nhiều nhất: `acquireAccountLock` mang
+      // `selfLimiting: false`, nên khi Cổng bác mã `limit` thì MỌI Công ty rơi vào
+      // `khoa_ban`, bộ đếm tăng đủ nhưng không ai đọc, và vòng chạy hết danh
+      // sách rồi đóng với `stop_reason = 'hoan_tat'` dù không quét được Công ty
+      // nào. Tức điều kiện dừng đắt nhất của `AD-11` không với tới được trên
+      // chính đường sinh ra nó.
+      if (state.consecutiveDenials >= maxDenials) {
+        stopReason = "loi_khong_phuc_hoi";
+        resumeCursor = account.id;
+        deps.journal(
+          `[vòng quét] DỪNG VÒNG — ${state.consecutiveDenials} lần từ chối liên tiếp `
+          + `ở \`${state.lastDeniedCap}\` (trần \`max_consecutive_denials\` = ${maxDenials}). `
+          + "Cổng và vòng quét đang bất đồng (`AD-11`).",
+        );
+        break;
+      }
     }
+  } catch (e) {
+    deps.journal(
+      `[vòng quét] ${now().toISOString()} · NÉM GIỮA VÒNG — ${describe(e)}`,
+    );
+    stopReason = "loi_khong_phuc_hoi";
   }
 
   return finish(deps, call, {
@@ -243,10 +305,9 @@ export async function runScanCycle(deps: ScanLoopDeps): Promise<ScanCycleOutcome
     stopReason,
     resumeCursor,
     lockedOut: state.lockedOut,
+    accountsScanned: state.scanned,
   });
 }
-
-type CallFn = (name: string, params: unknown) => Promise<CapOutcome>;
 
 type CycleState = {
   modelCalls: number;
@@ -295,6 +356,16 @@ async function scanOneAccount(
     if (read.status !== "ok") {
       noteDenial(state, read);
       failureCode = read.status === "denied" ? "FT8" : "FT10";
+      // Mã `FT` một mình KHÔNG chẩn đoán được. Đã đo: cả ba Công ty ăn `FT10`,
+      // và dòng `FR-39` chỉ nói `lỗi: FT10` — thông điệp thật (*hợp đồng tham
+      // số của `readArticle` lệch*) nằm trong `read.error` và bị vứt đi. Một mã
+      // không tên nguyên nhân là một mã phải đi gỡ bằng tay.
+      deps.journal(
+        `[vòng quét] \`${account.name}\` · KHÔNG ĐỌC ĐƯỢC BẢN LƯU (${failureCode}) — `
+        + (read.status === "denied"
+          ? `Cổng từ chối \`readArticle\`: ${read.reason}`
+          : describe(read.error)),
+      );
       return "xong";
     }
     const article = parseLatestArticle(read.value);
@@ -304,7 +375,23 @@ async function scanOneAccount(
 
     // `FR-50`/`FR-12` — nguồn không đọc được thì GHI LẠI là không đọc được.
     // Hệ thống không đoán, và không tiêu một lượt gọi mô hình nào cho nó.
-    if (!article.readable) return "xong";
+    //
+    // ⚠ *GHI LẠI* là phần việc, không phải phần đọc hiểu. Bản trước `return` trần:
+    // `unreadableReason` được `_contract.ts` phân giải công phu rồi không ai đọc, và
+    // một Công ty có nguồn hỏng trông y hệt một Công ty không có tin mới.
+    if (!article.readable) {
+      // ⚠ KHÔNG gán mã `FT` nào. Bảng `FT1`–`FT10` của spine phân loại THẤT BẠI
+      // của hệ thống; nguồn không đọc được là một trạng thái HỢP LỆ mà `FR-50`
+      // đặt tên sẵn. `FT9` (*điều kiện dừng hỏng*) và `FT10` (*hạ tầng*) đều nói
+      // về chuyện khác, và một mã sai chỗ tệ hơn không mã: nó vào dòng `FR-39`
+      // trông như đã phân loại xong.
+      deps.journal(
+        `[vòng quét] \`${account.name}\` · BẢN LƯU KHÔNG ĐỌC ĐƯỢC — `
+        + (article.unreadableReason ?? "không rõ lý do")
+        + " (`FR-50`/`FR-12`: hệ thống không đoán, không tiêu lượt gọi nào).",
+      );
+      return "xong";
+    }
 
     // `FR-36` — chống trùng ở **tầng Phát hiện**: cùng một tin đọc lại ở vòng
     // sau không sinh mục thứ hai. Bản lưu đã có Phát hiện là Bản lưu đã xử lý.
@@ -327,12 +414,26 @@ async function scanOneAccount(
       // `AD-11`: `costUsd === null` thì **không cộng 0** — ghi `FT10`.
       failureCode = "FT10";
     }
-    await call("writeScanLog", {
+    // ⚠ Kiểm kết cục. Đây là lời gọi DUY NHẤT làm bộ đếm `model_calls_used` và
+    // `cost_used_usd` trên hàng `ScanLog` tiến lên, mà `collectGateContext` lại đọc
+    // đúng hai cột đó để dựng `modelCallsUsed`/`budgetUsedRatio` cho bước ⑥ của
+    // Cổng. Nó hỏng trong im lặng thì trần của Cổng VĨNH VIỄN không chạm, trong khi
+    // tiền vẫn tiêu — tức cả hai van ngân sách cùng mất hiệu lực một lúc.
+    const usage = await call("writeScanLog", {
       op: "usage",
       scanLogId,
       modelCalls: result.modelCalls,
       costUsd: result.costUsd,
     });
+    if (usage.status !== "ok") {
+      deps.journal(
+        `[vòng quét] \`${account.name}\` · KHÔNG CỘNG ĐƯỢC SỐ ĐO VÀO VÒNG — `
+        + (usage.status === "denied"
+          ? `Cổng từ chối \`writeScanLog(usage)\`: ${usage.reason}`
+          : describe(usage.error))
+        + " Trần ngân sách của Cổng sẽ không chạm.",
+      );
+    }
 
     if (!result.ok) {
       failureCode = FAILURE_BY_KIND[result.kind] ?? "FT10";
@@ -343,60 +444,183 @@ async function scanOneAccount(
       return "xong";
     }
 
-    signalCount = await writeSignals(call, account.id, article.articleId, result.signals, state);
+    const ghi = await writeSignals(
+      deps, call, account, article.articleId, result.signals, state, deps.now ?? (() => new Date()),
+    );
+    signalCount = ghi.signals;
     return "xong";
   } finally {
-    await call("recordAccountCost", {
+    // ⚠ CẢ HAI lời gọi này phải ĐƯỢC KIỂM, và cả hai đều mang `selfLimiting`
+    // nên chúng đáng lẽ không bao giờ bị bác. Đúng vì thế một lần bác ở đây là tin
+    // tức: `recordAccountCost` hỏng là mất dòng kế toán của đúng Công ty vừa chạy
+    // (`AD-AG-9`), còn `releaseAccountLock` hỏng là khóa treo 10 phút — `AD-12` suy
+    // *"vòng đang chạy"* từ khóa, nên ở nhịp 60 giây đó là mười vòng bị bỏ liên tiếp.
+    // Bản trước vứt cả hai `CapOutcome`, nên hậu quả đó tới mà không có nguyên nhân.
+    const recorded = await call("recordAccountCost", {
       scanLogId,
       accountId: account.id,
       costUsd: accountCost,
       signalCount,
       failureCode,
     });
-    await call("releaseAccountLock", {
+    if (recorded.status !== "ok") {
+      deps.journal(
+        `[vòng quét] \`${account.name}\` · MẤT DÒNG KẾ TOÁN — `
+        + (recorded.status === "denied"
+          ? `Cổng từ chối \`recordAccountCost\`: ${recorded.reason}`
+          : describe(recorded.error)),
+      );
+    }
+    const released = await call("releaseAccountLock", {
       accountId: account.id,
       processId: deps.processId,
     });
+    if (released.status !== "ok") {
+      deps.journal(
+        `[vòng quét] \`${account.name}\` · KHÔNG NHẢ ĐƯỢC KHÓA — `
+        + (released.status === "denied"
+          ? `Cổng từ chối \`releaseAccountLock\`: ${released.reason}`
+          : describe(released.error))
+        + ` Công ty này bị bỏ suốt ${LOCK_LEASE_MINUTES} phút tới (\`AD-12\`).`,
+      );
+    }
   }
 }
 
-/// `FR-36` · `D36` — **mỗi Phát hiện mới sinh ĐÚNG MỘT mục** Dòng thời gian.
+/// `FR-36` · `D36` — **mỗi Phát hiện mới sinh ĐÚNG MỘT mục** Dòng thời gian,
+/// và mỗi Phát hiện mới đều được thử tự đặt Việc tiếp theo (`§4/nhóm 4`, `T-6`).
 ///
 /// Một Bản lưu chứa hai tin thì sinh hai mục, không phải một; `T-8` đếm MỤC.
 /// Gộp chúng thành một mục *"có 2 tin mới"* là làm phép đếm của `T-8` sai theo
 /// hướng khó thấy nhất — nó vẫn có mục, chỉ thiếu một.
+///
+/// ⚠ Hàm trả HAI bộ đếm và cả hai đều CHỈ nói về nhóm 3. Lượt tự đặt Việc tiếp
+/// theo cố ý KHÔNG có bộ đếm thứ ba: `recordAccountCost({ signalCount })` là
+/// dòng kế toán của Phát hiện, và `estimated_cost_per_account` của `AD-11` đọc
+/// từ đúng dòng đó — trộn một con số của nhóm 4 vào làm phép ước chi phí của
+/// vòng sau sai. Số lần tự đặt là số đo của `FR-33` (*tỉ lệ hoàn tác trên tổng
+/// số lần tự đặt*), và nó đọc từ bảng ghi vết, không từ đây.
 async function writeSignals(
+  deps: ScanLoopDeps,
   call: CallFn,
-  accountId: string,
+  account: AccountRef,
   articleId: string,
   signals: readonly SignalDraft[],
   state: CycleState,
-): Promise<number> {
-  let written = 0;
+  now: () => Date,
+): Promise<{ signals: number; entries: number }> {
+  const accountId = account.id;
+  // ⚠ HAI bộ đếm, không một. Bản trước trả đúng một số `written`, chỉ tăng khi
+  // CẢ `createSignal` LẪN `appendTimelineEntry` thành công, rồi bên gọi ghi nó vào
+  // `recordAccountCost({ signalCount })`. Nghĩa là khi mục Dòng thời gian hỏng mà
+  // Phát hiện đã nằm trong CSDL, bảng `signal` có hàng nhưng dòng kế toán báo
+  // thiếu — và `estimated_cost_per_account` của `AD-11` đọc từ chính dòng đó.
+  let created = 0;
+  let entries = 0;
   for (const draft of signals) {
-    const created = await call("createSignal", { accountId, articleId, ...draft });
-    if (created.status !== "ok") {
-      noteDenial(state, created);
+    // ⚠ ĐỔI TÊN Ở BIÊN, không đổi ở lõi. Tầng ② gọi nó `quoteRange` (*"vị trí
+    // công cụ trả về"*); lõi gọi nó `modelQuoteRange` (*"vị trí MÔ HÌNH KHAI"*)
+    // để đứng cạnh `quoteStart`/`quoteEnd` mà không ai đọc nhầm cái nào là
+    // nguồn sự thật. Hai cái tên nói hai góc nhìn, và biên là chỗ đúng để dịch.
+    const { quoteRange, ...phanConLai } = draft;
+    const madeSignal = await call("createSignal", {
+      accountId, articleId, ...phanConLai, modelQuoteRange: quoteRange,
+    });
+    if (madeSignal.status !== "ok") {
+      noteDenial(state, madeSignal);
+      reportDrop(deps, account, "BỎP̀ MỘT PHÁT HIỆN", madeSignal);
       // `BR-D1`/`BR-D2` bác một Phát hiện (thiếu câu trích, câu trích không
       // khớp nguyên văn) là chuyện BÌNH THƯỜNG của lớp này — bỏ Phát hiện đó,
       // đi tiếp. Nó không được kéo theo những Phát hiện hợp lệ khác.
       continue;
     }
-    const signalId = readId(created.value);
+    created += 1;
+
+    const signalId = readId(madeSignal.value);
+    if (signalId === null) {
+      // `FR-36` buộc quan hệ 1-1 giữa Phát hiện và mục. `readId` trả `null` khi
+      // `createSignal` không trả `id` — tạo mục với `sourceSignalId: null` thì quan
+      // hệ đó đứt IM LẶNG: mục vẫn hiện trên Dòng thời gian, bấm vào không ra
+      // đoạn văn gốc, và `T-3` đỏ ở một chỗ cách xa nguyên nhân.
+      deps.journal(
+        `[vòng quét] \`${account.name}\` · BỎ MỘT MỤC — \`createSignal\` không trả \`id\`, `
+        + "không neo được mục Dòng thời gian về Phát hiện (`FR-36`).",
+      );
+      continue;
+    }
+
     const appended = await call("appendTimelineEntry", {
       accountId,
       content: draft.claim,
-      occurredAt: draft.eventDate ?? new Date().toISOString(),
+      // Đồng hồ đi qua `deps.now` như mọi chỗ khác của tệp. Bản trước đọc
+      // `new Date()` thẳng, nên `tests/` không cố định được `occurred_at` — đúng cột
+      // mà Dòng thời gian sắp xếp theo, và `T-8` đọc thứ tự đó.
+      occurredAt: draft.eventDate ?? now().toISOString(),
       sourceSignalId: signalId,
     });
     if (appended.status !== "ok") {
       noteDenial(state, appended);
-      continue;
+      // ⚠ KHÔNG nói *"bỏ một Phát hiện"* ở nhánh này. Phát hiện ĐÃ được tạo và
+      // đang nằm trong CSDL; thứ hỏng là mục Dòng thời gian. `BR-D2` nói về việc
+      // loại Phát hiện khi câu trích không khớp — một chuyện khác hẳn. Mã đúng cho
+      // ca này là `FR-36` (*mỗi Phát hiện mới sinh đúng một mục*), đã trích ở đầu hàm.
+      reportDrop(deps, account, "BỎ MỘT MỤC DÒNG THỎI GIAN (`FR-36`)", appended);
+    } else {
+      state.consecutiveDenials = 0;
+      entries += 1;
     }
-    state.consecutiveDenials = 0;
-    written += 1;
+
+    // ── §4/nhóm 4 · `T-6` — TỰ ĐẶT VIỆC TIẾP THEO ─────────────────────────
+    //
+    // ⚠ KHÔNG đặt sau một `continue` của nhánh trên, và đây là chỗ dễ nối sai
+    // nhất của cả khối. Nhóm 3 (*thêm mục Dòng thời gian*) và nhóm 4 (*tự đặt
+    // Việc tiếp theo*) là HAI nghĩa vụ độc lập của cùng một Phát hiện; gắn nhóm
+    // 4 vào sau thành công của nhóm 3 làm một lượt `appendTimelineEntry` hỏng
+    // lặng lẽ kéo `T-6` đỏ theo, với triệu chứng trỏ vào Việc tiếp theo trong
+    // khi nguyên nhân nằm ở Dòng thời gian. Nên nhánh hỏng ở trên nay ghi nhật
+    // ký rồi ĐI TIẾP, không `continue`.
+    //
+    // Đặt SAU `createSignal` là bắt buộc chứ không phải tuỳ chọn: `AD-3` đòi mọi
+    // chạm ghi của máy truy được về một Phát hiện, và `signalId` chỉ tồn tại sau
+    // khi hàng `signal` đã ghi xong. Đây cũng là cột `next_action.source_signal_id`
+    // mà `T-6` khẳng định KHÔNG NULL.
+    const autoSet = await autoSetNextAction(call, deps.journal, account, {
+      signalId,
+      claim: draft.claim,
+    });
+    // `AD-11` — KIỂM KẾT CỤC. Lời gọi này mang `selfLimiting: false`, nên nó
+    // nằm đúng trong tập bị Cổng bác khi phanh tắt hoặc trần chạm; không đưa nó
+    // cho `noteDenial` thì một Cổng đang bác mọi lượt không bao giờ chạm được
+    // `max_consecutive_denials`, và vòng đóng với `hoan_tat` dù không đặt nổi
+    // một Việc tiếp theo nào.
+    if (autoSet.status !== "ok") noteDenial(state, autoSet);
+    else state.consecutiveDenials = 0;
+
+    // ── §4/nhóm 3 · `T-5` — XẾP GỢI Ý VÀO HÀNG ĐỢI ────────────────────────
+    //
+    // Ontology §6 xếp *"xếp Gợi ý vào hàng đợi"* vào vùng **chạy ngầm** của máy,
+    // ngang hàng với *"tạo Phát hiện"*. Nhưng không bên gọi nào tồn tại: đo được
+    // trên một lượt quét thật đã sinh Phát hiện, mục Dòng thời gian, Việc tiếp
+    // theo và Thông báo — mà bảng `suggestion` RỖNG, nên khối *Gợi ý chờ quyết*
+    // của `T-5` không có gì để hiện.
+    //
+    // ⚠ ĐỘC LẬP với hai nhánh trên, cùng lý do đã ghi ở khối nhóm 4: ba nghĩa vụ
+    // của một Phát hiện không được xâu chuỗi, nếu không một cái hỏng kéo hai cái
+    // kia đỏ theo với triệu chứng trỏ sai chỗ.
+    //
+    // ⚠ Không rút được ô nào là kết cục BÌNH THƯỜNG, không phải từ chối. Lõi trả
+    // `{ skipped: true, reason }` và Cổng vẫn nói `ok` — nên nhánh này KHÔNG gọi
+    // `noteDenial`, và một Bản lưu không có địa chỉ web hay năm thành lập không
+    // đẩy vòng quét tới `max_consecutive_denials`.
+    const queued = await call("queueSuggestion", { accountId, signalId });
+    if (queued.status !== "ok") {
+      noteDenial(state, queued);
+      reportDrop(deps, account, "BỎ MỘT GỢI Ý (`FR-18`)", queued);
+    } else {
+      state.consecutiveDenials = 0;
+    }
   }
-  return written;
+  return { signals: created, entries };
 }
 
 function readId(v: unknown): string | null {
@@ -405,6 +629,53 @@ function readId(v: unknown): string | null {
     if (typeof id === "string") return id;
   }
   return null;
+}
+
+/// `C5-9`/`BR-D2` đòi nguyên văn *"lệch thì loại VÀ GHI NHẬT KÝ"*. Bản trước
+/// chỉ loại: một Phát hiện bị bác biến mất không để lại dấu vết nào, và cả hai
+/// nguyên nhân rất khác nhau — câu trích không khớp (bình thường) và capability
+/// vắng mặt khỏi sổ đăng ký (hỏng nặng) — cho cùng một triệu chứng *"vòng chạy
+/// xong, không có mục nào"*. Một dòng cho mỗi lượt bỏ là cái giá rẻ để phân
+/// biệt được hai thứ đó lúc 3 giờ sáng.
+/// Điều kiện dừng 4 của `AD-11` — chạm trần ngân sách thì TỰ TẮT AI, MỘT CHIỀU.
+///
+/// ⚠ KẾT CỤC PHẢI ĐƯỢC ĐỌC. Bản trước gọi `call("disableAi", …)` rồi vứt
+/// `CapOutcome` đi — hai lời gọi duy nhất trong tệp không có nhánh xử lý. `disableAi`
+/// hiện KHÔNG có trong sổ đăng ký (`AD-2` xếp nó vào khối một hạng ghi, chưa tệp
+/// `caps/*.ts` nào khai), nên lời gọi trả `unknown_capability` và AI **không hề bị
+/// tắt** — vòng sau lại mở, lại tiêu tiền. Van cuối cùng của ngân sách hỏng trong
+/// im lặng là hình dạng lỗi đắt nhất của cả tệp này.
+async function tuTatAi(deps: ScanLoopDeps, call: CallFn, scanLogId: string): Promise<void> {
+  const r = await call("disableAi", { reason: "cham_tran_ngan_sach", scanLogId });
+  if (r.status === "ok") return;
+  deps.journal(
+    "[vòng quét] CHẠM TRẦN NGÂN SÁCH NHƯNG KHÔNG TẮT ĐƯỢC AI — "
+    + (r.status === "denied"
+      ? `Cổng từ chối \`disableAi\`: ${r.reason}`
+      : describe(r.error))
+    + " Điều kiện dừng 4 của `AD-11` KHÔNG có hiệu lực; vòng sau sẽ lại mở.",
+  );
+}
+
+///
+/// ⚠ Tên capability lấy từ `outcome.capability`, KHÔNG nhận qua tham số. Cả hai
+/// nhánh của `CapOutcome` đã mang sẵn trường đó (`_contract.ts`), và gõ lại bằng tay
+/// là mở đường cho hai chuỗi trôi khỏi nhau — `noteDenial` ngay dưới đã đọc
+/// `outcome.capability`, hai hàm cạnh nhau lấy cùng dữ kiện theo hai đường là một
+/// chỗ lệch chờ sẵn.
+function reportDrop(
+  deps: ScanLoopDeps,
+  account: AccountRef,
+  nhan: string,
+  outcome: CapOutcome,
+): void {
+  if (outcome.status === "ok") return;
+  deps.journal(
+    `[vòng quét] \`${account.name}\` · ${nhan} ở \`${outcome.capability}\` — `
+    + (outcome.status === "denied"
+      ? `Cổng từ chối: ${outcome.reason}`
+      : describe(outcome.error)),
+  );
 }
 
 /// `AD-11` — đếm từ chối LIÊN TIẾP **trên cùng một capability**. Đổi capability
@@ -417,15 +688,40 @@ function noteDenial(state: CycleState, outcome: CapOutcome): void {
   state.lastDeniedCap = cap;
 }
 
+/// ⚠ CANH BIÊN DƯƠNG, không chỉ `isFinite`. Cả ba tham số đọc qua hàm này là
+/// TRẦN, và một trần bằng `0` không có nghĩa là *"không giới hạn"* — nó làm
+/// vòng dừng ngay ở Công ty đầu tiên với `cham_tran_ngan_sach`, tức phanh bật
+/// suốt buổi demo mà không ai hiểu vì sao. Chuỗi rỗng ép thành `0`, nên đây là
+/// đường đi vào thật, không phải ca giả định. `bootstrap.ts` đã canh `> 0` cho
+/// `scan_interval_minutes`; hai chỗ đọc `settings` mà canh khác nhau là chỗ
+/// trôi khỏi nhau.
+///
+/// Lượt đọc bị Cổng bác cũng phải NÓI RA: lui về mặc định trong im lặng nghĩa
+/// là vòng chạy theo một trần khác với trần Quản trị vừa đặt, và không dòng nào
+/// ghi lại chuyện đó.
 async function readNumberSetting(
+  deps: ScanLoopDeps,
   call: CallFn,
   key: string,
   fallback: number,
 ): Promise<number> {
   const r = await call("readSetting", { key });
-  if (r.status !== "ok") return fallback;
+  if (r.status !== "ok") {
+    deps.journal(
+      `[vòng quét] KHÔNG ĐỌC ĐƯỢC \`${key}\`, lui về mặc định ${fallback} — `
+      + (r.status === "denied" ? `Cổng từ chối: ${r.reason}` : describe(r.error)),
+    );
+    return fallback;
+  }
   const n = Number(parseSettingValue(r.value));
-  return Number.isFinite(n) ? n : fallback;
+  if (!Number.isFinite(n) || n <= 0) {
+    deps.journal(
+      `[vòng quét] THAM SỐ \`${key}\` không phải số dương (\`${String(parseSettingValue(r.value))}\`), `
+      + `lui về mặc định ${fallback}.`,
+    );
+    return fallback;
+  }
+  return n;
 }
 
 /// Đóng vòng và in dòng `FR-39`. Chạy trên MỌI đường ra, kể cả đường lỗi —
@@ -441,6 +737,11 @@ async function finish(
     stopReason: string;
     resumeCursor: string | null;
     lockedOut: number;
+    /// Số Công ty đã quét XONG, đếm trong thân vòng. Chỉ dùng cho đường ĐÓNG
+    /// HỎNG: khi đóng được, con số đúng là `summary.accountsScanned` do lõi
+    /// đếm từ bảng `scan_log_entry`. Bản trước trả cứng `0` ở đường hỏng, tức
+    /// một vòng quét xong 10 Công ty vẫn báo về `0` cho bên gọi.
+    accountsScanned?: number;
   },
 ): Promise<ScanCycleOutcome> {
   const closed = await call("writeScanLog", {
@@ -463,7 +764,7 @@ async function finish(
       ran: true,
       scanLogId: input.scanLogId,
       stopReason: input.stopReason,
-      accountsScanned: 0,
+      accountsScanned: input.accountsScanned ?? 0,
       accountsPlanned: input.accountsPlanned,
       lockedOut: input.lockedOut,
       partial: true,

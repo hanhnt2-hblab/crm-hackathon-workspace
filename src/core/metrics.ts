@@ -141,12 +141,27 @@ export async function blindApprovalSignals(): Promise<{
   // dùng đã chậm lại. Chỉ số này đo HÀNH VI HIỆN TẠI, không đo lịch sử.
   const since = new Date(Date.now() - WINDOW_MS);
 
+  // ⚠ Vế `status` KHÔNG thừa, và nó là vế mới. `decided_at` được đóng dấu cho
+  // CẢ đường hệ thống đóng Gợi ý: `closeSuggestionsBySystem` (xoá Công ty —
+  // `D26`) và nhánh `co_goi_y_moi_hon` của `createSuggestion` (`FR-51`). Cả hai
+  // đóng HÀNG LOẠT trong một giao dịch, nên xoá một Công ty đang có N Gợi ý chờ
+  // bơm N mốc TRÙNG NHAU vào cửa sổ 24 giờ — và `burstPerMinute` đọc đó thành
+  // *"một người vừa duyệt N Gợi ý trong một phút"*, tức báo động duyệt mù bật
+  // vì một thao tác không ai duyệt gì cả.
+  //
+  // Đây đúng là luật PRD §7.1 đã viết cho hàng `ly_do_dong_he_thong`: Gợi ý
+  // đóng theo đường hệ thống **không** vào mẫu số của chỉ số nào.
+  // `DECIDED_STATUSES` là cùng tập mà `autoAcceptRate` dùng.
   const tooFast = await db.suggestion.count({
-    where: { decisionSeconds: { lt: secs, not: null }, decidedAt: { gte: since } },
+    where: {
+      status: { in: DECIDED_STATUSES },
+      decisionSeconds: { lt: secs, not: null },
+      decidedAt: { gte: since },
+    },
   });
 
   const recent = await db.suggestion.findMany({
-    where: { decidedAt: { gte: since } },
+    where: { status: { in: DECIDED_STATUSES }, decidedAt: { gte: since } },
     select: { decidedAt: true },
     orderBy: { decidedAt: "desc" },
   });

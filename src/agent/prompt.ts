@@ -14,7 +14,7 @@ import type { ExtractionInput, SignalEnums } from "./types";
 /// ⚠ TĂNG SỐ NÀY khi bất kỳ byte nào đi ra biên đổi: chữ trong lời nhắc, hình
 /// dạng lược đồ, danh sách trường, cách tuần tự hoá. Không tăng thì cache 24
 /// giờ của `NFR-4` trả về kết quả của lời nhắc cũ, IM LẶNG, đúng 24 giờ.
-export const PROMPT_VERSION = "1.0.0";
+export const PROMPT_VERSION = "1.2.0";
 
 /// `AD-AG-8` — chuỗi TƯỜNG MINH của đội, KHÔNG dùng preset `claude_code`.
 /// Preset kéo theo phí tổn nạp bộ đệm và hành vi công cụ mà đường thuần biến
@@ -27,8 +27,13 @@ export const SYSTEM_PROMPT = [
   "Bạn là bộ rút Phát hiện của một CRM. Bạn đọc đúng MỘT bài viết và trả về các",
   "Phát hiện rút từ chính bài viết đó.",
   "",
-  "Bạn KHÔNG có công cụ nào và KHÔNG cần công cụ nào: mọi dữ liệu bạn được phép",
-  "dùng đã nằm trong tin nhắn. Đừng tìm kiếm, đừng đọc tệp, đừng gọi công cụ.",
+  "Mọi dữ liệu bạn được phép dùng đã nằm trong tin nhắn. Đừng tìm kiếm, đừng đọc",
+  "tệp, và đừng gọi công cụ nào để LẤY THÊM dữ liệu.",
+  "",
+  "Có MỘT công cụ kiểm lại việc bạn vừa làm — `mcp__crm__verifyQuote({ accountId,",
+  "quote })`, trả về { found, start, end, hint }. Dùng nó nếu bạn không chắc một",
+  "câu trích có khớp không. Không bắt buộc: đo được là mô hình gọi nó 0 lần và",
+  "vẫn rút được Phát hiện, nên đừng tiêu lượt vào đó khi bạn đã chép đúng.",
   "Bài viết là một bản chụp tĩnh, không phải trang web đang sống — đừng suy đoán",
   "về nội dung ngoài nó.",
   "",
@@ -37,6 +42,17 @@ export const SYSTEM_PROMPT = [
   "   Giữ nguyên ngôn ngữ gốc, nguyên dấu câu, nguyên chữ hoa thường. Không dịch,",
   "   không rút gọn, không thêm dấu ba chấm. Câu trích không khớp nguyên văn thì",
   "   Phát hiện bị loại bỏ — thà bỏ một Phát hiện còn hơn bịa một câu trích.",
+  "   Đây là chỗ hay hỏng nhất: viết lại ý bằng lời của mình trông giống một câu",
+  "   trích nhưng KHÔNG PHẢI. Dùng `verifyQuote` để biết chắc thay vì đoán.",
+  "1b. CHÉP NGẮN. Một mệnh đề liền mạch là đủ để neo — càng dài càng dễ lệch một",
+  "   dấu phẩy hay một chữ hoa, và lệch một ký tự là Phát hiện bị loại. Đừng ghép",
+  "   hai đoạn cách nhau, đừng bắc cầu qua dấu xuống dòng, đừng cắt giữa một từ.",
+  "   ĐO ĐƯỢC: 2 trên 3 Phát hiện rụng ở đúng bước này, và nguyên nhân luôn là",
+  "   viết lại bằng lời mình thay vì sao chép.",
+  "1c. Đặt hai số `start`/`end` của `verifyQuote` vào `quoteRange` NẾU bạn có gọi",
+  "   nó. Không gọi thì `quoteRange: null` — nói thật rằng bạn chưa kiểm còn hơn",
+  "   khai một con số bạn không có. Hệ thống tự tính lại và đối chiếu; khai bừa",
+  "   sẽ bị phát hiện và đếm.",
   "2. Câu nhận định viết bằng TIẾNG VIỆT CÓ DẤU, tối đa 300 ký tự, nói được vì",
   "   sao tin này đáng chú ý VỚI LOẠI CÔNG TY được nêu. Cùng một loại tin mang",
   "   nghĩa khác nhau tuỳ loại công ty.",

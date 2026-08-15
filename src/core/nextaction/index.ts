@@ -20,7 +20,7 @@ import { tx } from "@/core/db";
 import type { Tx } from "@/core/db";
 import type { CoreContext } from "@/core/context";
 import { isMachine } from "@/core/actor";
-import { isRunning } from "@/core/opportunity/stage";
+import { isRunning, RUNNING_STAGES } from "@/core/opportunity/stage";
 import { getSettingBool } from "@/core/settings";
 
 // ───────────────────────────────────────────────────────────────────────────
@@ -443,19 +443,52 @@ export async function setNextAction(
 /// ⚠ `0.2.2` khai nó **cấu hình được**; cùng khoản nợ `settings` như `DUE_TABLE`.
 const UNDO_WINDOW_DAYS = 7;
 
+/// ⚠ HAI TRƯỜNG, không phải sáu — và đó là quyết định chịu lực.
+///
+/// Hợp đồng trước đòi `opportunityId`, `expectedContent`, `expectedDueDate`,
+/// `content`, `dueDate`, `sourceSignalId`. Đo được: **vòng quét không dựng nổi
+/// một trường nào trong sáu.** `src/scan` là tầng ①, nó đi xuống qua
+/// `loadCapability` và không capability nào cho `actor: system` đọc Cơ hội đang
+/// mở hay ô hiện tại; `computeDueDate` thì nằm trong tệp này, mà tệp này nhập
+/// `tx` nên tầng ① nhập vào là kéo Prisma qua đúng ranh giới `AD-1` cấm.
+///
+/// Hệ quả: §4/nhóm 4 **chưa bao giờ chạy** trong vòng quét, và `T-6` đỏ ở cả ba
+/// vế. Chép bảng `0.2.1` sang `src/scan` để tự tính là dựng nguồn sự thật thứ
+/// hai — hai bảng trôi khỏi nhau rồi hạn sai mà không lớp nào bắt được.
+///
+/// Nên lõi tự đọc, **trong chính giao dịch của nó**. Điều đó cũng làm `FR-34`
+/// MẠNH HƠN chứ không yếu đi: bản trước so với giá trị bên gọi đọc ở một thời
+/// điểm TRƯỚC, còn bây giờ đọc và ghi nằm trong cùng một giao dịch.
+
+/// ⚠ CÂU HÀNH ĐỘNG, không phải câu nhận định — và khác biệt này không phải thẩm mỹ.
+///
+/// Bản đầu của đường tự đặt lấy thẳng `signal.claim` làm nội dung. Kết quả đọc
+/// lên là *"Công ty vừa bổ nhiệm CTO mới"* nằm trong ô **Việc tiếp theo** — một
+/// bản tin ở chỗ đáng lẽ phải là một việc phải làm. Sales mở hồ sơ ra không biết
+/// mình được đề nghị LÀM gì.
+///
+/// ⚠ TOÀN BỘ BẢNG NÀY LÀ ĐOÁN. Không `D`, `FR` hay `BR` nào chốt câu chữ của
+/// Việc tiếp theo do máy đặt; đội tự dựng. Nó đoán về phía **hành động cụ thể
+/// đủ để bấm gọi ngay**, vì một câu chung chung kiểu *"theo dõi tin này"* thì
+/// người đọc vẫn phải tự nghĩ ra việc — tức máy không đỡ được gì.
+///
+/// Truy vết về tin nguồn KHÔNG nằm trong chữ: nó nằm ở cột `source_signal_id`,
+/// và giao diện dựng liên kết từ đó. Nhét câu nhận định vào đây nữa là lặp cùng
+/// một dữ kiện ở hai chỗ, rồi chúng trôi khỏi nhau.
+const ACTION_BY_SIGNAL_TYPE: Record<DueSignalType, string> = {
+  funding: "Liên hệ chúc mừng vòng gọi vốn và hỏi kế hoạch đầu tư công nghệ",
+  leadership: "Liên hệ chúc mừng nhân sự cấp cao mới và hỏi ưu tiên công nghệ",
+  expansion: "Hỏi kế hoạch mở rộng và nhu cầu hệ thống đi kèm",
+  hiring: "Hỏi kế hoạch tuyển dụng và nhu cầu bổ sung nguồn lực bên ngoài",
+  new_business: "Hỏi mảng kinh doanh mới và nhu cầu công nghệ đi kèm",
+  other: "Rà tin mới với đầu mối và xác nhận mức độ liên quan",
+};
+
 export type FillNextActionInput = {
-  opportunityId: string;
-  /// `FR-34` — giá trị máy ĐÃ ĐỌC. Vế `WHERE` lặp lại nó, nên nếu người vừa sửa
-  /// giữa lúc đọc và lúc ghi thì 0 hàng bị chạm và máy bỏ lượt.
-  expectedContent: string | null;
-  /// ⚠ PHẢI có, không chỉ `expectedContent`. `AD-10` nói vế `WHERE` lặp **toàn
-  /// bộ** vị từ, và bản hợp đồng trước chỉ so nội dung — người dời mỗi ngày hạn
-  /// mà giữ nguyên chữ vẫn bị máy đè, im lặng.
-  expectedDueDate: Date | null;
-  content: string;
-  dueDate: Date;
-  /// `AD-3` — chạm ghi của máy **đòi `signalId` nguồn**. Không tuỳ chọn.
-  sourceSignalId: string;
+  accountId: string;
+  /// `AD-3` — chạm ghi của máy **đòi `signalId` nguồn**. Không tuỳ chọn. Đây
+  /// cũng là chỗ mọi giá trị khác được suy ra từ.
+  signalId: string;
 };
 
 /// `FR-34` · `AD-3` · `AD-10` — KIỂM-VÀ-GHI NGUYÊN TỬ.
@@ -498,10 +531,68 @@ export async function fillNextActionIfUnchanged(
     const today = atUtcMidnight(now);
     const undoDeadlineAt = new Date(now.getTime() + UNDO_WINDOW_DAYS * MS_PER_DAY);
 
-    const opportunity = await t.opportunity.findUnique({
-      where: { id: input.opportunityId },
-      select: { stage: true, accountId: true },
+    // ─── SUY ĐẦU VÀO ───────────────────────────────────────────────────────
+    // Sáu giá trị mà hợp đồng cũ bắt bên gọi nộp, đọc ngay ở đây. Mọi lối ra
+    // sớm dùng `skip()` chứ không ném: `AD-AG-9` bắt một Công ty hỏng không
+    // được kéo theo Công ty khác, và một Phát hiện không đủ điều kiện đặt Việc
+    // tiếp theo là chuyện BÌNH THƯỜNG, không phải sự cố.
+    const signal = await t.signal.findUnique({
+      where: { id: input.signalId },
+      select: {
+        accountId: true, claim: true, signalType: true, confidence: true,
+        relevance: true, eventDate: true,
+        article: { select: { snapshot: { select: { capturedAt: true } } } },
+      },
     });
+    if (!signal) return skip(t, ctx, "Phát hiện không tồn tại.");
+    // `BR-D3` — Phát hiện thừa kế Công ty từ Bản lưu. Bên gọi vẫn phải nêu rõ,
+    // và lõi đối chiếu: hai giá trị lệch nghĩa là đang đặt Việc cho Công ty khác.
+    if (signal.accountId !== input.accountId) {
+      return skip(t, ctx, "Phát hiện không thuộc Công ty đã nêu.");
+    }
+
+    const account = await t.account.findUnique({
+      where: { id: input.accountId },
+      select: { market: true },
+    });
+    if (!account) return skip(t, ctx, "Công ty không tồn tại.");
+
+    // ⚠ CHỌN Cơ hội ĐANG CHẠY, và chọn ở lõi chứ không để bên gọi chỉ định:
+    // `AD-3` · `D11` chỉ cho tự đặt trên Cơ hội đang chạy, và một Công ty có
+    // thể có nhiều. Lấy cái CẬP NHẬT GẦN NHẤT — người vừa đụng vào là người
+    // đang làm nó, và đặt Việc lên một Cơ hội bỏ quên là nhiễu chứ không phải
+    // trợ giúp. ⚠ Đây là ĐOÁN: §6 nói *"một cơ hội mở"* mà không nói chọn cái
+    // nào khi có nhiều.
+    const opportunity = await t.opportunity.findFirst({
+      where: { accountId: input.accountId, deletedAt: null, // `readonly` của hằng không khớp `Stage[]` Prisma đòi — sao chép, KHÔNG
+      // ép kiểu: ép kiểu giấu luôn cả trường hợp danh sách đổi hình dạng thật.
+      stage: { in: [...RUNNING_STAGES] } },
+      orderBy: { updatedAt: "desc" },
+      select: { id: true, stage: true, accountId: true },
+    });
+    if (!opportunity) return skip(t, ctx, "Công ty không có Cơ hội nào đang chạy.");
+    const opportunityId = opportunity.id;
+
+    // `BR-D7` · `D5` · `D6` — hạn. `null` nghĩa KHÔNG ĐẶT, và đó là kết cục
+    // hợp lệ: mọi `doan`, `co_the` của `other`, và mọi tin đã quá cửa sổ.
+    const dueDate = computeDueDate({
+      signalType: signal.signalType as DueSignalType,
+      confidence: signal.confidence as DueConfidence,
+      // ⚠ Đọc CỘT, không đọc đề nghị của mô hình. Chốt 14/8: `signal.relevance`
+      // luôn mang giá trị lõi tự suy bằng `deriveRelevance`.
+      relevance: signal.relevance as DueRelevance,
+      eventDate: signal.eventDate,
+      snapshotDate: signal.article.snapshot.capturedAt,
+      market: account.market as DueMarket,
+      now,
+    });
+    if (dueDate === null) {
+      return skip(t, ctx, "Bảng `0.2.1` nói không đặt, hoặc tin đã quá cửa sổ cơ hội (`D6`).");
+    }
+
+    const content = ACTION_BY_SIGNAL_TYPE[signal.signalType as DueSignalType];
+    const sourceSignalId = input.signalId;
+
     if (!opportunity) throw new Error("Cơ hội không tồn tại.");
 
     // `AD-3` · `D11` — chỉ Cơ hội ở giai đoạn ĐANG CHẠY. `tam_dung` được miễn
@@ -511,7 +602,7 @@ export async function fillNextActionIfUnchanged(
     }
 
     const existing = await t.nextAction.findFirst({
-      where: { opportunityId: input.opportunityId, deletedAt: null },
+      where: { opportunityId: opportunityId, deletedAt: null },
       select: { id: true, content: true, dueDate: true, setBy: true },
     });
 
@@ -519,19 +610,24 @@ export async function fillNextActionIfUnchanged(
       ? { content: existing.content, dueDate: existing.dueDate, setBy: existing.setBy }
       : null;
     const after = {
-      content: input.content,
-      dueDate: input.dueDate,
+      content: content,
+      dueDate: dueDate,
       setBy: "he_thong" as const,
     };
 
     // ─── ⓐ ô đang trống ───────────────────────────────────────────────────
     if (!existing) {
-      // Vế kiểm của `FR-34` cho nhánh này: máy phải đã đọc thấy ô TRỐNG. Đọc
-      // thấy có chữ mà giờ không còn hàng nào nghĩa là ai đó vừa xoá — dữ liệu
-      // đã đổi, bỏ lượt.
-      if (input.expectedContent !== null || input.expectedDueDate !== null) {
-        return skip(t, ctx, "Ô đã đổi giữa lúc đọc và lúc ghi.");
-      }
+      // ⚠ VẾ CANH CŨ ĐÃ GỠ, và gỡ vì nó thành hằng đúng chứ không vì nó phiền.
+      //
+      // Bản trước so `input.expectedContent` — giá trị bên gọi đọc ở một thời
+      // điểm TRƯỚC — với hiện trạng, để bắt ca *"người vừa xoá giữa lúc đọc và
+      // lúc ghi"*. Nay lượt đọc nằm trong CHÍNH giao dịch này, nên khoảng hở đó
+      // không còn tồn tại: `existing` là `null` ở đây theo đúng định nghĩa của
+      // nhánh, và so nó với `null` luôn cho cùng một câu trả lời.
+      //
+      // `FR-34` MẠNH HƠN sau thay đổi này, không yếu đi — một lượt ghi của người
+      // hoặc xảy ra trước lượt đọc (ta thấy) hoặc bị Postgres chặn tới khi giao
+      // dịch này xong.
       // ⚠ KHÔNG có vế `WHERE` nào để lặp ở đây — `create` không kiểm được cái
       // chưa tồn tại. Lớp canh là chỉ mục một phần `next_action_one_active`:
       // hai lượt quét đồng thời thì một cái ăn lỗi duy nhất và giao dịch của nó
@@ -540,17 +636,21 @@ export async function fillNextActionIfUnchanged(
       // song với chính nó.
       const row = await t.nextAction.create({
         data: {
-          opportunityId: input.opportunityId,
-          content: input.content,
-          dueDate: input.dueDate,
+          opportunityId: opportunityId,
+          content: content,
+          dueDate: dueDate,
           setBy: "he_thong",
           undoDeadlineAt,
-          sourceSignalId: input.sourceSignalId,
+          sourceSignalId: sourceSignalId,
         },
         select: { id: true },
       });
-      await notifyAutoSet(t, opportunity.accountId, input.opportunityId, row.id);
-      await ctx.audit.complete(t, ctx.auditId, "ok", { before, after });
+      await notifyAutoSet(t, opportunity.accountId, opportunityId, row.id);
+      await ctx.audit.complete(t, ctx.auditId, "ok", {
+        accountId: opportunity.accountId,
+        before,
+        after,
+      });
       return true;
     }
 
@@ -561,25 +661,29 @@ export async function fillNextActionIfUnchanged(
           id: existing.id,
           deletedAt: null,
           // `AD-10` — vế `WHERE` lặp TOÀN BỘ vị từ, không chỉ nội dung.
-          content: input.expectedContent,
-          dueDate: input.expectedDueDate,
+          content: existing.content,
+          dueDate: existing.dueDate,
           setBy: "he_thong",
           // `BR-D8` — hạn máy đặt KHÔNG BAO GIỜ bị đẩy xa hơn. Hạn đang `null`
           // thì điền vào một ô hạn trống không phải *đẩy xa hơn*, nên nó qua.
-          AND: [{ OR: [{ dueDate: null }, { dueDate: { gte: input.dueDate } }] }],
+          AND: [{ OR: [{ dueDate: null }, { dueDate: { gte: dueDate } }] }],
         },
         data: {
-          content: input.content,
-          dueDate: input.dueDate,
+          content: content,
+          dueDate: dueDate,
           undoDeadlineAt,
-          sourceSignalId: input.sourceSignalId,
+          sourceSignalId: sourceSignalId,
         },
       });
       if (changed.count === 0) {
         return skip(t, ctx, "Ô đã đổi, hoặc hạn mới xa hơn hạn đang có.");
       }
-      await notifyAutoSet(t, opportunity.accountId, input.opportunityId, existing.id);
-      await ctx.audit.complete(t, ctx.auditId, "ok", { before, after });
+      await notifyAutoSet(t, opportunity.accountId, opportunityId, existing.id);
+      await ctx.audit.complete(t, ctx.auditId, "ok", {
+        accountId: opportunity.accountId,
+        before,
+        after,
+      });
       return true;
     }
 
@@ -595,8 +699,8 @@ export async function fillNextActionIfUnchanged(
       where: {
         id: existing.id,
         deletedAt: null,
-        content: input.expectedContent,
-        dueDate: input.expectedDueDate,
+        content: existing.content,
+        dueDate: existing.dueDate,
         setBy: "nguoi",
         // Lặp cả vế *đã quá hạn*, dù `dueDate: expectedDueDate` ở trên đã ghim
         // giá trị: `AD-10` đòi vế `WHERE` phát biểu ĐỦ vị từ, để đọc một mình
@@ -604,8 +708,8 @@ export async function fillNextActionIfUnchanged(
         AND: [{ dueDate: { lt: today } }],
       },
       data: {
-        content: input.content,
-        dueDate: input.dueDate,
+        content: content,
+        dueDate: dueDate,
         setBy: "he_thong",
         // ⚠ `undoDeadlineAt` để `null` Ở NHÁNH NÀY, có chủ đích.
         //
@@ -618,14 +722,18 @@ export async function fillNextActionIfUnchanged(
         //
         // Nên nhánh này ghi, và KHÔNG mở cửa sổ Hoàn tác. Khoản NỢ đã báo.
         undoDeadlineAt: null,
-        sourceSignalId: input.sourceSignalId,
+        sourceSignalId: sourceSignalId,
       },
     });
     if (changed.count === 0) {
       return skip(t, ctx, "Ô đã đổi, hoặc chưa quá hạn.");
     }
-    await notifyAutoSet(t, opportunity.accountId, input.opportunityId, existing.id);
-    await ctx.audit.complete(t, ctx.auditId, "ok", { before, after });
+    await notifyAutoSet(t, opportunity.accountId, opportunityId, existing.id);
+    await ctx.audit.complete(t, ctx.auditId, "ok", {
+        accountId: opportunity.accountId,
+        before,
+        after,
+      });
     return true;
   });
 }
@@ -680,6 +788,25 @@ async function skip(
 /// thành `nguoi`, `updateMany` chạm 0 hàng, và Hoàn tác im lặng bỏ lượt — thay
 /// vì xoá mất thứ họ vừa gõ.
 ///
+/// ⚠ TÀI LIỆU LỆCH MÃ — MÃ ĐANG ĐÚNG, ĐỪNG ĐỔI MÃ TRUY VẾT CHO KHỚP `epics.md`.
+///
+/// `epics.md` gán câu *"ghi vết cho cả lần tự đặt lẫn lần hoàn tác"* cho `D14`
+/// ở cuối ô `C5-15`. Sai địa chỉ. Đối chiếu nguồn:
+///   · `D14` (Mục 0) nói về CỬA SỔ Hoàn tác: *"là tham số, mặc định 7 ngày,
+///     dùng một giá trị cho cả nhóm 3 và nhóm 4"*. Nó chốt CON SỐ 7 ngày —
+///     tức vế `undoDeadlineAt: { gt: now }` bên dưới — không nói gì về ghi vết.
+///   · Đề bài §7, `T-7`, nguyên văn: *"Bấm Hoàn tác ở T-6, một cú bấm, giá trị
+///     cũ trở lại đúng nguyên trạng. **Có bản ghi cho cả lần tự đặt lẫn lần
+///     hoàn tác**"*.
+///   · `FR-33` (PRD) — *"Ghi vết hai chiều"*: ghi lại mọi lần hệ thống tự đặt,
+///     và mọi lần hoàn tác.
+///
+/// Nên mã truy vết đúng cho vế ghi vết là `T-7` + `FR-33`; `D14` giữ nguyên vị
+/// trí của nó ở cửa sổ 7 ngày. `AD-13` không liệt `epics.md` trong chuỗi phân
+/// xử, còn đề bài §7 đứng ĐẦU chuỗi — nên bên thắng là `T-7`, không phải ô
+/// `C5-15`. Chỗ cần sửa là câu của `C5-15` ở thượng nguồn; `epics.md` ngoài
+/// quyền của lượt sửa mã, đã báo.
+///
 /// ⚠ `_actor` KHÔNG được đọc, và đó là đúng: Hoàn tác là thao tác của NGƯỜI,
 /// nhưng `AD-CR-10` chốt lõi không đọc vai, và `§5` không có ranh giới nào cho
 /// nó — nên từ vựng ĐÓNG của `errors.ts` không có mã nào để ném. Chặn máy nằm ở
@@ -700,7 +827,13 @@ export async function undoSystemNextAction(
         setBy: "he_thong",
         undoDeadlineAt: { gt: now },
       },
-      select: { id: true, content: true, dueDate: true },
+      // `accountId` kéo theo QUAN HỆ, không đọc thêm một lượt: dòng ghi vết
+      // pha 2 cần nó, và `undoSystemNextAction` chỉ nhận `{opportunityId}` nên
+      // sổ đăng ký không suy ra được ở pha 1.
+      select: {
+        id: true, content: true, dueDate: true,
+        opportunity: { select: { accountId: true } },
+      },
     });
     if (!target) {
       return skip(t, ctx, "Không có Việc tiếp theo do máy đặt còn trong cửa sổ Hoàn tác.");
@@ -719,9 +852,10 @@ export async function undoSystemNextAction(
       return skip(t, ctx, "Ô đã đổi giữa lúc đọc và lúc ghi.");
     }
 
-    // `FR-33` — ghi vết HAI CHIỀU: về giá trị gì. Ở đây *nguyên trạng* là
+    // `T-7` · `FR-33` — ghi vết HAI CHIỀU: về giá trị gì. Ở đây *nguyên trạng* là
     // không có Việc tiếp theo nào, nên `after` là `null` tường minh.
     await ctx.audit.complete(t, ctx.auditId, "ok", {
+      accountId: target.opportunity.accountId,
       before: { content: target.content, dueDate: target.dueDate, setBy: "he_thong" },
       after: null,
     });

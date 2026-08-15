@@ -20,7 +20,10 @@ import type { RegistryEntry } from "../types";
 import { entries as accountEntries } from "./account";
 import { entries as scanEntries } from "./scan";
 import { entries as suggestionEntries } from "./suggestion";
+import { entries as suggestionUiEntries } from "./suggestion-ui";
 import { entries as uiEntries } from "./ui";
+import { entries as signalUiEntries } from "./signal-ui";
+import { entries as nextActionUiEntries } from "./nextaction-ui";
 import { entries as readSharedEntries } from "./read-shared";
 import { entries as writeSharedEntries } from "./write-shared";
 
@@ -28,7 +31,10 @@ const GOP: readonly RegistryEntry[] = [
   ...accountEntries,
   ...scanEntries,
   ...suggestionEntries,
+  ...suggestionUiEntries,
   ...uiEntries,
+  ...signalUiEntries,
+  ...nextActionUiEntries,
   ...readSharedEntries,
   ...writeSharedEntries,
 ];

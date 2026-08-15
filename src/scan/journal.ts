@@ -37,11 +37,24 @@ export function renderCycleLine(s: CycleSummaryValue, startedAt: string): string
   const scope = s.partial
     ? `${s.accountsScanned}/${s.accountsPlanned} Công ty (VÒNG KHÔNG TRỌN)`
     : `${s.accountsScanned} Công ty`;
-  const errors = s.failureCodes.length > 0 ? s.failureCodes.join(",") : "không";
+  // ⚠ Trường ⑥ của `FR-39` là *"có lỗi gì"*, và `không` phải nghĩa là KHÔNG CÓ
+  // LỖI. `failureCodes` suy từ các hàng `ScanLogEntry`, tức chỉ có mã khi vòng
+  // đã chạm được ít nhất một Công ty — một vòng chết TRƯỚC đó (không mở được
+  // danh sách Công ty, phanh cắt ở Công ty đầu) không sinh hàng nào, và bản
+  // trước in `lỗi: không` cho đúng vòng hỏng nặng nhất. Đã quan sát thật:
+  // `quét 0/0 Công ty (VÒNG KHÔNG TRỌN) … lỗi: không · dừng: loi_khong_phuc_hoi`.
+  const errors = s.failureCodes.length > 0
+    ? s.failureCodes.join(",")
+    : (s.partial ? `không có mã FT (vòng cắt: ${s.stopReason})` : "không");
   return (
     `[vòng quét] ${startedAt} · quét ${scope}`
     + ` · nội dung mới ${s.newSnapshots}`
     + ` · thêm ${s.newTimelineEntries} mục Dòng thời gian`
+    // `signalCount` đã có sẵn trong `CycleSummaryValue` và `renderRollupLine` dùng
+    // nó, nhưng dòng của MỘT vòng thì bỏ — trong khi *"rút được bao nhiêu Phát
+    // hiện"* là con số giám khảo đối chiếu với số mục ở `T-8`. Hai số này lệch
+    // nhau chính là triệu chứng của `appendTimelineEntry` hỏng giữa chừng.
+    + ` · ${s.signalCount} Phát hiện`
     + ` · ${seconds(s.durationMs)}`
     + ` · lỗi: ${errors}`
     + ` · dừng: ${s.stopReason}`
@@ -75,10 +88,16 @@ export function renderSkippedLine(at: string, blockedBy: string): string {
 
 /// Vòng không mở được vì phanh AI đang tắt (`T-9`).
 ///
-/// Dòng này đi thẳng ra sink chứ không vào bảng `scan_log`, và đó là hệ quả
-/// **đã biết** của Cổng: mọi capability của tác nhân `system` bị từ chối mã
-/// `brake` khi `ai_enabled = false`, kể cả `writeScanLog`. Xem ghi chú
-/// *phanh và mục tự-giới-hạn* ở đầu `loop.ts`.
+/// Dòng này đi thẳng ra sink chứ không vào bảng `scan_log`, nhưng LÝ DO ĐÃ ĐỔI
+/// và chú thích bản trước đã sai: nó khẳng định *"mọi capability của tác nhân
+/// `system` bị từ chối mã `brake`, KỂ CẢ `writeScanLog`"*. Không còn đúng:
+/// `writeScanLog` mang `selfLimiting: true` và `gate.ts` nay đọc cờ đó, nên nó VẪN
+/// ghi được khi phanh tắt.
+///
+/// Lý do thật đơn giản hơn: vòng bị chặn ở BƯỚC 1, TRƯỚC khi mở `scan_log` —
+/// không có hàng nào để ghi vào. Đó cũng chính là thứ `T-9` đòi: hai chu kỳ kế
+/// tiếp không thêm gì, và dữ liệu đã sinh còn nguyên.
+/// Xem ghi chú *phanh và mục tự-giới-hạn* ở đầu `loop.ts`.
 export function renderBrakeLine(at: string): string {
   return `[vòng quét] ${at} · BỎ VÒNG — phanh AI đang tắt (\`FR-45\`, \`T-9\`)`;
 }

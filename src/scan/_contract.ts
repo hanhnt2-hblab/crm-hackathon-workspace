@@ -33,7 +33,21 @@ export const LOCK_LEASE_MINUTES = 10;
 /// ty lần lượt, nên vòng luôn sống lâu hơn bất kỳ khoá đơn lẻ nào. Bằng nhau
 /// thì một vòng chạy bình thường trên Công ty thứ hai đã bị coi là *vòng chết*
 /// và bị thu hồi giữa chừng.
-export const SCAN_LEASE_MINUTES = 30;
+/// ⚠ NĂM phút, KHÔNG phải ba mươi — và con số này là rủi ro vận hành, không
+/// phải một tham số kỹ thuật.
+///
+/// `D19` bỏ mọi vòng khi còn một hàng `scan_log` chưa đóng, và một hàng chỉ được
+/// thu hồi sau khi hạn thuê hết. Tiến trình bị giết giữa chu kỳ — Ctrl-C, đóng
+/// terminal, máy ngủ — để lại đúng một hàng như thế.
+///
+/// Với 30 phút, hệ thống khi ấy **không làm gì suốt nửa tiếng** và nhật ký in
+/// `BỎ VÒNG — vòng trước chưa kết thúc` mỗi phút. Không dòng nào sai, và người
+/// đứng xem kết luận là AI hỏng. Đã dính hai lần trong một đêm dựng.
+///
+/// Năm phút vẫn rộng hơn nhiều so với một chu kỳ thật (đo được 39–66 giây), nên
+/// nó không cắt nhầm một vòng đang chạy — nó chỉ rút ngắn khoảng chết sau một
+/// lần chết bất thường.
+export const SCAN_LEASE_MINUTES = 5;
 
 /// Kết cục MỘT lời gọi capability, ba nhánh phân biệt được.
 ///
@@ -69,6 +83,13 @@ export async function callCap(
     return { status: "failed", capability: name, error: e };
   }
 }
+
+/// Hàm gọi capability đã gắn sẵn sổ đăng ký và tác nhân — thứ `runScanCycle`
+/// dựng một lần rồi truyền xuống mọi hàm con.
+///
+/// Khai ở đây chứ không ở `loop.ts`: `next-action.ts` cũng nhận nó, và hai tệp
+/// cùng khai một `type CallFn` là hai chuỗi chờ trôi khỏi nhau.
+export type CallFn = (name: string, params: unknown) => Promise<CapOutcome>;
 
 // ───────────────── Hình dạng dữ liệu đọc qua capability ─────────────────
 
@@ -160,6 +181,48 @@ export function parseLatestArticle(v: unknown): LatestArticle | null {
 
 export function parseSettingValue(v: unknown): string {
   return str("readSetting", asRecord("readSetting", v), "value");
+}
+
+/// Kết cục MỘT lượt tự đặt Việc tiếp theo (`§4/nhóm 4` · `T-6`).
+///
+/// `filled: false` KHÔNG phải lỗi — `AD-10` chốt *"0 hàng bị chạm thì bỏ lượt,
+/// không thử lại"*, và `fillNextActionIfUnchanged` bỏ lượt ở sáu chỗ khác nhau
+/// (Cơ hội không đang chạy, ô đã đổi giữa lúc đọc và lúc ghi, hạn mới xa hơn hạn
+/// đang có, ô do người đặt mà cờ ghi-đè đang tắt…). Vòng quét phải PHÂN BIỆT
+/// được chúng, nếu không thì *"tin không đáng chú ý"* — chuyện bình thường xảy
+/// ra mỗi vòng — trông hệt *"luật `AD-10` vừa chặn một lần máy suýt ghi đè người"*.
+export type AutoSetNextActionValue = {
+  filled: boolean;
+  /// Câu tiếng Việt nói VÌ SAO bỏ lượt. `null` khi đã ghi, hoặc khi lõi chưa
+  /// nói — xem ghi chú hình dạng ngay dưới.
+  reason: string | null;
+  opportunityId: string | null;
+};
+
+/// Nhận HAI hình dạng, cùng lý do đã cho `parseAccountList` nhận hai hình dạng.
+///
+/// `fillNextActionIfUnchanged` của lõi hôm nay trả một `boolean` TRẦN
+/// (`src/core/nextaction/index.ts`), và lý do bỏ lượt chỉ còn lại trong dòng ghi
+/// vết `no_op` — tức ở một bảng mà tầng ① không đọc được. Hình dạng đầy đủ
+/// (`{ filled, reason, opportunityId }`) là thứ `FR-39` cần để dòng nhật ký nêu
+/// được LÝ DO; nó thuộc phần lõi mà lượt làm việc này không sở hữu.
+///
+/// Chấp nhận cả hai thì vòng quét chạy đúng dù lõi đổi hay không đổi, và khi lõi
+/// còn trả `boolean` thì `reason` là `null` — vòng quét in *"lõi không nêu lý
+/// do"* thay vì bịa một lý do. Bịa mới là chỗ hỏng: `FR-39` đã một lần in
+/// *"lỗi: không"* cho một vòng hỏng nặng, và một lý do sai đọc y hệt một lý do đúng.
+export function parseAutoSetNextAction(v: unknown): AutoSetNextActionValue {
+  if (typeof v === "boolean") {
+    return { filled: v, reason: null, opportunityId: null };
+  }
+  const o = asRecord("fillNextActionIfUnchanged", v);
+  const reason = o.reason;
+  const opportunityId = o.opportunityId;
+  return {
+    filled: o.filled === true,
+    reason: typeof reason === "string" ? reason : null,
+    opportunityId: typeof opportunityId === "string" ? opportunityId : null,
+  };
 }
 
 export type OpenScanLogValue =

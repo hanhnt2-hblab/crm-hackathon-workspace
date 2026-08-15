@@ -38,11 +38,24 @@ export type AuditSink = {
   }): Promise<string | null>;
 
   /// Pha 2, ĐƯỜNG THÀNH CÔNG — ghi trong giao dịch của lõi, commit cùng thao tác.
+  /// ⚠ `accountId` ĐIỀN Ở PHA 2, không phải pha 1 — và đó là chỗ duy nhất điền
+  /// được. Sổ đăng ký gọi `begin()` **trước khi tham số được phân tích**
+  /// (`AD-CP-5` đặt `parse` sau `decide`), nên lúc đó chưa ai biết lời gọi này
+  /// thuộc Công ty nào. Nhiều capability còn không mang `accountId` trong tham
+  /// số: `undoSystemNextAction` chỉ nhận `{opportunityId}`.
+  ///
+  /// Hậu quả của việc để trống: **mọi dòng ghi vết đi qua sổ đăng ký mang
+  /// `account_id = NULL`**, câu hỏi *"hệ thống đã làm gì với Công ty này?"*
+  /// không trả lời được, và `@@index([accountId])` thành vô dụng.
+  ///
+  /// Không đảo `begin()` xuống sau `parse`: làm thế thì lời gọi bị Cổng BÁC mất
+  /// luôn dòng ghi vết pha 1, phá bất biến ① của `AD-4`. Điền ở pha 2 thì lõi
+  /// đang trong giao dịch và đã đọc được bản ghi, nên nó BIẾT Công ty nào.
   complete(
     t: Tx,
     auditId: string | null,
     outcome: AuditOutcome,
-    values?: { before?: unknown; after?: unknown },
+    values?: { before?: unknown; after?: unknown; accountId?: string | null },
   ): Promise<void>;
 
   /// Pha 2, ĐƯỜNG CUỘN LẠI — ghi NGOÀI giao dịch, autocommit.
@@ -55,7 +68,7 @@ export type AuditSink = {
   completeDetached(
     auditId: string | null,
     outcome: AuditOutcome,
-    values?: { before?: unknown; after?: unknown },
+    values?: { before?: unknown; after?: unknown; accountId?: string | null },
   ): Promise<void>;
 };
 
@@ -121,12 +134,16 @@ export function createAuditSink(opts: {
 
 function completionData(
   outcome: AuditOutcome,
-  values?: { before?: unknown; after?: unknown },
+  values?: { before?: unknown; after?: unknown; accountId?: string | null },
 ) {
   return {
     outcome,
     completedAt: new Date(),
     valueBefore: (values?.before ?? null) as never,
     valueAfter: (values?.after ?? null) as never,
+    // ⚠ Bỏ HẲN khoá khi bên gọi không nêu, thay vì ghi `null`. Ghi `null` sẽ
+    // XOÁ giá trị mà pha 1 đã điền được — có những capability mang `accountId`
+    // ngay trong tham số, và với chúng pha 1 điền đúng.
+    ...(values?.accountId === undefined ? {} : { accountId: values.accountId }),
   };
 }

@@ -21,6 +21,7 @@ import {
   listArticleFingerprints,
   readAccountType,
   listEnums,
+  verifyQuote,
 } from "@/core/article";
 
 /// `AD-2` hạng đọc-chung: `zone: 'tu_do'`, `risk: 'low'`,
@@ -90,7 +91,30 @@ export const listEnumsCap = defineCap({
   fn: async () => listEnums(),
 });
 
+/// `BR-D2` — CÔNG CỤ KIỂM ĐẦU RA, và là mục thứ sáu của `AD-CP-6`.
+///
+/// ⚠ Đây là mục DUY NHẤT trong tập phơi mà tầng ② được KỲ VỌNG gọi. Năm mục kia
+/// là lớp phòng thủ: `AD-AG-3` chốt agent không đi lấy dữ liệu, và đã đo — hai
+/// lượt thật, handler chạy 0 lần.
+///
+/// Mục này khác hạng vì nó không LẤY ĐẦU VÀO, nó KIỂM ĐẦU RA. Memlog của
+/// `AD-AG-3` loại phương án tự-đi-lấy vì ba lý do; hai trong ba không áp dụng ở
+/// đây — bài viết đã nằm trong lời nhắc nên khoá đệm của `AD-16` không đổi, và
+/// hàm ba-tham-số của `AD-7` không bị đi vòng. Lý do còn lại, mỗi lượt tool ăn
+/// một lượt của trần `NFR-2`, là cái giá đổi lấy việc chặn thứ đã đo: **2 trên 3
+/// Phát hiện rụng vì `BR-D2`**.
+export const verifyQuoteCap = defineCap({
+  ...DOC_CHUNG,
+  name: "verifyQuote",
+  params: z.object({
+    accountId: z.uuid(),
+    quote: z.string().min(1),
+  }),
+  fn: async (_actor, p) => verifyQuote(p.accountId, p.quote),
+});
+
 export const entries: readonly RegistryEntry[] = [
+  verifyQuoteCap,
   readArticleCap,
   readAccountTypeCap,
   listEnumsCap,

@@ -13,7 +13,7 @@ import type { Actor } from "./actor";
 import type { CoreContext } from "./context";
 import { db, tx } from "./db";
 import { BusinessRuleError } from "./errors";
-import { normalize, NORMALIZER_VERSION } from "./normalize";
+import { findQuote, normalize, NORMALIZER_VERSION } from "./normalize";
 
 /// ⚠ HAI HÌNH DẠNG, chọn bằng `scope`, và đó không phải tiện nghi.
 ///
@@ -251,4 +251,62 @@ export function listEnums(): {
   relevance: readonly string[];
 } {
   return SIGNAL_ENUMS;
+}
+
+/// `BR-D2` · công cụ KIỂM ĐẦU RA cho tầng ②.
+///
+/// ⚠ KHÔNG vi phạm `AD-AG-3`. Memlog của `AD-AG-3` loại phương án *"agent tự
+/// gọi `readArticle`/`readAccountType`/`listEnums` để tự đi lấy dữ liệu"*, với
+/// ba lý do: mỗi lượt tool ăn vào trần 20 của `NFR-2`; đầu vào không xác định
+/// trước lúc gọi nên không dựng được khoá đệm của `AD-16`; và nó đi vòng qua
+/// chính hàm ba-tham-số mà `AD-7` chốt.
+///
+/// Hàm này là hạng KHÁC: nó không lấy đầu vào, nó **kiểm đầu ra**. Bài viết đã
+/// nằm sẵn trong lời nhắc, nên khoá đệm không đổi và `AD-7` không bị đi vòng.
+/// Chỉ lý do thứ nhất còn hiệu lực — mỗi lượt kiểm tốn một lượt mô hình — và đó
+/// là cái giá đổi lấy việc chặn đúng thứ đã đo: **2 trên 3 Phát hiện rụng vì
+/// `BR-D2`**, mô hình diễn đạt lại thay vì chép nguyên văn.
+export type VerifyQuoteResult = {
+  found: boolean;
+  start: number | null;
+  end: number | null;
+  /// Bản chuẩn hoá của câu trích khi khớp — chính chuỗi `createSignal` sẽ lưu.
+  normalizedQuote: string | null;
+  hint: string;
+};
+
+export async function verifyQuote(
+  accountId: string,
+  quote: string,
+): Promise<VerifyQuoteResult> {
+  const row = await db.article.findFirst({
+    where: { accountId, deletedAt: null },
+    orderBy: [{ snapshot: { capturedAt: "desc" } }, { createdAt: "desc" }],
+    select: { normalizedText: true },
+  });
+  if (!row) {
+    return {
+      found: false, start: null, end: null, normalizedQuote: null,
+      hint: "Công ty này chưa có Bản lưu nào.",
+    };
+  }
+
+  const at = findQuote(row.normalizedText, quote);
+  if (!at) {
+    return {
+      found: false, start: null, end: null, normalizedQuote: null,
+      // Câu gợi ý nói VIỆC PHẢI LÀM, không nói mã lỗi: nó đi thẳng vào lời nhắc
+      // của lượt sau, và *"không khớp"* một mình thì mô hình không biết sửa gì.
+      hint: "Câu trích không khớp nguyên văn. Chép lại ĐÚNG một đoạn liền mạch "
+        + "từ bài viết — giữ nguyên dấu câu và chữ hoa thường, không rút gọn, "
+        + "không thêm dấu ba chấm, không dịch.",
+    };
+  }
+  return {
+    found: true,
+    start: at.start,
+    end: at.end,
+    normalizedQuote: at.normalizedQuote,
+    hint: "Khớp. Đặt hai số này vào `quoteRange`.",
+  };
 }

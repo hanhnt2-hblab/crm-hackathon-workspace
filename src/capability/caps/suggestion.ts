@@ -16,7 +16,7 @@ import { z } from "zod";
 import { defineCap, type RegistryEntry } from "../types";
 import { setPrimaryContact } from "@/core/contact";
 import { createActivity } from "@/core/activity";
-import { createSuggestion, decideSuggestion } from "@/core/suggestion";
+import { proposeFromSignal, decideSuggestion } from "@/core/suggestion";
 import {
   setNextAction, fillNextActionIfUnchanged, undoSystemNextAction,
 } from "@/core/nextaction";
@@ -67,38 +67,25 @@ export const queueSuggestionCap = defineCap({
   requiresSignalSource: true,
   cascades: ["suggestion_system_close"],
   kind: "write",
-  /// Union phân biệt theo `kind`, khớp `CreateSuggestionInput` của lõi. Object
-  /// phẳng ở đây khai được đúng ba trạng thái bất khả mà lõi vừa loại bỏ.
+  /// ⚠ HAI THAM SỐ, không phải một `proposal` dựng sẵn — cùng lý do với
+  /// `fillNextActionIfUnchanged`, và cùng triệu chứng.
   ///
-  /// ⚠ `z.object` ở mức GỐC là bắt buộc (`AD-CP-6`: `tool()` của SDK đọc
-  /// `.shape`), nên union nằm ở một trường con, không ở gốc.
+  /// Lược đồ cũ đòi bên gọi nộp `targetField`, `currentValue`, `proposedValue`.
+  /// Vòng quét là tầng ①: nó không đọc được ô hồ sơ nào để biết ô nào đang
+  /// trống, và `AD-1` cấm nó nhập `@/core` để tự suy. Nên **không bên gọi sản
+  /// phẩm nào tồn tại** — đo được: hàng đợi Gợi ý rỗng suốt một lượt quét thật
+  /// đã sinh Phát hiện, Việc tiếp theo và Thông báo.
+  ///
+  /// Lõi nay tự suy qua `proposeFromSignal` → `deriveProposal`. Việc đề nghị là
+  /// của HỆ THỐNG, đúng như luật bất biến số 4 của lời nhắc dặn mô hình.
   params: z.object({
     accountId: z.uuid(),
     signalId: z.uuid(),
-    proposal: z.discriminatedUnion("kind", [
-      z.object({
-        kind: z.literal("fill_field"),
-        targetField: z.enum([
-          "website", "country", "specialty_area", "revenue_range",
-          "industry", "deal_value_tier", "founded_year", "account_type",
-        ]),
-        currentValue: z.string().nullable(),
-        proposedValue: z.string().min(1),
-      }),
-      z.object({
-        kind: z.literal("add_timeline"),
-        timelineText: z.string().min(1),
-      }),
-    ]),
   }),
   dirtyFlags: [],
   exposeToMcp: false,
   fn: async (actor, p, ctx) =>
-    createSuggestion(
-      actor,
-      { accountId: p.accountId, signalId: p.signalId, ...p.proposal },
-      ctx,
-    ),
+    proposeFromSignal(actor, { accountId: p.accountId, signalId: p.signalId }, ctx),
   snapshot: null,
   writesTables: ["suggestion"],
 });
@@ -227,18 +214,34 @@ export const setNextActionCap = defineCap({
   requiresSignalSource: false,
   cascades: [],
   kind: "write",
+  /// ⚠ HAI THAM SỐ, không phải sáu.
+  ///
+  /// Lược đồ cũ đòi `opportunityId`, `expectedContent`, `expectedDueDate`,
+  /// `content`, `dueDate`, `sourceSignalId`. Đo được trên CSDL: Cổng CHO QUA
+  /// (`decision=allow`), rồi Zod bác vì **vòng quét không dựng nổi một trường
+  /// nào trong sáu** — `src/scan` là tầng ①, không capability nào cho
+  /// `actor: system` đọc Cơ hội đang mở hay ô hiện tại, và `computeDueDate` nằm
+  /// trong tệp lõi có `import { tx }` nên tầng ① nhập vào là phá `AD-1`.
+  ///
+  /// Hệ quả: §4/nhóm 4 chưa bao giờ chạy, `T-6` đỏ cả ba vế. Lõi nay tự đọc sáu
+  /// giá trị đó **trong chính giao dịch của nó** — xem `FillNextActionInput`.
+  ///
+  /// KHÔNG thêm tên capability mới, nên `AD-2` và `T-10` giữ nguyên phân hoạch.
+  /// ⚠ ĐƯỜNG NGƯỜI GÕ TAY — người nhập nội dung và hạn, nên cả hai đi vào từ
+  /// tham số. KHÔNG dùng chung thân với `fillNextActionIfUnchanged`: đó là đường
+  /// MÁY, và nó suy mọi giá trị từ một Phát hiện.
+  ///
+  /// `BR-B1` — thiếu nội dung hoặc thiếu hạn thì **vẫn lưu được**, chỉ mang cờ.
+  /// Nên cả hai `nullable`, và không có phép kiểm *"phải điền đủ"* nào ở đây:
+  /// thêm nó vào là làm `BR-B1` bất khả thi.
   params: z.object({
     opportunityId: z.uuid(),
     content: z.string().nullable(),
-    /// `z.iso.date()`, không `z.iso.datetime()`: cột là `@db.Date`. Gửi kèm giờ
-    /// là bịa ra độ chính xác không có thật, rồi so qua múi giờ sẽ lệch một
-    /// ngày — đúng lúc `BR-D7` có sàn *cuối ngày làm việc kế tiếp*.
+    /// Chuỗi ISO, không `z.date()` (`AD-CP-5`): tham số đi qua JSON trước khi
+    /// tới đây, và `z.date()` bác mọi chuỗi.
     dueDate: z.iso.date().nullable(),
   }),
-  /// `AD-CR-4` — mọi mục ghi chạm `opportunity` hoặc `next_action` phải khai
-  /// danh sách KHÁC RỖNG. `BR-B1` là cờ thiếu Việc tiếp theo; `BR-B4` là vế
-  /// *đang chạy* của nó, tức miễn trừ cho `tam_dung`.
-  dirtyFlags: ["BR-B1", "BR-B4"],
+  dirtyFlags: ["BR-B1"],
   exposeToMcp: false,
   fn: async (actor, p, ctx) =>
     setNextAction(
@@ -246,7 +249,7 @@ export const setNextActionCap = defineCap({
       {
         opportunityId: p.opportunityId,
         content: p.content,
-        dueDate: p.dueDate ? new Date(p.dueDate) : null,
+        dueDate: p.dueDate === null ? null : new Date(p.dueDate),
       },
       ctx,
     ),
@@ -287,31 +290,33 @@ export const fillNextActionIfUnchangedCap = defineCap({
   requiresSignalSource: true,
   cascades: ["notification"],
   kind: "write",
+  /// ⚠ HAI THAM SỐ, không phải sáu.
+  ///
+  /// Lược đồ cũ đòi `opportunityId`, `expectedContent`, `expectedDueDate`,
+  /// `content`, `dueDate`, `sourceSignalId`. Đo được trên CSDL demo: Cổng CHO
+  /// QUA (`decision=allow`, actor `system`), rồi Zod bác — vì **vòng quét không
+  /// dựng nổi một trường nào trong sáu**. `src/scan` là tầng ①: không capability
+  /// nào cho `actor: system` đọc Cơ hội đang mở hay ô hiện tại, và
+  /// `computeDueDate` nằm trong tệp lõi có `import { tx }`, nên tầng ① nhập vào
+  /// là kéo Prisma qua đúng ranh giới `AD-1` cấm.
+  ///
+  /// Hệ quả: §4/nhóm 4 **chưa bao giờ chạy** trong vòng quét, `T-6` đỏ cả ba vế.
+  /// Chép bảng `0.2.1` sang `src/scan` để tự tính là dựng nguồn sự thật thứ hai
+  /// — hai bảng trôi khỏi nhau rồi hạn sai mà không lớp nào bắt được.
+  ///
+  /// Lõi nay tự đọc sáu giá trị đó **trong chính giao dịch của nó**; xem
+  /// `FillNextActionInput`. KHÔNG thêm tên capability mới, nên `AD-2` và `T-10`
+  /// giữ nguyên phân hoạch.
   params: z.object({
-    opportunityId: z.uuid(),
-    /// `FR-34` — giá trị máy ĐÃ ĐỌC. Cả HAI, không chỉ nội dung: người dời mỗi
-    /// ngày hạn mà giữ nguyên chữ cũng không được bị đè.
-    expectedContent: z.string().nullable(),
-    expectedDueDate: z.iso.date().nullable(),
-    content: z.string().min(1),
-    dueDate: z.iso.date(),
-    sourceSignalId: z.uuid(),
+    accountId: z.uuid(),
+    /// `AD-3` — chạm ghi của máy đòi `signalId` nguồn. Mọi giá trị khác suy ra
+    /// từ đây, nên nó vừa là bằng chứng vừa là đầu vào.
+    signalId: z.uuid(),
   }),
   dirtyFlags: ["BR-B1", "BR-B4"],
   exposeToMcp: false,
   fn: async (actor, p, ctx) =>
-    fillNextActionIfUnchanged(
-      actor,
-      {
-        opportunityId: p.opportunityId,
-        expectedContent: p.expectedContent,
-        expectedDueDate: p.expectedDueDate ? new Date(p.expectedDueDate) : null,
-        content: p.content,
-        dueDate: new Date(p.dueDate),
-        sourceSignalId: p.sourceSignalId,
-      },
-      ctx,
-    ),
+    fillNextActionIfUnchanged(actor, { accountId: p.accountId, signalId: p.signalId }, ctx),
   snapshot: null,
   writesTables: ["next_action", "notification"],
 });
