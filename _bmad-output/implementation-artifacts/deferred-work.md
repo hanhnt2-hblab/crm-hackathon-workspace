@@ -246,3 +246,144 @@
     `setNextAction` lẫn `fillNextActionIfUnchanged`.
     ④ `epics.md` `C5-15` gán câu *"ghi vết cho cả lần tự đặt lẫn lần hoàn tác"* cho `D14`; câu đó
     là nguyên văn `T-7` của đề bài, và mã yêu cầu là `FR-33`.
+
+- source_spec: `_bmad-output/implementation-artifacts/spec-c1-8-phat-hien-doan-van-goc.md`
+  summary: `tests/T10B.test.ts` cần thêm `readAccountSignals` vào `CORE_FUNCTIONS_ALLOWED`, nếu không `T-10b` đỏ.
+  evidence: Phép kiểm ở `tests/T10B.test.ts:152-168` quét mọi `import { … } from "@/core/…"` trong `src/capability/caps/*.ts`; `signal-ui.ts` nhập `readAccountSignals`, tên đó chưa có trong danh sách trắng. Người dựng `T-3` không sở hữu `tests/` nên không tự thêm.
+
+- source_spec: `_bmad-output/implementation-artifacts/spec-c1-8-phat-hien-doan-van-goc.md`
+  summary: Tuyến `S10` Snapshot viewer (`snapshots/[id]`) vẫn chưa dựng — `T-3` đóng bằng khu đọc tại chỗ trên `S3`.
+  evidence: `EXPERIENCE.md` giao "bấm một Signal → mở đoạn văn gốc có đánh dấu" cho `S10`, nhưng `e2e/T3.spec.ts:144` đòi cả ba bước trên `/accounts/{id}` không điều hướng. Còn thiếu đường xem một Bản lưu KHÔNG đi từ một Phát hiện.
+
+- source_spec: `_bmad-output/implementation-artifacts/spec-c1-8-phat-hien-doan-van-goc.md`
+  summary: `e2e/T3.spec.ts` dùng `page.locator("mark")` ở strict mode, nên bề mặt chỉ chịu được ĐÚNG MỘT Phát hiện mỗi Công ty.
+  evidence: `<details>` giữ con trong DOM kể cả khi đóng, nên mọi Phát hiện đều bơm một `<mark>` vào trang. Công ty thứ hai có hai Phát hiện là `toHaveText` vi phạm strict mode. Đóng bằng cách thu hẹp locator ở `e2e/` hoặc chỉ render `<mark>` cho mục đang mở.
+
+- source_spec: `_bmad-output/implementation-artifacts/spec-c1-8-phat-hien-doan-van-goc.md`
+  summary: Bốn nhánh của khối Phát hiện chưa có phép kiểm nào chạm tới — neo hỏng, `readable:false`, `eventDate` khác `null`, `markedUnhelpfulAt` khác `null`.
+  evidence: `e2e/T3.spec.ts` và `tests/T3.test.ts` đều để `eventDate: null`, `readable` mặc định `true`, và câu trích đã chuẩn hoá sẵn nên chỉ nhánh `anchored === true` chạy. Nhánh neo hỏng là nhánh nguy hiểm nhất (tô sai chỗ trông y như tô đúng) mà không phép kiểm nào quan sát.
+
+- source_spec: `_bmad-output/implementation-artifacts/spec-c1-8-phat-hien-doan-van-goc.md`
+  summary: `Article.read_at` không có chỉ mục, trong khi `readAccountSignals` sắp theo nó qua join.
+  evidence: `prisma/schema.prisma` chỉ đánh chỉ mục `accountId` và `contentHash` trên `article`. `prisma/` đang đóng băng nên không sửa; cần một dòng chốt nếu bộ dữ liệu thật lớn hơn.
+
+- source_spec: `_bmad-output/implementation-artifacts/spec-t7-khoi-viec-tiep-theo-nut-hoan-tac.md`
+  summary: `e2e/T7.spec.ts:229` mở giao diện SAU khi chính tệp đó đã hoàn tác xong, nên không còn gì để hoàn tác và nút đúng ra không được hiện.
+  evidence: Tệp chạy `mode: "serial"`; phép kiểm dòng 163 gọi `undoSystemNextAction` thành công và dòng 168 khẳng định `conSong === 0`. Tới dòng 229 Công ty ấy có 0 hàng `next_action` sống, nên một giao diện ĐÚNG (nút chỉ hiện khi hoàn tác được) sẽ không vẽ nút. Nguy hiểm hơn: cách rẻ nhất để làm nó xanh là gỡ vế `where: { deletedAt: null }` ở `src/core/nextaction/read.ts` — tức ship đúng cái nút chết mà `T-7` sinh ra để bắt. Sửa thuộc `e2e/`: dựng lại cảnh (gọi `fillNextActionIfUnchanged` một lần nữa) ngay trong phép kiểm dòng 229, hoặc dời phép kiểm đó lên trước phép kiểm hoàn tác.
+
+- source_spec: `_bmad-output/implementation-artifacts/spec-t7-khoi-viec-tiep-theo-nut-hoan-tac.md`
+  summary: `tests/T10B.test.ts` DANH SÁCH TRẮNG chưa có `readAccountNextActions`, nên phép kiểm *mọi hàm lõi mà caps nhập* sẽ đỏ.
+  evidence: `src/capability/caps/nextaction-ui.ts` nhập `readAccountNextActions` từ `@/core/nextaction/read`; `CORE_FUNCTIONS_ALLOWED` ở `tests/T10B.test.ts:37` chưa liệt tên đó. Chủ `tests/` thêm một dòng.
+
+- source_spec: `_bmad-output/implementation-artifacts/spec-t7-khoi-viec-tiep-theo-nut-hoan-tac.md`
+  summary: Chưa có phép kiểm bảng nào cho `canUndoNow`/`remainingMs`, dù `now` được khai làm tham số đúng để viết bảng đó.
+  evidence: `src/core/nextaction/read.ts` nhận `now: Date` để ba nhánh kiểm được không cần đóng băng đồng hồ; không tệp nào trong `tests/` hay `e2e/` chạm `readAccountNextActions`. Ranh giới `gt` (đúng khoảnh khắc hết hạn), nhánh `undoDeadlineAt === null`, và `setBy !== "he_thong"` đều chưa có gì canh — mà đây là bản sao của vị từ ghi, tức đúng chỗ hai bên trôi khỏi nhau.
+
+- source_spec: `_bmad-output/implementation-artifacts/spec-u8-tai-tai-lieu-cho-cong-ty.md`
+  summary: Bảy hàng của I/O Matrix `U8` (tải tài liệu) chưa có phép kiểm tự động nào — người dùng chọn nghiệm thu bằng tay trên bản chạy thật ngày 15/08.
+  evidence: |
+    Bước 3 của `bmad-build` đòi mỗi hàng ma trận có ít nhất một phép kiểm ĐÃ CHẠY và xanh. Không
+    hàng nào có. Cái đã chứng minh chỉ là bề mặt RENDER: `GET /accounts/<id>` trả 200 và trang
+    chứa hàng *Tải tài liệu* cùng dòng đếm Bản lưu. Chưa chứng minh đường GHI, và chưa chạm sáu ca
+    lỗi — sai định dạng, quá 1 MB, tệp rỗng, AI đang tắt, mất mạng giữa chừng, nhãn nguồn
+    `tài liệu` sau khi vòng quét rút Phát hiện.
+    Chỗ đúng để phủ là `e2e/U8.spec.ts`: spec cấm chạm `tests/**` (vitest) nhưng KHÔNG cấm `e2e/**`,
+    và ba ca đắt nhất — Cổng từ chối khi phanh bật, `revalidatePath` làm `articleCount` tăng, nhãn
+    nguồn đọc thành *"Bản lưu · tài liệu"* chứ không phải *"bản chụp tài liệu"* — đều cần trình
+    duyệt thật chứ jsdom không chứng minh được.
+    Ước lượng 30–40 phút. Hoãn vì lúc quyết là 07:00 ngày thi, khai mạc 09:00, và hai việc chặn
+    nặng hơn đang treo: `npm run verify` đỏ và `npm run up` chưa chạy từ clone sạch (`§7.3` ⑤).
+
+- source_spec: `_bmad-output/implementation-artifacts/spec-u3-hang-doi-goi-y.md`
+  summary: Không có capability đọc hàng đợi Gợi ý TOÀN CỤC, nên bề mặt `S2` phải quét N+1 lượt (`searchAccounts({})` rồi `readSuggestionQueue` từng Công ty).
+  evidence: `src/capability/caps/suggestion-ui.ts:53` khai `params: z.object({ accountId: z.uuid() })` — bắt buộc, không có biến thể rỗng. Hệ quả đo được: N Công ty là N+1 lượt đọc và N+1 dòng ghi vết pha 1 cho MỘT lần mở trang. Cách trả: một mục `readPendingSuggestionQueue` không tham số ở tầng ④, đọc thẳng `db.suggestion.findMany({ where: { status: "cho" } })` kèm join Công ty. Lần chạy 15/08 không sở hữu `src/capability/**` nên không thêm.
+
+- source_spec: `_bmad-output/implementation-artifacts/spec-u3-hang-doi-goi-y.md`
+  summary: `FR-25` — dấu hiệu *có Gợi ý chờ* kèm SỐ đang chờ trên `S1`, `S3`, `S6` — chưa dựng.
+  evidence: Đếm Gợi ý chờ cần chính capability toàn cục ở mục trên. Làm bằng fan-out trong `src/app/layout.tsx` là N+1 lượt đọc trên MỌI trang, kể cả `/login` và `/board`, tức đặt một phép quét toàn bảng lên đường nóng của mọi cú bấm. Lối vào `S2` hiện là một `Link` không mang số ở `masthead-nav` cộng một liên kết ở khối Gợi ý của `S3`. Mở khoá cùng lúc với mục trên.
+
+- source_spec: `_bmad-output/implementation-artifacts/spec-u3-hang-doi-goi-y.md`
+  summary: Trạng thái rỗng của `S2` thiếu vế *"kèm thời điểm vòng quét gần nhất"* mà `EXPERIENCE.md` đòi.
+  evidence: Bảng *Mẫu trạng thái* của `EXPERIENCE.md` (cột `S2`, hàng **Rỗng**) đòi *"Không có gợi ý nào chờ."* KÈM mốc vòng quét gần nhất. Mốc ấy sống ở Nhật ký vòng quét (`S9`); `src/capability/caps/scan.ts` chỉ có `writeScanLog`, không có mục ĐỌC nào phơi nó lên tầng ①. Trang hiện nói việc phải làm (bật Đang theo dõi) thay vì bịa một mốc thời gian.
+
+- source_spec: `_bmad-output/implementation-artifacts/spec-u3-hang-doi-goi-y.md`
+  summary: Tám hàng I/O Matrix của `U3` chưa hàng nào có phép kiểm đã chạy — Matrix Test Audit của bước 3 KHÔNG QUA.
+  evidence: Lần chạy 15/08 bị cấm `npm test` · `npm run verify` · `npm run e2e:xem` · `npm run seed` vì cả bốn đụng CSDL hoặc cổng người khác đang dùng, và cổng 3000 đã xác nhận có tiến trình khác chiếm. Bằng chứng duy nhất thu được là `npx tsc --noEmit` sạch và `npx eslint src/` sạch. Ba hàng đắt nhất cần trình duyệt thật: *gom theo Công ty* (hai Công ty, Gợi ý cùng Công ty đứng liền nhau), *Duyệt trên `/suggestions` làm thẻ rời hàng đợi ở CẢ hai bề mặt* (`revalidatePath` mới thêm), và *AI tắt thì Gợi ý chờ vẫn bấm được*. Chỗ đúng để phủ là `e2e/U3.spec.ts`.
+
+- source_spec: `_bmad-output/implementation-artifacts/spec-u3-hang-doi-goi-y.md`
+  summary: `epics.md` (`C1-1`) và `EXPERIENCE.md` gọi `S2` là hai thứ khác nhau — xung đột tài liệu chưa ai phân xử.
+  evidence: `C1-1` viết *"Bề mặt `S1`, `S2` · tạo/sửa/xoá/xem"* (Công ty và Người liên hệ); bảng IA của `EXPERIENCE.md:44-45` khai `S1` = *Today* và `S2` = *Suggestion queue*. Luật truy vết ngược chỉ đích danh `EXPERIENCE.md` là nguồn của dải `S0`–`S11`, nên bản dựng theo `EXPERIENCE.md`. Vế *tạo/sửa/xoá/xem* của `C1-1` KHÔNG mất: nó đã có ở `S6` (`/accounts`) và `S3` (`/accounts/[id]`). Cần một dòng sửa `epics.md` để hai tài liệu không còn nói khác nhau. Ghi chú thêm: `S12` KHÔNG tồn tại ở `EXPERIENCE.md` — IA đóng ở đúng mười một bề mặt `S0`–`S11`.
+
+- source_spec: `_bmad-output/implementation-artifacts/spec-c5-1-cascade-va-hai-cho-lech-tai-lieu.md`
+  summary: Cascade `D26` nay chạm bảy nhóm cộng đường đóng Gợi ý, nhưng KHÔNG phép kiểm nào quan sát bốn hiệu ứng mới, và không phép kiểm nào ghim hai nhóm bằng chứng phải SỐNG SÓT.
+  evidence: |
+    `softDeleteCompany` chỉ có một bên gọi thật trong repo: `tests/T10A.test.ts:134`. `beforeAll`
+    của tệp đó (`:38`–`:53`) chỉ dựng `user` + `account` + `opportunity`, nên cảnh không có hàng
+    `snapshot`/`article`/`notification`/`suggestion` nào để mà quan sát. Xoá bốn dòng cascade mới
+    thì `T10A` vẫn xanh; thêm `t.signal.updateMany(...)` — đúng thứ `AD-14` cấm — cũng xanh. Tên
+    phép kiểm *"cascade `D26` chạm đúng ba bảng con"* nay lệch hẳn với mã. Không sửa trong lượt
+    này vì `tests/` ngoài quyền của lượt sửa mã. Hình dạng cần: mở rộng `beforeAll` cho đủ bảy
+    nhóm cộng một Gợi ý `cho`, rồi khẳng định bảy nhóm rời đường đọc thường, `signal` và
+    `timeline_entry` còn `deleted_at IS NULL`, và `dbIncludingDeleted.suggestion` cho
+    `status = "dong_he_thong"` với `deletedAt` vẫn `null`.
+
+- source_spec: `_bmad-output/implementation-artifacts/spec-c5-1-cascade-va-hai-cho-lech-tai-lieu.md`
+  summary: `epics.md` lệch mã ở HAI chỗ đã xác minh — `C5-10` (offset câu trích) và `C5-15` (mã thượng nguồn của vế ghi vết) — và cần sửa ở thượng nguồn, không sửa mã.
+  evidence: |
+    `C5-10` viết *"`findQuote` trả khoảng vị trí trên **văn bản gốc**"*, ngược với `AD-18`, với chú
+    thích cột `signal.quote_start` của lược đồ, và với `createSignal` vốn gọi
+    `findQuote(article.normalizedText, …)`. `C5-15` gán câu *"ghi vết cho cả lần tự đặt lẫn lần
+    hoàn tác"* cho `D14`, trong khi `D14` (Mục 0:280) chỉ chốt CỬA SỔ 7 ngày; câu ấy là nguyên văn
+    `T-7` (đề bài:190) cộng `FR-33` (prd.md:673). Mã ĐÚNG ở cả hai và đã được chú thích tại chỗ
+    (`src/core/normalize.ts` tại `findQuote`, `src/core/nextaction/index.ts` tại
+    `undoSystemNextAction`). Không sửa `epics.md` trong lượt này vì tệp đó ngoài quyền.
+
+- source_spec: `_bmad-output/implementation-artifacts/spec-c5-1-cascade-va-hai-cho-lech-tai-lieu.md`
+  summary: `closeSuggestionsBySystem` tự lấy `new Date()` thay vì nhận `now` của giao dịch, và số Gợi ý nó đóng bị bỏ đi thay vì vào ghi vết của lượt xoá.
+  evidence: |
+    `softDeleteCompany` dùng MỘT biến `now` cho cả bảy nhóm cascade lẫn hàng `account`; hiệu ứng
+    thứ tám đóng dấu `decided_at` lệch vài mili giây. Hàm trả `res.count` và bên gọi bỏ đi, trong
+    khi `createSuggestion` ghi số tương đương vào `after: { supersededPending: closed }` — nên
+    dòng ghi vết của một lượt xoá không nói được nó đã đóng bao nhiêu Gợi ý. Không gộp vào lượt
+    này vì đổi chữ ký một hàm lõi đang có thay đổi chưa commit của lượt khác.
+
+- source_spec: `_bmad-output/implementation-artifacts/spec-c5-1-cascade-va-hai-cho-lech-tai-lieu.md`
+  summary: Dòng ghi vết của chính `softDeleteCompany` không mang `accountId`, trong khi chín chỗ ghi vết khác của lõi vừa được thêm cột đó.
+  evidence: |
+    `src/core/audit.ts` cảnh báo bỏ trống `accountId` ở pha 2 làm *"mọi dòng ghi vết đi qua sổ đăng
+    ký mang `account_id = NULL`"*, và `id` là tham số sẵn có của hàm. Đây là dòng dễ bị truy vấn
+    nhất cho câu hỏi *"đã làm gì với Công ty này"*. Không gộp vào lượt này vì nó là thay đổi hành
+    vi ghi vết, không thuộc ba lỗ logic được giao, và cùng hình dạng với sáu đường `skip()` của
+    `fillNextActionIfUnchanged` vốn cũng còn để trống — nên đáng sửa một lượt cho cả hai.
+
+- source_spec: `_bmad-output/implementation-artifacts/spec-u3-hang-doi-goi-y.md`
+  summary: Thứ tự hàng đợi `S2` KHÔNG theo khoá bộ ba mà `FR-18` đòi — `SuggestionRow` không mang Độ liên quan và Mức chắc chắn.
+  evidence: `prd.md:557-561` chốt khoá xếp là (Độ liên quan, Mức chắc chắn, Công ty có Cơ hội đang chạy), so lần lượt, và thứ tự giữa các Công ty lấy theo Gợi ý cao nhất của mỗi Công ty. `src/core/suggestion/read.ts:22-37` khai `PendingSuggestion` không có hai trường đầu, và `src/capability/caps/suggestion-ui.ts:59` trả thẳng hình dạng đó. Tầng ① không có gì để so nên `src/app/suggestions/page.tsx` xếp theo tuổi việc — ổn định nhưng không phải thứ `FR-18` nói. Trả nợ: thêm `relevance` và `confidence` vào `PendingSuggestion` (một trường `signal.relevance`/`signal.confidence` đã có sẵn ở bảng `signal`), rồi xếp lại ở tầng ①.
+
+- source_spec: `_bmad-output/implementation-artifacts/spec-u3-hang-doi-goi-y.md`
+  summary: `S2` mới phủ `FR-18`…`FR-23`; bảng IA gán cho nó `FR-18`–`FR-26` cộng `FR-51`.
+  evidence: `EXPERIENCE.md:45` khai cột FR của `S2` là `FR-18`–`FR-26` · `FR-51`. Chưa dựng: `FR-24`/`FR-26` (Hoàn tác một lượt Duyệt, cùng cửa sổ 7 ngày với nhóm 4 — `EXPERIENCE.md:222`), `FR-25` (số đang chờ), và nhãn *"dựa trên bản lưu đã cũ"* của `D15`/`FR-21` — nhãn ấy cần nhất đúng ở `S2` vì `S2` xếp cũ nhất lên đầu. `FR-51` (nhãn *"hồ sơ đã đổi sau khi gợi ý này sinh ra"*) cũng chưa có: lõi đọc giá trị SỐNG (`src/core/suggestion/read.ts:82`) nhưng không trả kèm giá trị lúc sinh nên tầng ① không so được hai vế.
+
+- source_spec: `_bmad-output/implementation-artifacts/spec-u3-hang-doi-goi-y.md`
+  summary: Mốc đo `decisionSeconds` (`BR-B6`) sai số lớn hơn hẳn trên `S2` so với `S3`, và chú thích của nó trích ngược `FR-23`.
+  evidence: `src/app/_suggestion-queue.tsx` lấy mốc từ `onPointerEnter`/`onFocusCapture`, lùi về lúc gắn cây. Trên `S3` (một Công ty, vài thẻ) sai số nhỏ; trên `S2` MỌI thẻ của MỌI Công ty gắn cùng lúc lúc tải trang, nên một thẻ nằm dưới màn hình lâu rồi mới bấm sẽ báo một khoảng cân nhắc không có thật. `decisionSeconds` là đầu vào của `blindApprovalSignals` (`FR-43`), tức đây là số đo bị bơm. Thêm nữa, `src/app/_suggestion-actions.ts:96` viết mốc là *"TỪ LÚC MỞ CHI TIẾT"* trong khi `prd.md:609-613` (`FR-23`) nói ngược: *"không có thao tác mở riêng — mốc đếm là lúc Gợi ý VÀO KHUNG NHÌN"*. Trả nợ: `IntersectionObserver` trong lá dùng chung, và sửa chú thích cho khớp `FR-23`.
+
+- source_spec: `_bmad-output/implementation-artifacts/spec-u3-hang-doi-goi-y.md`
+  summary: `src/app/accounts/[id]/_suggestions.tsx` gọi `loadCapability()` trong khi `AD-UI-5` chốt chỉ `page.tsx` và `layout.tsx` được gọi.
+  evidence: spine tầng ① (`architecture-tier1-tuong-tac/ARCHITECTURE-SPINE.md:174`) viết nguyên văn *"trong `src/app`, CHỈ `page.tsx` và `layout.tsx` được gọi `loadCapability()`"*. `_suggestions.tsx:12` gọi nó và đầu tệp trích `AD-UI-5` như một sự cho phép — mã có thật nhưng nói ngược. Cùng hình dạng ở `_signals.tsx`, `_next-action.tsx`. Có sẵn từ trước lần chạy 15/08; `src/app/suggestions/page.tsx` thì đúng luật. Hoặc sửa mã, hoặc sửa `AD-UI-5` — nhưng không để hai bên nói khác nhau.
+
+- source_spec: `_bmad-output/implementation-artifacts/spec-u3-hang-doi-goi-y.md`
+  summary: Nhiều chú thích trong `src/app` trích "AD-CP-5 bước ⑤" cho phép kiểm Zod, trong khi bước ⑤ là *ném GateDenied* và Zod là bước ⑥.
+  evidence: `architecture-tier4-capability/ARCHITECTURE-SPINE.md:272-285` đánh số ⑤ = từ chối/ném `GateDenied`, ⑥ = `entry.params.safeParse(params)`. Chỗ trích sai: `src/app/_errors.ts:26,132`, `src/app/_form.ts:4`, `src/app/_suggestion-actions.ts:53,101`. Đáng chú ý là cùng tệp `_suggestion-actions.ts:18` trích "bước ⑤" cho phép kiểm vai của Cổng — dòng đó ĐÚNG, nên hai cách dùng cùng một số trong một tệp đang chỉ hai bước khác nhau. Có sẵn từ trước; sửa một lượt cho cả năm chỗ.
+
+- source_spec: `_bmad-output/implementation-artifacts/spec-u3-hang-doi-goi-y.md`
+  summary: Câu báo lỗi của `Block` nói sai trên một trang chỉ có một khối.
+  evidence: `src/app/_block.tsx:38-40` in *"Các khối khác trên trang vẫn dùng được"*. Đúng với `S3` (năm khối) nhưng sai với `/suggestions`, vốn chỉ có một khối — hỏng là trắng trang mà người đọc được bảo còn thứ khác dùng được. Trả nợ: cho `Block` nhận một câu tuỳ biến, hoặc bỏ mệnh đề ấy khỏi câu chung.
+
+- source_spec: `_bmad-output/implementation-artifacts/spec-u3-hang-doi-goi-y.md`
+  summary: Chín trên hai mươi `BusinessRuleCode` không có chỗ nào ném, và phần lớn mười câu mới chỉ nổ khi bên vi phạm là máy — không phải người dùng giao diện.
+  evidence: Quét `new BusinessRuleError(` trên `src/` cho tập ném được: `BR-D1`, `BR-D2`, `BR-D3`, `BR-D10`, `NFR-14`, `NFR-15`, `NFR-17`, `NFR-19`, `STATE_TRANSITION_NOT_ALLOWED`, `STATE_TARGET_FIXED`, `STATE_CLOSED_NO_LATEST_OPEN`. `BR-D4`…`BR-D9`, `BR-D11`, `NFR-16`, `STATE_INITIAL` có câu nhưng chưa đường mã nào sinh. Thêm nữa, bốn mã `NFR-14/15/17/19` chỉ ném ở nhánh `!isHuman(actor)`, mà mọi lời gọi từ `src/app` mang `actor` người — nên bảng toàn phần là đúng ở tầng hợp đồng, nhưng chỉ `BR-D1`, `BR-D2`, `BR-D3`, `BR-D10` thật sự tới được màn hình Sales hôm nay. Cần một phép kiểm bảng (mã → câu, khớp trích dẫn PRD): `Record` chỉ chặn được THIẾU KHOÁ, không chặn được CÂU SAI — mà câu sai đúng là lỗi vừa vá cho `NFR-16`.
+
+- source_spec: `_bmad-output/implementation-artifacts/spec-u3-hang-doi-goi-y.md`
+  summary: `tests/T5.test.ts:26-32` còn khẳng định bề mặt `S2` chưa tồn tại và không tệp nào trong `src/app` gọi ba capability quyết Gợi ý — cả hai vế nay đã sai.
+  evidence: `src/app/suggestions/page.tsx` là bề mặt `S2`, và `src/app/_suggestion-actions.ts:38,63,84` gọi `approveSuggestion`, `editThenApprove`, `dropSuggestion`. Đây là chú thích nên không có gì đỏ, nhưng nó là căn cứ mà tệp ấy dùng để giải thích vì sao nó chỉ xanh ở mức capability. Chủ `tests/**` sửa — lần chạy 15/08 bị cấm chạm thư mục đó.

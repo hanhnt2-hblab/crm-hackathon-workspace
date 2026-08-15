@@ -257,16 +257,63 @@ function QualificationDialog({
   onClose,
   onMove,
 }: {
-  card: BoardCard;
+  card: BoardCard | null;
   onClose: () => void;
+  onMove: (card: BoardCard, signals: { need: boolean; budget: boolean } | null) => void;
+}) {
+  return (
+    /// ⚠ `modalType="non-modal"` — và đây là chỗ vá lỗi trợ năng, không phải
+    /// một lựa chọn thẩm mỹ.
+    ///
+    /// Hộp thoại **modal** của Fluent đặt `aria-hidden="true"` lên các nút nền
+    /// khi mở, và dọn khi đóng. Nhưng `onMove` gọi `setAsking(null)` nên cả cây
+    /// hộp thoại bị THÁO ngay trong cùng lượt render — đường dọn không kịp chạy,
+    /// và cờ đọng lại. Đo được sau khi bấm *Bỏ qua và chuyển*:
+    ///     `[role=dialog]` → 0 (đã gỡ) · `[aria-hidden=true]` → **2** (cờ còn)
+    ///     `getByText(thông báo)` → 1 · `getByRole("status")` → **0**
+    /// Người dùng trình đọc màn hình không được báo giai đoạn đã đổi, và cả
+    /// trang câm với trợ năng — kể cả dải băng *Phần gợi ý đang tắt* (§4/nhóm 6),
+    /// với đúng nhóm người cần nó nhất.
+    ///
+    /// Non-modal thì **không đặt cờ ấy lên nền ngay từ đầu**, nên không có gì để
+    /// rò. Đổi lại: không có lớp phủ và không bẫy tiêu điểm — chấp nhận được, vì
+    /// `T-1` chốt *"bỏ qua hai ô dấu hiệu vẫn kéo được"*, tức đây KHÔNG phải một
+    /// hộp thoại bắt buộc trả lời.
+    ///
+    /// ⚠ Đã thử giữ `Dialog` luôn gắn và chỉ đổi `open`: vỏ đóng vẫn chắn bàn cờ
+    /// và **kéo thả hỏng** — `T-1` đỏ sớm hơn một bước, ở đúng thao tác nó chấm.
+    <Dialog
+      modalType="non-modal"
+      open={card !== null}
+      onOpenChange={(_, data) => (data.open ? null : onClose())}
+    >
+      <DialogSurface>
+        {/* THÂN tháo theo thẻ, VỎ thì không. `key` ép `useState` bên trong làm
+            mới khi người kéo một thẻ khác — nếu không, hai ô tick giữ nguyên
+            trạng thái của thẻ trước và người ghi nhầm dấu hiệu sang Cơ hội khác. */}
+        {card === null ? null : (
+          <QualificationBody
+            key={card.id}
+            card={card}
+            onMove={onMove}
+          />
+        )}
+      </DialogSurface>
+    </Dialog>
+  );
+}
+
+function QualificationBody({
+  card,
+  onMove,
+}: {
+  card: BoardCard;
   onMove: (card: BoardCard, signals: { need: boolean; budget: boolean } | null) => void;
 }) {
   const [need, setNeed] = useState(card.needSignal === true);
   const [budget, setBudget] = useState(card.budgetSignal === true);
 
   return (
-    <Dialog open onOpenChange={(_, data) => (data.open ? null : onClose())}>
-      <DialogSurface>
         <DialogBody>
           <DialogTitle>Sang {stageLabel("du_dieu_kien")}: hai dấu hiệu</DialogTitle>
           <DialogContent>
@@ -297,7 +344,5 @@ function QualificationDialog({
             </Button>
           </DialogActions>
         </DialogBody>
-      </DialogSurface>
-    </Dialog>
   );
 }

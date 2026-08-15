@@ -76,8 +76,21 @@ và bước dựng đang chạy. `src/` có khung năm tầng và `tests/` chạ
 - NĂM lệnh cổng nộp bài — `build` `start` `seed` `test` `stop` — và bẫy của từng lệnh:
   `CHECKLIST.md` mục *B · Giai đoạn 1*. Đừng suy lệnh từ `package.json` — `npm run dev` có trong
   đó nhưng `§7` cấm dev server.
-- Bốn lệnh thoát 0; `npm run seed` thoát **1** vì `prisma/seed.ts` chưa có. Đó là trạng thái đã
-  biết và là việc của `C5-17`, không phải hỏng cấu hình.
+- **Bốn lệnh của `§7`, đã đo trên máy dev ngày 15/08 — chưa đo trên clone sạch:**
+
+  | Việc | Lệnh | Trạng thái |
+  |---|---|---|
+  | `§7.3` khởi động, một lệnh | `npm run up` (`npm ci && npm start`; `start` tự dựng) | `npm start` đã chạy, HTTP 200 ở `/` `/accounts` `/admin`; `npm run up` **chưa chạy trọn từ clone sạch** |
+  | `§7.5` nạp dữ liệu | `npm run seed` | ✅ luỹ đẳng — chạy hai lần liên tiếp cho cùng số hàng |
+  | `§6` nghiệm thu 10 điểm | `npm run verify` | in mười dòng `T-1`…`T-10`, thoát ≠ 0 nếu có dòng đỏ |
+  | dừng | `npm run stop` | `docker compose down`; **không bao giờ** kèm `-v` |
+
+- `npm run seed` **đã có và thoát 0** — `prisma/seed.ts` dựng 2 Tài khoản · 3 Công ty · 3 Người
+  liên hệ · 3 Cơ hội. Nó dọn theo `sourceRef` bắt đầu bằng `seed` qua **14 bảng** đúng chiều khoá
+  ngoại, nên chạy lại không nhân bản. Nó **không** gieo Bản chụp, Bản lưu, Phát hiện hay Gợi ý —
+  đó là lý do Hàng đợi gợi ý rỗng và `T-5`/`T-6`/`T-8` chưa có dữ liệu để thử tay.
+- `§7.3` điều 3 **đã chứng minh** ngày 15/08: `docker compose restart db` rồi đếm lại — `account`,
+  `user`, `opportunity`, `timeline_entry` không đổi. Volume có tên `why-now-pgdata` là thứ giữ nó.
 - `npm test` tự dựng CSDL của nó ở cổng **5443**. `tests/global-setup.ts` xoá lược đồ rồi
   `migrate deploy` — KHÔNG dùng `migrate reset` (cờ `--skip-seed` đã bị gỡ ở Prisma 7) và KHÔNG
   dùng `db push` (nó bỏ qua migration, tức mất sạch 4 `CHECK` và 4 chỉ mục một phần viết tay).
@@ -140,3 +153,13 @@ Quy ước phương pháp của dự án, theo BABOK v3 — không phải điề
   phải sửa ở đâu.
 
 <!-- /bmad:context -->
+
+<!-- BEGIN:nextjs-agent-rules -->
+
+# This is NOT the Next.js you know
+
+This version has breaking changes — APIs, conventions, and file structure may all differ from your training data. Read the relevant guide in `node_modules/next/dist/docs/` (resolved from this file's directory; in monorepos the `next` package may not be visible from the repo root) before writing any code. Heed deprecation notices.
+
+This block is written and re-added by `next dev` — verify at `node_modules/next/dist/server/lib/generate-agent-files.js`. Removing it from a diff only re-creates the uncommitted change; committing it with your work keeps the tree clean.
+
+<!-- END:nextjs-agent-rules -->

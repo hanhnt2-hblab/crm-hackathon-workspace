@@ -39,3 +39,11 @@ yarn-error.log*
 .vercel
 *.tsbuildinfo
 next-env.d.ts
+
+# ── Playwright (e2e) — nối 14/08 khi dựng bộ nghiệm thu §6 ──
+# Cả hai là KẾT QUẢ CHẠY, không phải nguồn: `playwright-report/` là bộ tệp HTML
+# nộp cho ban giám khảo, `test-results/` là vết chạy + ảnh chụp thô.
+/playwright-report/
+/test-results/
+.verify/
+/bao-cao-nghiem-thu/

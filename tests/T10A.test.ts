@@ -130,14 +130,66 @@ describe("T-10a vế 3 — máy KHÔNG xoá dữ liệu người tạo (NFR-17)"
     expect(row.deletedAt).toBeNull();
   });
 
-  it("người xoá được, và cascade `D26` chạm đúng ba bảng con", async () => {
+  it("người xoá được, cascade `C5-1` chạm BẢY nhóm, và `D26` giữ nguyên bằng chứng", async () => {
+    // ⚠ TÊN CŨ NÓI SAI: *"chạm đúng ba bảng con"*, mà thân chỉ khẳng định HAI
+    // (`account`, `opportunity`). Cascade nay chạm bảy nhóm — bốn nhóm cũ cộng
+    // `snapshot`, `article`, `notification` — và một phép kiểm khẳng định ít hơn
+    // thứ nó tuyên bố là chỗ để một cascade bị xoá đi mà vẫn xanh.
+    //
+    // ⚠ VẾ THỨ HAI MỚI LÀ VẾ CHỊU LỰC. `D26` chốt Phát hiện và Dòng thời gian
+    // KHÔNG cascade — chúng là **bằng chứng**, và `AD-14` nói thẳng ở chú thích
+    // cột `signal.deleted_at`: *"KHÔNG xoá được, kể cả bởi người"*. Ai đọc
+    // `C5-1` thấy *"bảy nhóm"* rồi thêm nốt hai nhóm này sẽ xoá đúng thứ `T-3`
+    // và `T-10` dựa vào, và không có vế dưới thì việc đó vẫn xanh.
+
+    // Dựng đủ dữ liệu cho cả hai vế — không dựng thì phép kiểm chỉ chứng minh
+    // được rằng xoá không ném, chứ không chứng minh nó chạm cái gì.
+    const snapshot = await db.snapshot.create({
+      data: { accountId, version: "truoc", capturedAt: new Date() },
+      select: { id: true },
+    });
+    const article = await db.article.create({
+      data: {
+        accountId, snapshotId: snapshot.id,
+        rawText: "Nội dung Bản lưu để kiểm cascade.",
+        normalizedText: "Nội dung Bản lưu để kiểm cascade.",
+        contentHash: `t10a-${Date.now()}`, readAt: new Date(),
+      },
+      select: { id: true },
+    });
+    const signal = await db.signal.create({
+      data: {
+        accountId, articleId: article.id,
+        claim: "Bằng chứng phải sống sót qua một lần xoá Công ty.",
+        quote: "Nội dung Bản lưu", quoteStart: 0, quoteEnd: 16,
+        signalType: "other", signalSubtype: "unclassified",
+        confidence: "doan", relevance: "low",
+      },
+      select: { id: true },
+    });
+
     await softDeleteCompany(sales, accountId, ctx);
-    const [acc, opp] = await Promise.all([
+
+    // ── Vế ①: bảy nhóm ĐỀU biến khỏi đường đọc ────────────────────────────
+    // Extension xoá mềm của `AD-CR-6` lọc hàng đã xoá, nên `null` ở đây nghĩa là
+    // `deleted_at` đã được đặt — không phải hàng bị xoá cứng.
+    const [acc, opp, snap, art] = await Promise.all([
       db.account.findUnique({ where: { id: accountId } }),
       db.opportunity.findUnique({ where: { id: opportunityId } }),
+      db.snapshot.findUnique({ where: { id: snapshot.id } }),
+      db.article.findUnique({ where: { id: article.id } }),
     ]);
-    // Extension xoá mềm lọc hàng đã xoá, nên cả hai phải là `null`.
-    expect(acc).toBeNull();
-    expect(opp).toBeNull();
+    expect(acc, "Công ty").toBeNull();
+    expect(opp, "Cơ hội").toBeNull();
+    expect(snap, "Bản chụp — nhóm 5 của `C5-1`").toBeNull();
+    expect(art, "Bản lưu — nhóm 6 của `C5-1`").toBeNull();
+
+    // ── Vế ②: BẰNG CHỨNG còn nguyên (`D26`, `AD-14`) ─────────────────────
+    const sig = await db.signal.findUnique({ where: { id: signal.id } });
+    expect(
+      sig,
+      "`D26` — Phát hiện là BẰNG CHỨNG và KHÔNG cascade. Nó `null` nghĩa là ai đó "
+        + "vừa thêm `signal` vào cascade, và `T-3` mất đúng thứ nó mở ra.",
+    ).not.toBeNull();
   });
 });

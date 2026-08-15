@@ -59,10 +59,28 @@ const UI_TO_TEXT: Record<UiErrorCode, string> = {
 /// Chặng 1 cho lỗi nghiệp vụ — mã lõi giữ NGUYÊN trong `ActionState` (bảng
 /// `AD-UI-7`: *"mã `BR-D` giữ nguyên"*), còn câu hiển thị lấy ở đây.
 ///
-/// Mã nào không có dòng riêng thì rơi về `luat_nghiep_vu`. Đó là chủ đích: một
-/// mã mới ở lõi vẫn hiện một câu đọc được thay vì chuỗi rỗng, và chỗ thiếu lộ
-/// ra dưới dạng câu chung chứ không dưới dạng màn hình trắng.
-const RULE_TEXT: Partial<Record<BusinessRuleCode, string>> = {
+/// ⚠ BẢNG TOÀN PHẦN, không `Partial`. Bản trước là `Partial<…>` cộng một câu
+/// dự phòng, và lý lẽ của nó — *"mã mới vẫn hiện một câu đọc được"* — đúng ở
+/// tầng chạy nhưng sai ở tầng biên dịch: **mười trên hai mươi** mã đang rơi về
+/// *"Không lưu được vì trái một luật nghiệp vụ"*, một câu KHÔNG nói việc phải
+/// làm, đúng thứ `EXPERIENCE.md` (*Giọng chữ*) cấm — và không có gì báo chỗ
+/// thiếu ngoài việc gặp nó trên màn hình.
+///
+/// `Record<BusinessRuleCode, string>` bắt `tsc` đỏ ngay khi `src/core/errors.ts`
+/// khai mã thứ 21 mà chưa ai viết câu cho nó. Toán tử `??` ở chỗ gọi GIỮ LẠI:
+/// nó là lưới lúc chạy cho trường hợp lõi và giao diện dựng lệch phiên bản,
+/// không phải cho trường hợp quên viết câu.
+///
+/// Nguồn của mỗi câu, tra được từng dòng:
+///   · `BR-D1`…`BR-D11` → PRD §7.1, bảng luật miền
+///   · `NFR-14`, `15`, `16`, `17`, `19` → PRD §10.1, *Bốn ranh giới đề bài `§5`
+///     cộng một ranh giới thứ năm*. ⚠ KHÔNG viết `NFR-14`…`NFR-19` như một dải
+///     liền: `NFR-18` (độ tươi hồ sơ 30 ngày) không phải `BusinessRuleCode`, và
+///     một dải liền mời người đọc sau đi tìm một mã không có ở đây.
+///   · bốn mã `STATE_*` → `AD-CR-3` của spine tầng ⑤ (KHÔNG phải *"§5.1"* —
+///     §5.1 là mục của PRD, một tài liệu khác).
+const RULE_TEXT: Record<BusinessRuleCode, string> = {
+  // ── Máy trạng thái Cơ hội — `AD-CR-1` · `AD-CR-3` ────────────────────────
   STATE_TRANSITION_NOT_ALLOWED:
     "Cặp giai đoạn này không có trong bảng vòng đời. Chọn một giai đoạn khác.",
   STATE_INITIAL: "Cơ hội mới luôn bắt đầu ở Tiếp cận.",
@@ -70,12 +88,39 @@ const RULE_TEXT: Partial<Record<BusinessRuleCode, string>> = {
     "Đường quay lại tự chọn giai đoạn mở gần nhất — không chọn tay được.",
   STATE_CLOSED_NO_LATEST_OPEN:
     "Cơ hội này thiếu giai đoạn mở gần nhất, chưa mở lại được. Báo Quản trị.",
+
+  // ── Năm ranh giới §5 — PRD §10.1 ─────────────────────────────────────────
   "NFR-14": "Chỉ người mới đổi được giai đoạn.",
-  "NFR-15": "Chỉ người mới sửa được giá trị tiền.",
-  "NFR-16": "Chỉ người mới ghi được kết luận này.",
+  // ⚠ `NFR-15` phủ CẢ HAI vế của PRD §10.1: *"không tự đánh dấu Thắng/Thua,
+  // không tự sửa giá trị tiền"*. Câu cũ chỉ nói vế tiền, nên một lần từ chối
+  // đóng Thắng/Thua đọc thành một câu chẳng liên quan.
+  "NFR-15": "Chỉ người mới đánh dấu Thắng/Thua và sửa được giá trị tiền.",
+  // ⚠ CÂU CŨ NÓI SAI LUẬT. `NFR-16` là *"hệ thống không tự liên hệ khách —
+  // không thư, không tin nhắn"*, không phải *"ghi kết luận"*. Trích một mã có
+  // thật nhưng nói về chuyện khác còn tệ hơn không trích, vì nó trông như đã
+  // kiểm.
+  "NFR-16": "Máy không tự liên hệ khách được. Gửi thư hoặc tin nhắn bằng tay.",
   "NFR-17": "Chỉ người mới xoá được dữ liệu.",
   "NFR-19": "Máy không sửa được mục Dòng thời gian do người tạo.",
+
+  // ── Luật miền — PRD §7.1 ─────────────────────────────────────────────────
+  "BR-D1":
+    "Phát hiện phải kèm câu trích nguyên văn. Thêm câu trích từ bản lưu rồi lưu lại.",
+  "BR-D2":
+    "Câu trích không khớp đoạn nào trong bản lưu. Chép đúng nguyên văn một đoạn rồi thử lại.",
+  "BR-D3": "Bản lưu này thuộc một công ty khác. Chọn bản lưu của đúng công ty.",
   "BR-D4": "Mỗi Công ty chỉ có một Đầu mối chính.",
+  "BR-D5":
+    "Tin này chưa đủ đáng chú ý để tự đặt việc. Đặt Việc tiếp theo bằng tay nếu cần.",
+  "BR-D6": "Độ liên quan lệch quá xa loại tin. Chọn lại mức sát với loại tin.",
+  "BR-D7":
+    "Ngày hạn nằm ngoài khoảng cho phép. Chọn một hạn trong vòng 14 ngày làm việc.",
+  "BR-D8":
+    "Hạn do máy đặt không đẩy ra xa hơn được. Sửa tay ô Việc tiếp theo nếu cần đổi ngày.",
+  "BR-D9":
+    "Phạm vi này chỉ dùng một đơn vị tiền. Nhập lại giá trị theo đúng đơn vị đang dùng.",
+  "BR-D10": "Giá trị này phải chọn trong danh sách có sẵn, không gõ tự do.",
+  "BR-D11": "Bảy giai đoạn là cố định — không thêm, không bớt, không đổi tên.",
 };
 
 /// Chữ hiển thị cho một `ActionState` thất bại — dùng cho cả lá hiển thị lỗi
@@ -105,6 +150,16 @@ export function failureFromError(error: unknown): ActionState | null {
     return {
       ok: false,
       code: error.code,
+      // `??` GIỮ LẠI dù `RULE_TEXT` đã toàn phần — và giữ với đúng lý do của
+      // nó, không hơn: `error.code` là dữ liệu lúc chạy, còn `Record` chỉ là
+      // một lời hứa lúc biên dịch, nên một hàng ngoài bảng vẫn cho một câu đọc
+      // được thay vì `undefined` trên màn hình Sales.
+      //
+      // ⚠ Nó KHÔNG che được kịch bản *hai bó mã lệch phiên bản*: đúng kịch bản
+      // ấy thì `instanceof BusinessRuleError` ở dòng trên đã trả `false` và
+      // luồng chẳng bao giờ tới đây (chính lập luận của `isZodError` bên dưới
+      // chứng minh điều đó). Muốn phủ ca ấy thì phải nhận diện theo `name`, và
+      // đó là một thay đổi hành vi riêng — đã ghi ở `deferred-work.md`.
       message: RULE_TEXT[error.code] ?? UI_TO_TEXT.luat_nghiep_vu,
     };
   }

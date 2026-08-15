@@ -31,7 +31,11 @@ import {
   stageLabel,
 } from "../../_vocab";
 import type { AccountDetail, TimelineRow } from "../../_types";
+import { WatchToggle } from "../_watch-toggle";
 import { ActivityForm, ContactForm, OpportunityForm } from "./_forms";
+import { SignalsBlock } from "./_signals";
+import { SuggestionsBlock } from "./_suggestions";
+import { NextActionBlock } from "./_next-action";
 
 export default async function AccountDetailPage(props: PageProps<"/accounts/[id]">) {
   const { id } = await props.params;
@@ -45,6 +49,27 @@ export default async function AccountDetailPage(props: PageProps<"/accounts/[id]
       <Block title="Hồ sơ công ty">
         <Suspense fallback={<ProfileSkeleton />}>
           <ProfileBlock accountId={id} />
+        </Suspense>
+      </Block>
+
+      {/* `T-6` `T-7` §4/nhóm 4 — Việc tiếp theo và nút Hoàn tác. */}
+      <Block title="Việc tiếp theo">
+        <Suspense fallback={<p className="muted">Đang đọc…</p>}>
+          <NextActionBlock accountId={id} />
+        </Suspense>
+      </Block>
+
+      {/* `T-5` §4/nhóm 3 — hàng đợi Gợi ý, ba lối ra bấm được. */}
+      <Block title="Gợi ý chờ quyết">
+        <Suspense fallback={<p className="muted">Đang đọc…</p>}>
+          <SuggestionsBlock accountId={id} />
+        </Suspense>
+      </Block>
+
+      {/* `T-3` — Phát hiện, bấm vào thì mở đoạn văn gốc có đánh dấu vị trí. */}
+      <Block title="Phát hiện">
+        <Suspense fallback={<p className="muted">Đang đọc…</p>}>
+          <SignalsBlock accountId={id} />
         </Suspense>
       </Block>
 
@@ -77,6 +102,7 @@ async function ProfileBlock({ accountId }: { accountId: string }) {
         <div className="row">
           <h1 className="page-title">{account.name}</h1>
           {account.watching ? <span className="tag tag-ok">Đang theo dõi</span> : null}
+          <WatchToggle id={account.id} watching={account.watching} />
         </div>
         <div className="row">
           <span className="tag">{MARKET_LABEL[account.market] ?? account.market}</span>

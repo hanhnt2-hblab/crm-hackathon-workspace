@@ -42,7 +42,13 @@ const CORE_FUNCTIONS_ALLOWED = new Set([
   "appendTimelineEntry", "readTimeline",
   "changeOpportunityStage", "resumeFromPause", "reopenClosedOpportunity",
   "createSignal", "markSignalUnhelpful",
-  "createSuggestion", "decideSuggestion",
+  // ⚠ `proposeFromSignal` thêm 15/08. Nó là hàm lõi mà `queueSuggestionCap`
+  // gọi thay cho `createSuggestion` sau khi `AD-22` chuyển phép suy đề nghị
+  // vào lõi (*"`queueSuggestion` suy XÁC ĐỊNH trong lõi"*). Đây là ĐỔI TÊN
+  // đường gọi, KHÔNG phải nới quyền: `writesTables` của mục đó không đổi, và
+  // ba chạm ghi của máy ở `AD-3` vẫn là ba — phép kiểm phân hoạch bên dưới
+  // vẫn khẳng định đúng điều đó.
+  "createSuggestion", "proposeFromSignal", "decideSuggestion",
   "setNextAction", "fillNextActionIfUnchanged", "undoSystemNextAction",
   "setQualificationSignals", "searchCompanies", "readTimeline",
   // `AD-CP-6` hạng đọc-chung — tập phơi lên MCP.
@@ -50,6 +56,22 @@ const CORE_FUNCTIONS_ALLOWED = new Set([
   // `readArticleLatest` (`scope:"latest"`) và `listArticleFingerprints`
   // (`scope:"all"`). Cả hai CHỈ ĐỌC.
   "readArticle", "readArticleLatest", "listArticleFingerprints",
+  // ⚠ BA HÀM ĐỌC CỦA BỀ MẶT, thêm 15/08 cùng ba tệp caps mới
+  // (`signal-ui.ts`, `suggestion-ui.ts`, `nextaction-ui.ts`).
+  //
+  // Vì sao chúng KHÔNG nới quyền nào: cả ba `kind: "read"`, `writesTables` rỗng,
+  // và không tệp nào trong ba tệp đó nhập `db` — nên khoản nợ `ui.ts → db` cũng
+  // không lớn thêm. Phép kiểm phân hoạch khối một bên dưới chỉ đọc
+  // `CAP_MACHINE_ALLOWED_GHI`, và một mục đọc không bao giờ vào tập đó.
+  //
+  // Đây là đường ĐÚNG HƠN đường mà `ui.ts` đang đi: hàm đọc nằm ở `src/core`,
+  // capability chỉ uỷ quyền. `ui.ts` còn đọc thẳng `db` vì `src/core` chưa mọc
+  // đủ hàm đọc — ba tệp này cho thấy hình dạng khi nó mọc đủ.
+  "readAccountSignals", "readPendingSuggestions", "readAccountNextActions",
+  // `BR-D2` — công cụ KIỂM ĐẦU RA, mục thứ sáu của `AD-CP-6` và là mục DUY NHẤT
+  // tầng ② được kỳ vọng gọi. Chỉ đọc: nó tra một câu trích trong Bản lưu mới
+  // nhất và trả vị trí, không ghi gì.
+  "verifyQuote",
   "readAccountType", "listEnums", "SIGNAL_ENUMS",
   // `AD-8` · `AD-22` — hai đường GHI BẰNG CHỨNG của vòng quét. Chúng ghi Bản
   // lưu và Phát hiện, tức dữ liệu MÁY TỰ SINH; không ô hồ sơ nào do người tạo bị
@@ -66,6 +88,18 @@ const CORE_FUNCTIONS_ALLOWED = new Set([
   // việc cho mình, khi đó trần ngân sách của `AD-11` canh một tập do chính bên
   // bị canh mở rộng.
   "setWatching",
+  // `T-5` §4/nhóm 3 — hàng đợi Gợi ý. CHỈ ĐỌC: nó đọc Gợi ý `cho` cùng giá trị
+  // đang có trên hồ sơ, không ghi gì. Ba lối ra vẫn đi qua ba capability ghi đã
+  // có (`approveSuggestion`, `editThenApprove`, `dropSuggestion`).
+  "readPendingSuggestions",
+  // `T-5` — đường MÁY sinh Gợi ý. Lõi tự suy ô đích và giá trị đề nghị bằng
+  // `deriveProposal`; tầng ① không dựng nổi chúng (`AD-1`).
+  "proposeFromSignal",
+  // `T-3` — khối Phát hiện trên hồ sơ Công ty. CHỈ ĐỌC.
+  "readAccountSignals",
+  // `T-7` — khối Việc tiếp theo kèm nút Hoàn tác. CHỈ ĐỌC; nút đi qua
+  // `undoSystemNextAction` vốn đã có trong danh sách.
+  "readAccountNextActions",
   // hạ tầng vòng quét
   "openScanLog", "closeScanLog", "addScanUsage", "recordScanEntry",
   "acquireAccountLock", "releaseAccountLock",
@@ -345,16 +379,18 @@ describe("T-10b — tác nhân MÁY không cầm được mục nào của vùng
   });
 
   it("bốn danh sách của `AD-CP-1` khớp nội dung sổ", () => {
-    // Đường ĐỌC của máy, BẢY mục và mỗi mục có lý do riêng:
+    // Đường ĐỌC của máy, TÁM mục và mỗi mục có lý do riêng:
     //   · năm mục hạng đọc-chung mà `AD-CP-6` phơi lên MCP — `readArticle`,
     //     `readAccountType`, `listEnums`, `readAccountList`, `readSetting`
     //   · hai mục dựng `actor` TRƯỚC KHI có `actor`, nên phải đi bằng `system`
     //     và mang `selfLimiting` (`AD-4`): `readUserForAuth`, `readLoginCandidates`
+    //   · `verifyQuote` (thêm 15/8) — công cụ KIỂM ĐẦU RA của tầng ②. Khác bảy
+    //     mục trên ở chỗ nó được KỲ VỌNG gọi, không phải lớp phòng thủ.
     //
-    // Một mục thứ tám ở đây là một đường đọc mới của máy — đọc bằng mắt trước.
+    // Một mục thứ chín ở đây là một đường đọc mới của máy — đọc bằng mắt trước.
     expect(registry.CAP_MACHINE_ALLOWED_DOC.slice().sort()).toEqual([
       "listEnums", "readAccountList", "readAccountType", "readArticle",
-      "readLoginCandidates", "readSetting", "readUserForAuth",
+      "readLoginCandidates", "readSetting", "readUserForAuth", "verifyQuote",
     ]);
     const chiNguoi = ALL_ENTRIES.filter((e) => !e.allowedActors.includes("system"));
     expect([...registry.CAP_HUMAN_ONLY].sort()).toEqual(
@@ -362,16 +398,21 @@ describe("T-10b — tác nhân MÁY không cầm được mục nào của vùng
     );
   });
 
-  it("`AD-CP-6` — phơi lên MCP ĐÚNG NĂM mục, và KHÔNG mục ghi nào", () => {
+  it("`AD-CP-6` — phơi lên MCP ĐÚNG SÁU mục, và KHÔNG mục ghi nào", () => {
     // *"Không mục ghi nào"* là vế chịu lực. Một mục ghi phơi lên MCP là đưa cho
     // agent đúng thứ `AD-AG-3` nói nó không được có, và phép đối chứng phá hoại
     // của `AD-1` khi đó đo trên một bề mặt đã rộng hơn thiết kế.
     //
     // Đã từng sai đúng chiều đó: `appendTimelineEntry` (một mục GHI) để
     // `exposeToMcp: true` cho tới 14/8.
+    // ⚠ SÁU, không còn năm — `verifyQuote` thêm vào 15/8. Năm mục kia là LỚP
+    // PHÒNG THỦ và `AD-AG-3` đo được rằng agent không gọi chúng (handler chạy 0
+    // lần). `verifyQuote` khác hạng: nó KIỂM ĐẦU RA, và tầng ② được KỲ VỌNG gọi.
+    // Nó vào đây vì đã đo 2/3 Phát hiện rụng do mô hình diễn đạt lại câu trích.
     const phoi = ALL_ENTRIES.filter((e) => e.exposeToMcp);
     expect(phoi.map((e) => e.name).sort()).toEqual([
       "listEnums", "readAccountList", "readAccountType", "readArticle", "readSetting",
+      "verifyQuote",
     ]);
     expect(phoi.filter((e) => e.kind !== "read").map((e) => e.name)).toEqual([]);
   });

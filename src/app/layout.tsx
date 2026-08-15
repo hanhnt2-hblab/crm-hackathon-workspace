@@ -45,6 +45,17 @@ export default async function RootLayout({ children }: LayoutProps<"/">) {
                 <Link href="/">Tổng quan</Link>
                 <Link href="/accounts">Công ty</Link>
                 <Link href="/board">Bảng giai đoạn</Link>
+                {/* Lối vào `S2`. ⚠ KHÔNG mang số đang chờ, và đó là một quyết
+                    định chứ không phải một thiếu sót. `EXPERIENCE.md` (*Mẫu
+                    thành phần*, hàng **Dấu hiệu có Suggestion chờ**) đòi dấu
+                    hiệu **kèm số đang chờ**, nhưng đòi nó trên **dòng Account ở
+                    `S1`, `S3`, `S6`** — không trên khung. Ở đây chỉ là một lối
+                    đi, không phải cái dấu hiệu ấy.
+                    Ba bề mặt kia chưa có số vì đếm Gợi ý chờ toàn hệ thống chưa
+                    có capability nào phơi ra; quét từng Công ty trong khung là
+                    N+1 lượt đọc trên MỌI trang, kể cả `/login`. Cả hai khoản nợ
+                    ghi ở `_bmad-output/implementation-artifacts/deferred-work.md`. */}
+                <Link href="/suggestions">Hàng đợi gợi ý</Link>
                 {/* `EXPERIENCE.md` — mục chỉ-Quản-trị ẩn với Sales. Ẩn menu là
                     THẨM MỸ; chặn thật nằm ở bước ⑤ của Cổng (`AD-UI-10`,
                     `D28`), nên vào thẳng địa chỉ vẫn bị từ chối. */}

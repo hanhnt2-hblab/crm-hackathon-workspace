@@ -42,7 +42,16 @@ import {
 } from "./_helpers";
 
 const BAI_VIET = "Tomahawk Systems bổ nhiệm giám đốc công nghệ mới từ tháng sau.";
-const VIEC_MAY_DAT = "Liên hệ chúc mừng CTO mới và hỏi ưu tiên công nghệ";
+/// ⚠ Chuỗi này KHÔNG còn do phép kiểm chọn — nó là thứ LÕI suy ra.
+///
+/// Hợp đồng đổi 15/8: `fillNextActionIfUnchanged` nhận `{accountId, signalId}`
+/// và tự dựng nội dung từ `ACTION_BY_SIGNAL_TYPE` theo Loại tin. Phép kiểm dùng
+/// Phát hiện loại `leadership`, nên đây là ô `leadership` của bảng đó.
+///
+/// Gõ lại nguyên văn thay vì nhập hằng từ lõi là CÓ CHỦ ĐÍCH: nhập vào thì phép
+/// kiểm so lõi với chính lõi và luôn xanh, kể cả khi ai đó đổi câu chữ thành
+/// một bản tin thay vì một việc phải làm — đúng lỗi mà phép kiểm này bắt được.
+const VIEC_MAY_DAT = "Liên hệ chúc mừng nhân sự cấp cao mới và hỏi ưu tiên công nghệ";
 
 /// `D14` · `0.2.2` — cửa sổ Hoàn tác, 7 ngày.
 /// ⚠ Bản CHÉP TAY của `UNDO_WINDOW_DAYS` (`src/core/nextaction/index.ts`), vì
@@ -132,16 +141,16 @@ describe("T-7 — Hoàn tác một cú bấm", () => {
   it("bấm Hoàn tác ở `T-6`, MỘT cú bấm", async () => {
     // Cảnh của `T-6`: ô đang TRỐNG, máy tự đặt (`AD-3` nhánh ⓐ, `FR-34`).
     const tuDat = await reg.loadCapability("fillNextActionIfUnchanged", machine);
+    // ⚠ HAI THAM SỐ, không phải sáu. Hợp đồng đổi 15/8: lõi tự đọc Cơ hội, hạn
+    // và giá trị hiện có TRONG chính giao dịch của nó, vì tầng ① không dựng nổi
+    // sáu giá trị cũ — chi tiết ở `FillNextActionInput`.
+    //
+    // Nội dung và hạn nay do LÕI suy từ Phát hiện, nên phép kiểm không gõ chúng
+    // nữa. Đó là điều đúng: gõ tay ở đây là kiểm một đường mà vòng quét thật
+    // không bao giờ đi.
     const daGhi = (await tuDat({
-      opportunityId,
-      expectedContent: null,
-      expectedDueDate: null,
-      content: VIEC_MAY_DAT,
-      // Tính từ HÔM NAY, không gõ một ngày cứng: một ngày cố định sẽ thành quá
-      // hạn khi đồng hồ đi qua nó, và khi đó cờ `BR-B1` cùng nhánh ⓒ của `AD-3`
-      // đổi nghĩa dưới chân phép kiểm.
-      dueDate: new Date(Date.now() + 7 * MS_MOT_NGAY).toISOString().slice(0, 10),
-      sourceSignalId: signalId,
+      accountId,
+      signalId,
     })) as boolean;
     expect(daGhi).toBe(true);
 
