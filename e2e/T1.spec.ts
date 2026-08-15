@@ -378,18 +378,25 @@ test.describe(
         where: { name: OPPORTUNITY, deletedAt: null },
         select: { id: true },
       });
+      // ⚠ GHIM VỀ `tiep_can`, RỒI KÉO THẲNG sang `Đủ điều kiện` — MỘT lượt kéo,
+      // không phải hai.
+      //
+      // Bản trước ghim `soan_de_xuat` rồi kéo qua `Tiếp cận` trước. Lượt kéo ấy
+      // KHÔNG kiểm gì cả: phép kiểm này đo cờ `aria-hidden` sau hộp thoại Đủ
+      // điều kiện, và mọi thứ trước đó chỉ là dàn cảnh. Nhưng nó vẫn hỏng được
+      // — và đã hỏng hai lần: sau khi nạp bộ dữ liệu BTC, bàn có 25 Công ty nên
+      // cột dài ra và lượt kéo đầu tiên trượt đích. Một bước dàn cảnh làm đỏ một
+      // điểm nghiệm thu là bước phải bỏ, không phải bước phải vá.
       await rawDb.opportunity.update({
         where: { id: oppTruoc.id },
-        data: { stage: "soan_de_xuat" },
+        data: { stage: "tiep_can" },
       });
 
       await signIn(page);
       await page.goto("/board");
 
       const card = page.getByText(OPPORTUNITY, { exact: true }).and(page.locator("span"));
-      await card.dragTo(stageColumn(page, "Tiếp cận"));
-      await expect(page.getByText("Đã chuyển sang Tiếp cận.")).toBeVisible();
-
+      await card.scrollIntoViewIfNeeded();
       await card.dragTo(stageColumn(page, "Đủ điều kiện"));
       await page.getByRole("button", { name: "Bỏ qua và chuyển" }).click();
       await expect(page.getByText("Đã chuyển sang Đủ điều kiện.")).toBeVisible();

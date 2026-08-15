@@ -21,7 +21,8 @@
 // violation` — một phép kiểm đỏ vì hình dạng DOM, với thông điệp không trỏ về
 // đây chút nào. `<option>` mang vai `option`, không phải `radio`.
 
-import { useActionState } from "react";
+import { useActionState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import { Button, Field, Input, Radio, RadioGroup, Select } from "@fluentui/react-components";
 import { IDLE } from "../_contract";
 import { ActionMessage, SubmitButton } from "../_action-state";
@@ -51,6 +52,7 @@ function nhanVai(role: string): string {
 /// và trình duyệt sẽ lặng lẽ gỡ biểu mẫu con thay vì báo lỗi.
 export function DemoLoginButtons({ candidates }: { candidates: LoginCandidate[] }) {
   const [state, formAction] = useActionState(signInAction, IDLE);
+  useVaoThangSauKhiDangNhap(state.ok && state.message !== undefined);
 
   return (
     <div className="form">
@@ -81,6 +83,10 @@ export function DemoLoginButtons({ candidates }: { candidates: LoginCandidate[] 
 /// khẩu không tự điền nhầm ô này bằng một mật khẩu của trang khác.
 export function PasswordLoginForm({ candidates }: { candidates: LoginCandidate[] }) {
   const [state, formAction] = useActionState(signInWithPasswordAction, IDLE);
+  // Đường mật khẩu chuyển trang cùng cách với đường vào thẳng: `moPhien` dùng
+  // chung, nên thiếu chỗ này thì đăng nhập đúng mật khẩu cũng đứng nguyên
+  // `/login` — cùng triệu chứng, cùng chẩn đoán sai.
+  useVaoThangSauKhiDangNhap(state.ok && state.message !== undefined);
 
   return (
     <form action={formAction} className="form">
@@ -135,4 +141,34 @@ export function LoginForm({ candidates }: { candidates: LoginCandidate[] }) {
       </p>
     </form>
   );
+}
+
+/// ⚠ CHUYỂN TRANG SAU KHI MỞ PHIÊN — và thiếu nó thì nút *"vào thẳng"* của luật
+/// thi `3.2` không làm đúng chữ *"chọn user là đăng nhập ngay"*.
+///
+/// `moPhien` đặt cookie rồi trả một `ActionState` mang câu *"Đang dùng tài khoản
+/// X"*. Cookie ĐÃ được đặt, nên mọi trang khác đều vào được — nhưng màn hình
+/// vẫn là `/login`, và người chấm bấm xong thấy mình còn đứng nguyên chỗ cũ thì
+/// kết luận nút hỏng. Đã đo bằng trình duyệt thật: bấm xong, URL vẫn là
+/// `/login`.
+///
+/// Chuyển ở lá client chứ không `redirect()` trong action: helper `action()` của
+/// `_contract.ts` bọc thân bằng `try/catch`, mà `redirect()` của Next hoạt động
+/// BẰNG CÁCH NÉM một lỗi đặc biệt — nó sẽ bị nuốt, và triệu chứng lại là *"bấm
+/// không có gì xảy ra"*, lần này khó chẩn đoán hơn.
+///
+/// `router.refresh()` trước khi đi: `layout.tsx` đọc phiên ở phía máy chủ, và
+/// không làm mới thì trang đích render bằng bộ đệm của lượt CHƯA có phiên.
+/// ⚠ ĐIỀU KIỆN LÀ `ok && có message`, KHÔNG phải `ok` một mình. `IDLE` của
+/// `_contract.ts` là `{ ok: true }` — trạng thái TRƯỚC KHI ai bấm gì cũng mang
+/// `ok: true`. Chỉ đọc `ok` thì hook chạy ngay lúc tải trang và đá người dùng
+/// khỏi `/login` trước khi họ kịp chọn tài khoản; màn hình đăng nhập trở thành
+/// một chỗ không vào được. `message` chỉ có sau một lượt action thật.
+function useVaoThangSauKhiDangNhap(thanhCong: boolean): void {
+  const router = useRouter();
+  useEffect(() => {
+    if (!thanhCong) return;
+    router.refresh();
+    router.push("/");
+  }, [thanhCong, router]);
 }

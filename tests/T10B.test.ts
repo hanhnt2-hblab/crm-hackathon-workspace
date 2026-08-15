@@ -95,6 +95,17 @@ const CORE_FUNCTIONS_ALLOWED = new Set([
   // `T-5` — đường MÁY sinh Gợi ý. Lõi tự suy ô đích và giá trị đề nghị bằng
   // `deriveProposal`; tầng ① không dựng nổi chúng (`AD-1`).
   "proposeFromSignal",
+  // Luật thi `3.1` — nạp bộ dữ liệu bằng upload zip.
+  //
+  // ⚠ Đây là hàm lõi GHI NHIỀU NHẤT trong cả sổ: nó xoá sạch rồi dựng lại Công
+  // ty, Người liên hệ, Cơ hội, Bản chụp, Bản lưu và mọi thứ máy sinh ra sau đó.
+  // Nó qua được vì `importDatasetCap` khai `allowedActors: ["human"]` — MÁY
+  // KHÔNG gọi được. Một lượt nạp là xoá dữ liệu, đúng thứ `NFR-17` cấm máy làm,
+  // nên mở nó cho `system` là cửa hậu vòng qua `T-10`.
+  //
+  // Phạm vi xoá bị chặn bằng tiền tố `import:` trên `source_ref`: dữ liệu giám
+  // khảo nhập tay trong lúc thử KHÔNG bị đụng.
+  "applyImport",
   // `T-3` — khối Phát hiện trên hồ sơ Công ty. CHỈ ĐỌC.
   "readAccountSignals",
   // `T-7` — khối Việc tiếp theo kèm nút Hoàn tác. CHỈ ĐỌC; nút đi qua
