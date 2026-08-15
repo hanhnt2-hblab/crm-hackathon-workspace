@@ -51,6 +51,20 @@ const eslintConfig = defineConfig([
     "_bmad/**",
     "docs/**",
     "node_modules/**",
+
+    // Đầu ra của `npm run verify` — bốn thư mục sinh ra MỖI LƯỢT chạy nghiệm
+    // thu. `playwright-report/trace/` chứa bundle đã minify của chính
+    // Playwright: 257 lỗi và 2.774 cảnh báo trên mã không ai trong đội viết,
+    // đủ để chôn một lỗi thật giữa đống đó.
+    //
+    // ⚠ Không thể bỏ qua bằng `.gitignore`: `npm run lint` đọc cây tệp, không
+    // đọc trạng thái git. Và nó đỏ CHỈ SAU khi ai đó chạy `verify` lần đầu —
+    // tức trên máy sạch thì xanh, trên máy vừa nghiệm thu thì đỏ, đúng kiểu
+    // hồi quy đổ lỗi nhầm cho thay đổi cuối cùng.
+    "playwright-report/**",
+    "test-results/**",
+    "bao-cao-nghiem-thu/**",
+    ".verify/**",
   ]),
 
   // `AD-GT-4` — tầng ③ Cổng tự chủ không nhập GIÁ TRỊ nào ra ngoài chính nó.

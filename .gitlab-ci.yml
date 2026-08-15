@@ -1,0 +1,98 @@
+# Cổng chất lượng cho `§7.1` — mã nguồn trên GitLab của HBLAB.
+#
+# ⚠ TUẦN TỰ, KHÔNG SONG SONG. Bốn stage chạy nối đuôi để lỗi đầu tiên dừng
+# pipeline: `ci-cd-and-automation` gọi đây là cổng chất lượng, và giá trị của
+# nó nằm ở chỗ báo MỘT lỗi đọc được, không phải bốn job đỏ cùng lúc rồi phải
+# đoán cái nào là nguyên nhân.
+#
+# ⚠ `npm test` của `package.json` KHÔNG dùng được ở đây: nó mở đầu bằng
+# `docker compose up -d --wait db_test`, mà runner GitLab không có Docker
+# socket trừ khi bật dind. Thay bằng `services:` của GitLab — cùng ảnh
+# `postgres:16-alpine`, cùng biến, khác cách dựng. Đây là chỗ CI lệch khỏi
+# máy dev một cách có chủ đích, và là chỗ duy nhất được phép lệch.
+#
+# ⚠ KHÔNG có stage deploy. `§7.3` đòi sản phẩm chạy ở **cấu hình production
+# trên máy của đội**, không đòi triển khai lên đâu cả. Một job `deploy:` ở đây
+# sẽ là sân khấu — đúng thứ `hackathon-deploy` bảo bỏ cùng với staged rollout.
+
+image: node:24-alpine
+
+variables:
+  # Khớp `.env.example`. Trong CI, Postgres là một service cùng mạng nên host
+  # là tên service, không phải `localhost`, và cổng là 5432 chuẩn — hai cổng
+  # 5442/5443 chỉ tồn tại để tránh đụng cổng trên máy dev.
+  POSTGRES_USER: whynow
+  POSTGRES_PASSWORD: whynow
+  POSTGRES_DB: whynow_test
+  POSTGRES_HOST_AUTH_METHOD: trust
+  DATABASE_URL: "postgresql://whynow:whynow@postgres:5432/whynow_test?schema=public"
+  TEST_DATABASE_URL: "postgresql://whynow:whynow@postgres:5432/whynow_test?schema=public"
+  # `ANTHROPIC_API_KEY` KHÔNG đặt ở đây và không được đặt ở đây. Không job nào
+  # gọi mô hình: `T-2` và `T-10` kiểm luật nghiệp vụ và ranh giới kiến trúc,
+  # cả hai chạy khô. Khoá thật đặt ở Settings → CI/CD → Variables, masked.
+
+stages:
+  - lint
+  - typecheck
+  - test
+  - build
+
+cache:
+  key:
+    files:
+      - package-lock.json
+  paths:
+    - .npm/
+
+.node_base:
+  before_script:
+    # `npm ci --cache .npm --prefer-offline` chứ không `npm install`: `ci` đọc
+    # `package-lock.json` và dựng đúng cây đã khoá. `install` được phép nâng
+    # phiên bản, tức CI xanh không chứng minh gì về cái máy dev đang chạy.
+    - npm ci --cache .npm --prefer-offline
+
+lint:
+  stage: lint
+  extends: .node_base
+  script:
+    # Không chỉ là style: `eslint.config.mjs` cưỡng chế ranh giới nhập `AD-1`
+    # cho cả năm tầng. Một lượt `src/app` nhập thẳng `@/core` đỏ ở đây.
+    - npm run lint
+
+typecheck:
+  stage: typecheck
+  extends: .node_base
+  script:
+    - npx tsc --noEmit
+
+test:
+  stage: test
+  extends: .node_base
+  services:
+    - name: postgres:16-alpine
+      alias: postgres
+  script:
+    - npx prisma generate
+    # `migrate deploy`, KHÔNG `db push`: `db push` bỏ qua migration, tức mất
+    # sạch 4 `CHECK` và 4 chỉ mục một phần viết tay — và chính chúng là thứ
+    # `T-2` chứng minh (*"thử ghi thẳng, phải bị từ chối"*).
+    - npx prisma migrate deploy
+    - npx vitest run --reporter=verbose
+  artifacts:
+    when: always
+    paths:
+      - .verify/
+    expire_in: 1 week
+
+build:
+  stage: build
+  extends: .node_base
+  script:
+    # `next build` chạy TypeScript lần nữa và là phép kiểm cuối cho `§7.3`
+    # điều ①. Nó phải chạy được **không có mạng**: `src/app/layout.tsx` cố ý
+    # không dùng `next/font/google` vì lý do đó.
+    - npm run build
+  artifacts:
+    paths:
+      - .next/
+    expire_in: 1 day

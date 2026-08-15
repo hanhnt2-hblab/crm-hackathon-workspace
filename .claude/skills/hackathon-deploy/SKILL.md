@@ -80,14 +80,40 @@ hệ thống mới.
 Xong khi cả bốn lệnh dưới đây chạy được từ một bản clone sạch, không sửa mã:
 
 ```
-<lệnh khởi động>      # bản production, một lệnh
-<lệnh nạp dữ liệu>    # chạy lần hai về đúng trạng thái ban đầu
-<lệnh chạy kiểm thử>  # phủ T-1…T-10, in kết quả rõ ràng
-<lệnh dừng>           # rồi khởi động lại, dữ liệu còn nguyên
+npm run up        # npm ci && npm run build && npm start — bản production, một lệnh
+npm run seed      # chạy lần hai về đúng trạng thái ban đầu
+npm run verify    # phủ T-1…T-10, in mười dòng, thoát ≠ 0 nếu có dòng đỏ
+npm run stop      # docker compose down — rồi `npm start`, dữ liệu còn nguyên
 ```
 
-Chưa chốt stack cho `src/` nên chưa điền được lệnh thật. Chốt xong thì thay bốn dòng trên bằng lệnh
-thật, ở đây và ở `AGENTS.md`.
+Stack đã chốt (Next 16 · Prisma 7 · Postgres 16) và bốn lệnh trên là lệnh thật, khai luôn ở
+`AGENTS.md` mục *Running and verifying*.
+
+**Đã đo ngày 15/08 trên máy dev** — ghi ra để lần sau không phải đo lại, và để phân biệt cái đã
+chứng minh với cái mới chỉ viết ra:
+
+| Điều kiện `§7.3` | Trạng thái | Bằng chứng |
+|---|---|---|
+| ① bản dựng production | ✅ | `npm run build` sạch, TypeScript 5,3s, 7 route đều `ƒ` dynamic; `next start` trả HTTP 200 ở `/` `/accounts` `/admin` |
+| ② cấu hình ở env | ✅ | `.env.example` tự giải thích; tham số nghiệp vụ nằm ở bảng `settings`, không ở env (`AD-15`) |
+| ③ dữ liệu còn nguyên sau khởi động lại | ✅ | `docker compose restart db` → bốn phép đếm không đổi; volume có tên `why-now-pgdata` |
+| ④ đăng nhập hai tài khoản | ⚠ | Hai tài khoản có thật và phiên là cookie `httpOnly`, nhưng `signInAction` **chỉ nhận `userId`** — không mật khẩu. Đủ cho *"giám khảo tự vào"*, **không** đủ nếu bản chạy bị phơi ra mạng công cộng |
+| ⑤ một lệnh khởi động | ⚠ | `npm run up` vừa được thêm và **chưa chạy trọn từ một bản clone sạch** — đó đúng là chỗ skill này cảnh báo hay trượt nhất |
+| `§7.5` nạp một lệnh, luỹ đẳng | ✅ | `npm run seed` hai lần liên tiếp: `account=3 user=2 contact=3 opportunity=3 timeline=3` cả hai lần |
+
+**Chưa có, xếp theo bậc barem:** Dockerfile ứng dụng (bậc 1) — nhưng xem mâu thuẫn dưới đây trước
+khi viết · `.gitlab-ci.yml` (bậc 2) · giới hạn tài nguyên trong compose và một lượt rà OWASP
+(bậc 3) · health check ứng dụng, ngưỡng cảnh báo trên Nhật ký vòng quét, lệnh hoàn nguyên một bước
+(bậc 4).
+
+> ⚠ **Dockerfile ứng dụng mâu thuẫn với một quyết định đã ghi.** `docker-compose.yml` nói rõ ứng
+> dụng chạy **trên host** vì Agent SDK cần credential subscription ở `~/.claude`, và mount thư mục
+> đó vào ảnh là đúng kiểu dùng mà tài liệu Agent SDK cảnh báo. Đóng gói ứng dụng vào container
+> nghĩa là tầng AI phải chuyển sang `ANTHROPIC_API_KEY` — đường lui đã có sẵn ở `.env.example` và
+> không phải sửa dòng mã nào (`AD-AG-8`), nhưng nó là một lần đổi cấu hình thật, không phải một
+> tệp thêm vào. Bậc 1 của barem nhận **"Dockerfile / script deploy cơ bản"**, nên `npm run up`
+> cộng compose đã chạm bậc 1 mà không cần đổi gì. Quyết định này thuộc về người, không thuộc về
+> agent đang gấp.
 
 > **Bốn dòng trên còn là chỗ trống thì KHÔNG được tuyên bố "đã deploy", không được đánh dấu cột
 > Deployment là xong, và không được ghi vào memlog rằng bước triển khai đã đạt.** Một mục kiểm gồm
