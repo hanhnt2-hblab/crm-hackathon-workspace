@@ -47,3 +47,6 @@ next-env.d.ts
 /test-results/
 .verify/
 /bao-cao-nghiem-thu/
+
+# Rác tạm của phiên làm việc — bản sao lưu tay và log thăm dò
+.tmp-probe/

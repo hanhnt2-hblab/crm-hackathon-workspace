@@ -332,20 +332,61 @@ export const readPipelineBoardCap = defineCap({
 ///
 /// Mỗi con số đi kèm MỐC SO (`EXPERIENCE.md`, *Giọng chữ*): *"12/15 account đã
 /// quét"*, không phải *"12 account"*. Nên `flagged` trả kèm `total`.
+///
+/// ─────────────────────────────────────────────────────────────────────────────
+/// `ownerId` — CHIỀU LỌC theo người phụ trách (luật thi 15/08/2026 §3.3:
+/// *"chọn một Sales thì các con số và danh sách trên màn hình chỉ tính dữ liệu
+/// thuộc người đó"*).
+///
+/// ⚠ ĐÂY LÀ THAM SỐ DỮ LIỆU, KHÔNG PHẢI PHÉP KIỂM QUYỀN. `AD-CR-10` giữ
+/// `actor.role` ra khỏi mọi quyết định đọc, và lược đồ nói thẳng cùng một câu ở
+/// `Account.ownerId`: *"Định tuyến việc, KHÔNG phải phân quyền — ai cũng thấy
+/// mọi Công ty"*. Nên `allowedRoles` vẫn rỗng, và một phiên Sales vẫn xem được
+/// số của người khác. Trộn hai thứ lại là biến một bộ lọc thành một biên giới,
+/// và biên giới đó không có ở thượng nguồn nào.
+///
+/// ⚠ CHỦ SỞ HỮU CƠ HỘI SUY QUA CÔNG TY, và cái giá phải nói thẳng. Bảng
+/// `opportunity` KHÔNG có cột chủ sở hữu — đã đo bằng `\d opportunity` trên
+/// CSDL đang chạy, và `prisma/schema.prisma` chỉ khai `owner` cho `Account`.
+/// Nên *Cơ hội của Thảo* ở đây nghĩa là *Cơ hội thuộc Công ty do Thảo phụ
+/// trách*. Nếu dữ liệu nguồn mang một `sales_owner` riêng ở MỨC CƠ HỘI khác với
+/// chủ sở hữu Công ty, con số theo cách suy này sẽ KHÁC. Đó là giới hạn của
+/// lược đồ hôm nay, không phải một lựa chọn.
+///
+/// `"none"` là *Công ty chưa có người phụ trách*, không phải *không lọc*.
+/// `ownerId` là `String?`, nên còn một Công ty `NULL` thì tổng theo Sales không
+/// bằng tổng toàn cục — và một màn hình mà các phần không cộng lại thành tổng
+/// là một màn hình nói dối. Giá trị này là chỗ phần thiếu đó đi về.
+/// ─────────────────────────────────────────────────────────────────────────────
 export const readOverviewCap = defineCap({
   ...READ_COMMON,
   name: "readOverview",
   allowedActors: NGUOI,
-  params: z.object({}),
-  fn: async () => {
+  params: z.object({
+    ownerId: z.union([z.uuid(), z.literal("none")]).nullable().optional(),
+  }),
+  fn: async (_actor, p) => {
+    // MỘT mệnh đề, áp cho CẢ BỐN truy vấn. Dựng bốn mệnh đề riêng là mở bốn chỗ
+    // để quên một cái — và một ô đếm quên lọc là một con số nói dối, không phải
+    // một lỗi hiển thị.
+    const ownerWhere: { ownerId?: string | null } =
+      p.ownerId == null
+        ? {}
+        : p.ownerId === "none"
+          ? { ownerId: null }
+          : { ownerId: p.ownerId };
+    const viaAccount = { account: ownerWhere };
+
     const [accountCount, contactCount, opportunities, latestEntries] = await Promise.all([
-      db.account.count(),
-      db.contact.count(),
+      db.account.count({ where: ownerWhere }),
+      db.contact.count({ where: viaAccount }),
       db.opportunity.findMany({
+        where: viaAccount,
         orderBy: [{ updatedAt: "desc" }],
         select: { ...OPPORTUNITY_SELECT, account: { select: { id: true, name: true } } },
       }),
       db.timelineEntry.findMany({
+        where: { timeline: viaAccount },
         orderBy: [{ occurredAt: "desc" }, { createdAt: "desc" }, { id: "desc" }],
         take: 8,
         select: {
@@ -364,6 +405,10 @@ export const readOverviewCap = defineCap({
     for (const c of cards) byStage[c.stage] = (byStage[c.stage] ?? 0) + 1;
 
     return {
+      // Trả NGUYÊN VẸN bộ lọc đã dùng, đúng khuôn `searchAccounts`: bề mặt
+      // không phải tự nhớ nó đã gửi gì, nên không có đường để chữ trên màn hình
+      // nói một đằng còn con số tính một nẻo.
+      ownerId: p.ownerId ?? null,
       accountCount,
       contactCount,
       opportunityCount: cards.length,
@@ -377,6 +422,57 @@ export const readOverviewCap = defineCap({
         accountId: e.timeline.account.id,
         accountName: e.timeline.account.name,
       })),
+    };
+  },
+});
+
+/// Luật thi 15/08/2026 §3.3 — danh sách người phụ trách để dựng bộ chọn Sales
+/// trên màn hình tổng quan (`S1`, bề mặt mà `T-1` mở).
+///
+/// ⚠ Yêu cầu §3.3 KHÔNG có mã thượng nguồn — nó ra sau khi PRD và Mục 0 đã
+/// chốt. Xem khối chú thích ở `src/app/_today-sales-filter.tsx` để biết chỗ nó
+/// đi ngược một câu của đề bài §2 và vì sao chỗ ngược đó tan.
+///
+/// ⚠ DANH SÁCH LẤY TỪ DỮ LIỆU, KHÔNG LẤY TỪ README và không lấy từ
+/// `user.role = 'sales'`. Đây là cùng tiền lệ mà `searchAccountsCap` đã đặt ở
+/// khối `facets` — bộ lọc không bao giờ mời một lựa chọn trả về 0 dòng — nhưng
+/// ở đây nó còn giải
+/// một chuyện thứ hai: dữ liệu thật có những chủ sở hữu KHÔNG nằm trong danh
+/// sách Sales của tài liệu. Liệt theo tài liệu là bỏ sót đúng những người đó,
+/// và tổng theo Sales sẽ không bằng tổng toàn cục mà không ai thấy chỗ mất.
+///
+/// `unassignedAccountCount` là vế còn lại của cùng phép cộng: `Account.ownerId`
+/// là `String?`, nên phải có một ô cho các Công ty chưa gán. Bề mặt chỉ hiện ô
+/// đó khi nó lớn hơn 0 — không mời một lựa chọn rỗng.
+///
+/// Người phụ trách đã bị gỡ khỏi bảng `user` vẫn ĐƯỢC LIỆT, với chữ thay thế:
+/// bỏ họ đi thì các Công ty của họ không tới được bằng lựa chọn nào, và tổng
+/// lại lệch — đúng thứ mục này dựng ra để chặn.
+export const readSalesOwnersCap = defineCap({
+  ...READ_COMMON,
+  name: "readSalesOwners",
+  allowedActors: NGUOI,
+  params: z.object({}),
+  fn: async () => {
+    const rows = await db.account.findMany({ select: { ownerId: true } });
+
+    const ids = [...new Set(rows.map((r) => r.ownerId).filter((v) => v !== null))];
+    const unassignedAccountCount = rows.filter((r) => r.ownerId === null).length;
+
+    const users =
+      ids.length === 0
+        ? []
+        : await db.user.findMany({
+            where: { id: { in: ids } },
+            select: { id: true, displayName: true },
+          });
+    const nameById = new Map(users.map((u) => [u.id, u.displayName]));
+
+    return {
+      owners: ids
+        .map((id) => ({ id, displayName: nameById.get(id) ?? "Người phụ trách đã gỡ" }))
+        .sort((a, b) => a.displayName.localeCompare(b.displayName, "vi")),
+      unassignedAccountCount,
     };
   },
 });
@@ -528,5 +624,6 @@ export const entries: readonly RegistryEntry[] = [
   readAccountTimelineCap,
   readPipelineBoardCap,
   readOverviewCap,
+  readSalesOwnersCap,
   setQualificationSignalsCap,
 ] as unknown as readonly RegistryEntry[];

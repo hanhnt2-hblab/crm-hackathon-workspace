@@ -128,6 +128,16 @@ model User {
   email       String
   displayName String    @map("display_name")
   role        Role
+  /// Luật thi `3.2` — băm mật khẩu, KHÔNG BAO GIỜ chữ thô, kể cả mật khẩu demo
+  /// dùng chung. Định dạng `scrypt$N$r$p$saltHex$keyHex`; muối nằm trong chuỗi.
+  ///
+  /// ⚠ Nullable VÀ có mặc định, và cần cả hai vế:
+  ///   · nullable — `tests/**` và `e2e/**` tạo user bằng `db.user.create` không
+  ///     truyền trường này; một cột `NOT NULL` làm mọi phép kiểm đó đỏ;
+  ///   · mặc định — người tạo user từ dữ liệu nạp (`sourceRef = import:user:…`)
+  ///     cũng không truyền nó, mà `§7.3` đòi giám khảo đăng nhập được ngay.
+  ///     Mặc định là băm của mật khẩu demo, nên hàng nào cũng vào được.
+  passwordHash String?  @default("scrypt$16384$8$1$1ea50557cd250c0bde5cd56c2c9dd75f$fdbe9b345b850748d2ac8153a240e553c67f2c5a911c596b36c259b734e5acb9") @map("password_hash")
   /// `AD-UI-17`: gieo là upsert theo khoá tự nhiên, không xoá-rồi-chèn
   sourceRef   String?   @unique @map("source_ref")
   createdAt   DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
@@ -135,6 +145,9 @@ model User {
   deletedAt   DateTime? @map("deleted_at") @db.Timestamptz(6)
 
   ownedAccounts Account[]      @relation("AccountOwner")
+  /// Luật thi `3.3` — vế ngược của `Opportunity.ownerId`. Chủ Cơ hội KHÔNG suy
+  /// được từ `ownedAccounts`: hai tập khác nhau, xem chú thích ở cột kia.
+  ownedOpportunities Opportunity[] @relation("OpportunityOwner")
   auditRecords  AuditRecord[]
 
   @@map("user")
@@ -226,12 +239,23 @@ model Opportunity {
   /// Hai ô dấu hiệu — bỏ trống vẫn kéo được, chỉ mang cờ cảnh báo (`T-1`)
   needSignal      Boolean?  @map("need_signal")
   budgetSignal    Boolean?  @map("budget_signal")
+  /// Luật thi `3.3` — chủ sở hữu ở MỨC CƠ HỘI, không suy qua Công ty.
+  ///
+  /// ⚠ Suy qua `account.owner_id` cho con số SAI, và đã đo trên dữ liệu thật:
+  /// `Opps.csv` mang một cột `sales_owner` riêng cho từng Cơ hội, và `Demo` giữ
+  /// **8 trên 23** Cơ hội trong khi không phụ trách Công ty nào. Suy qua Công ty
+  /// thì tám Cơ hội ấy bị gán cho Sales chủ Công ty tương ứng, và bộ lọc theo
+  /// Sales lệch ở hơn một phần ba số Cơ hội — cộng các phần lại không ra tổng.
+  ///
+  /// Nullable như `Account.ownerId`: định tuyến việc, KHÔNG phải phân quyền.
+  ownerId         String?   @map("owner_id") @db.Uuid
   sourceRef       String?   @unique @map("source_ref")
   createdAt       DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
   updatedAt       DateTime  @updatedAt @map("updated_at") @db.Timestamptz(6)
   deletedAt       DateTime? @map("deleted_at") @db.Timestamptz(6)
 
   account       Account        @relation(fields: [accountId], references: [id])
+  owner         User?          @relation("OpportunityOwner", fields: [ownerId], references: [id])
   /// MỘT-NHIỀU, không phải một-một. Về nghiệp vụ vẫn là *"tối đa một Việc tiếp
   /// theo mỗi Cơ hội"*, nhưng xoá mềm để lại lịch sử: một Cơ hội có nhiều hàng
   /// `next_action`, trong đó **đúng một** hàng còn sống. Ràng buộc thật nằm ở
@@ -245,6 +269,8 @@ model Opportunity {
 
   @@index([accountId])
   @@index([stage])
+  /// Bộ lọc theo Sales của luật thi `3.3` quét đúng cột này.
+  @@index([ownerId])
   @@map("opportunity")
 }
 

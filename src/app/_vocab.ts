@@ -87,11 +87,31 @@ export const ACTIVITY_TYPE_LABEL: Record<string, string> = {
 
 /// Định dạng tiền theo `vi-VN`. Đơn vị đi CẶP với con số (`BR-D9`): một con số
 /// không đơn vị làm mọi phép tổng trên bảng Cơ hội vô nghĩa.
+/// ⚠ NHÓM NGHÌN TỰ CÀI, KHÔNG `toLocaleString`. Cùng luật mà `formatDateTime`
+/// ngay dưới đây đã phát biểu — và bản trước của hàm này vi phạm nó.
+///
+/// `Number.prototype.toLocaleString("vi-VN")` phụ thuộc dữ liệu ICU của môi
+/// trường. Máy chủ Node và trình duyệt có thể mang hai bộ ICU khác nhau, nên
+/// cùng một con số ra hai chuỗi — `4800000` ở một bên, `4.800.000` ở bên kia.
+/// React 19 coi lệch văn bản khi hydrate là lỗi và **gỡ cả cây**, nên triệu
+/// chứng là **trang trắng**, không phải một con số xấu.
+///
+/// Đã dính thật: bàn giai đoạn trắng sau khi nạp bộ dữ liệu BTC. Lúc chỉ có ba
+/// Cơ hội gieo sẵn nó không lộ; mười tám Cơ hội với ba loại tiền thì lộ.
+///
+/// Dấu chấm phân nhóm theo cách viết Việt Nam, tự cài nên hai bên luôn giống nhau.
 export function formatAmount(amount: string | null, currency: string | null): string {
   if (amount === null) return "—";
   const n = Number(amount);
-  const shown = Number.isFinite(n) ? n.toLocaleString("vi-VN") : amount;
-  return currency ? `${shown} ${currency}` : shown;
+  if (!Number.isFinite(n)) return currency ? `${amount} ${currency}` : amount;
+  const am = Math.abs(n);
+  const nguyen = Math.trunc(am);
+  const le = Math.round((am - nguyen) * 100);
+  const nhom = String(nguyen).replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+  // Chỉ hiện phần lẻ khi khác 0: `Decimal(14,2)` luôn mang `.00`, và in nó ra
+  // cho mọi con số làm cột tiền dài thêm mà không thêm thông tin nào.
+  const so = (n < 0 ? "-" : "") + nhom + (le === 0 ? "" : `,${String(le).padStart(2, "0")}`);
+  return currency ? `${so} ${currency}` : so;
 }
 
 /// Ngày giờ theo `vi-VN`, múi giờ của máy chủ. Không dùng `toLocaleString` với

@@ -97,7 +97,23 @@ export type TimelineRow = {
   addedBy: string;
 };
 
+/// Luật thi 15/08/2026 §3.3 — các lựa chọn của bộ chọn Sales trên `S1`.
+///
+/// Giá trị có THẬT trong dữ liệu, không phải danh sách Sales của tài liệu: dữ
+/// liệu nhập có chủ sở hữu nằm ngoài danh sách đó, và bỏ sót họ thì tổng theo
+/// Sales không bằng tổng toàn cục.
+export type SalesOwnerOptions = {
+  owners: Array<{ id: string; displayName: string }>;
+  /// Công ty có `ownerId` rỗng. Bề mặt chỉ mời lựa chọn *chưa gán* khi số này
+  /// lớn hơn 0 — theo tiền lệ `facets` của `searchAccountsCap`, không theo một
+  /// câu nào của `S6`.
+  unassignedAccountCount: number;
+};
+
 export type Overview = {
+  /// Bộ lọc ĐÃ DÙNG, trả nguyên vẹn từ capability (`null` = tất cả,
+  /// `"none"` = chưa có người phụ trách). Bề mặt không tự nhớ nó đã gửi gì.
+  ownerId: string | null;
   accountCount: number;
   contactCount: number;
   opportunityCount: number;

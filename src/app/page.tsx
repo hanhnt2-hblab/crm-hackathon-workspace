@@ -12,13 +12,35 @@
 // hoạt động mới nhất.
 //
 // `AD-UI-5` — server component; `AD-UI-8` — hai khối tải độc lập.
+//
+// ─────────────────────────────────────────────────────────────────────────────
+// BỘ LỌC THEO SALES — luật thi 15/08/2026 §3.3, nguyên văn: *"Màn hình tổng
+// quan trong ngày phải có sẵn view lọc theo từng Sales: chọn một Sales thì các
+// con số và danh sách trên màn hình chỉ tính dữ liệu thuộc người đó"*.
+//
+// Đây là một CHIỀU LỌC thêm vào, không phải một màn hình viết lại: mọi chữ hiển
+// thị đã có trên `/` còn nguyên từng ký tự, vì `e2e/T1.spec.ts` bắt trang này
+// bằng ba tên vai và Playwright khớp tên theo chuỗi con.
+//
+// ⚠ LỌC NẰM TRONG CAPABILITY, không nằm ở đây. Đọc hết rồi cắt trên giao diện
+// sai cả hai đường: sai về SỐ, vì `take: 8` của Hoạt động mới nhất lấy tám dòng
+// TOÀN CỤC rồi mới cắt, nên lọc sau khi đọc cho ra ít hơn tám dòng của người đó
+// mà không có gì báo là đã mất; và sai về RANH GIỚI, vì tầng ① cầm dữ liệu mà
+// nó không được phép hiển thị.
+//
+// ⚠ BỘ CHỌN LÀ KHỐI RIÊNG (`AD-UI-8`). Nó có `Suspense` và `Block`
+// riêng: `readOverview` hỏng thì bộ chọn vẫn render, nên người dùng vẫn đổi
+// được bộ lọc để thoát khỏi chỗ hỏng. Gói chung thì một lượt đọc số liệu hỏng
+// khoá luôn cái điều khiển duy nhất của màn hình.
+// ─────────────────────────────────────────────────────────────────────────────
 
 import { Suspense } from "react";
 import Link from "next/link";
 import { Block } from "./_block";
 import { appRegistry } from "./_registry";
 import { currentSession } from "./_session";
-import type { Overview } from "./_types";
+import { TodaySalesFilter } from "./_today-sales-filter";
+import type { Overview, SalesOwnerOptions } from "./_types";
 import {
   ADDED_BY_LABEL,
   FLAG_LABEL,
@@ -27,28 +49,65 @@ import {
   formatDateTime,
 } from "./_vocab";
 
-export default function OverviewPage() {
+export default async function OverviewPage(props: PageProps<"/">) {
+  const sp = await props.searchParams;
+  const sales = normalizeSales(one(sp.sales));
+
   return (
     <>
       <div className="row">
         <h1 className="page-title">Tổng quan</h1>
       </div>
 
+      <Block title="Xem theo người phụ trách">
+        <Suspense fallback={<SalesFilterSkeleton />}>
+          <SalesFilterBlock sales={sales} />
+        </Suspense>
+      </Block>
+
       <Block title="Tổng quan">
         <Suspense fallback={<OverviewSkeleton />}>
-          <OverviewBlock />
+          <OverviewBlock sales={sales} />
         </Suspense>
       </Block>
     </>
   );
 }
 
-async function OverviewBlock() {
+async function SalesFilterBlock({ sales }: { sales: string }) {
   const session = await currentSession();
-  const read = await appRegistry.loadCapability("readOverview", session.actor);
-  const data = (await read({})) as Overview;
+  const read = await appRegistry.loadCapability("readSalesOwners", session.actor);
+  const data = (await read({})) as SalesOwnerOptions;
+
+  return (
+    <section className="card">
+      <TodaySalesFilter
+        owners={data.owners}
+        unassignedAccountCount={data.unassignedAccountCount}
+        current={sales}
+      />
+    </section>
+  );
+}
+
+async function OverviewBlock({ sales }: { sales: string }) {
+  const session = await currentSession();
+
+  // Hai lượt đọc song song, cùng một `actor`, cùng đi qua Cổng. Lượt thứ hai
+  // chỉ để DỊCH `sales` thành tên người: khối này không được nhận tên từ khối
+  // bộ chọn, vì `AD-UI-8` bắt hai khối hỏng độc lập — mà độc lập nghĩa là không
+  // khối nào chờ khối kia.
+  const [readOverview, readOwners] = await Promise.all([
+    appRegistry.loadCapability("readOverview", session.actor),
+    appRegistry.loadCapability("readSalesOwners", session.actor),
+  ]);
+  const [data, owners] = await Promise.all([
+    readOverview({ ownerId: sales === "" ? null : sales }) as Promise<Overview>,
+    readOwners({}) as Promise<SalesOwnerOptions>,
+  ]);
 
   const running = STAGE_ORDER.filter((s) => s !== "thang" && s !== "thua");
+  const salesLabel = describeSales(data.ownerId, owners);
 
   return (
     <>
@@ -75,6 +134,16 @@ async function OverviewBlock() {
         </div>
       </div>
 
+      {/* Luật thi 15/08/2026 §3.3 — dòng THÊM, không đè lên nhãn nào ở trên.
+          Chính luật đó đòi *"chọn một Sales thì các con số … chỉ tính dữ liệu
+          thuộc người đó"*, nên màn hình phải nói được nó đang tính cho ai.
+          Bốn ô đếm không tự nói được
+          chúng đang đếm phạm vi nào, và một con số không nói phạm vi là một con
+          số đọc nhầm được. Nó đọc `data.ownerId` — bộ lọc capability THẬT SỰ đã
+          dùng — chứ không đọc lại tham số địa chỉ, nên chữ ở đây không bao giờ
+          nói một đằng còn con số tính một nẻo. */}
+      <p className="field-note">Đang tính cho: {salesLabel}.</p>
+
       <section className="card">
         <h2 className="card-title">Cơ hội theo giai đoạn</h2>
         <div className="row">
@@ -96,8 +165,13 @@ async function OverviewBlock() {
           <h2 className="card-title">Cơ hội cần rà lại · {data.flagged.length}</h2>
           {data.flagged.length === 0 ? (
             // Trạng thái rỗng ở đây là TIN VUI, nên nó không dùng giọng của một
-            // chỗ thiếu dữ liệu.
-            <p className="empty">Không cơ hội nào mang cờ cảnh báo.</p>
+            // chỗ thiếu dữ liệu. Khi đang lọc thì nói rõ lọc theo AI — *"không
+            // cơ hội nào"* trong lúc một bộ lọc đang bật là một câu nói sai
+            // (`EXPERIENCE.md`, `S6` hàng *Lỗi*).
+            <p className="empty">
+              Không cơ hội nào mang cờ cảnh báo.
+              {data.ownerId === null ? "" : ` (đang lọc theo ${salesLabel})`}
+            </p>
           ) : (
             <table className="table">
               <tbody>
@@ -130,6 +204,7 @@ async function OverviewBlock() {
             <p className="empty">
               Hôm nay chưa có việc nào được ghi. Mở một công ty rồi ghi hoạt động
               đầu tiên.
+              {data.ownerId === null ? "" : ` (đang lọc theo ${salesLabel})`}
             </p>
           ) : (
             <table className="table">
@@ -157,6 +232,14 @@ async function OverviewBlock() {
   );
 }
 
+function SalesFilterSkeleton() {
+  return (
+    <section className="card" aria-busy="true">
+      <p className="muted">Đang đọc danh sách người phụ trách…</p>
+    </section>
+  );
+}
+
 function OverviewSkeleton() {
   return (
     <section className="card" aria-busy="true">
@@ -166,4 +249,31 @@ function OverviewSkeleton() {
       ))}
     </section>
   );
+}
+
+/// Chữ cho phạm vi đang tính. Tên người tra từ danh sách THẬT; một `id` không
+/// tra được vẫn phải ra một câu đọc được, không ra một `uuid` trần.
+function describeSales(ownerId: string | null, owners: SalesOwnerOptions): string {
+  if (ownerId === null) return "tất cả Sales";
+  if (ownerId === "none") return "công ty chưa có người phụ trách";
+  return owners.owners.find((o) => o.id === ownerId)?.displayName ?? "một người phụ trách";
+}
+
+/// `?sales=` chấp nhận ĐÚNG ba hình dạng: rỗng (tất cả), `none`, hoặc một
+/// `uuid`. Bất kỳ thứ gì khác quy về **tất cả** ngay tại đây.
+///
+/// ⚠ Lọc ở đây KHÔNG thay cho Zod của capability, và ngược lại. Zod là chốt
+/// đúng đắn; chốt này là chốt TRẢI NGHIỆM: một địa chỉ gõ tay hỏng phải ra màn
+/// hình đầy đủ, không ra một trang lỗi. Bỏ chốt này thì `?sales=abc` thành
+/// `bad_params` và cả màn hình tổng quan trắng vì một ký tự thừa.
+const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+function normalizeSales(v: string): string {
+  if (v === "none") return "none";
+  return UUID.test(v) ? v : "";
+}
+
+function one(v: string | string[] | undefined): string {
+  if (Array.isArray(v)) return v[0] ?? "";
+  return v ?? "";
 }

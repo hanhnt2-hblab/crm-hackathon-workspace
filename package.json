@@ -23,6 +23,7 @@
     "@fluentui/react-components": "9.74.6",
     "@prisma/adapter-pg": "7.9.1",
     "@prisma/client": "7.9.1",
+    "fflate": "^0.8.3",
     "next": "^16.3.1",
     "react": "19.2.8",
     "react-dom": "19.2.8",
